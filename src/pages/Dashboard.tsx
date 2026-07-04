@@ -90,63 +90,63 @@ const Dashboard = () => {
   return (
     <AppLayout title="Tableau de bord">
       {alertCount > 0 && (
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6 bg-destructive/5 border border-destructive/20 rounded-xl p-4">
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-4 sm:mb-6 bg-destructive/5 border border-destructive/20 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-3">
-            <AlertTriangle className="w-5 h-5 text-destructive" />
-            <h3 className="font-semibold text-foreground">{alertCount} alerte{alertCount > 1 ? "s" : ""} à traiter</h3>
+            <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-destructive" />
+            <h3 className="font-semibold text-foreground text-sm sm:text-base">{alertCount} alerte{alertCount > 1 ? "s" : ""} à traiter</h3>
           </div>
-          <div className="grid sm:grid-cols-2 gap-3">
+          <div className="grid sm:grid-cols-2 gap-2 sm:gap-3">
             {lowStockMeds.length > 0 && (
               <Link to="/pharmacy" className="flex items-center gap-2 p-2 rounded-lg bg-card border border-border hover:bg-secondary/50 transition-colors">
-                <Pill className="w-4 h-4 text-destructive" /><span className="text-sm text-foreground">{lowStockMeds.length} produit{lowStockMeds.length > 1 ? "s" : ""} en rupture</span><ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
+                <Pill className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-destructive" /><span className="text-xs sm:text-sm text-foreground">{lowStockMeds.length} produit{lowStockMeds.length > 1 ? "s" : ""} en rupture</span><ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground ml-auto" />
               </Link>
             )}
             {pendingLabs.length > 0 && (
               <Link to="/laboratory" className="flex items-center gap-2 p-2 rounded-lg bg-card border border-border hover:bg-secondary/50 transition-colors">
-                <FlaskConical className="w-4 h-4 text-warning" /><span className="text-sm text-foreground">{pendingLabs.length} analyse{pendingLabs.length > 1 ? "s" : ""} en attente</span><ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
+                <FlaskConical className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-warning" /><span className="text-xs sm:text-sm text-foreground">{pendingLabs.length} analyse{pendingLabs.length > 1 ? "s" : ""} en attente</span><ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground ml-auto" />
               </Link>
             )}
           </div>
         </motion.div>
       )}
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
         {statCards.map((stat, i) => (
-          <motion.div key={stat.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} className="bg-card rounded-xl p-5 shadow-card border border-border">
-            <div className="flex items-center justify-between mb-3">
-              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${stat.color}`}><stat.icon className="w-5 h-5" /></div>
+          <motion.div key={stat.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} className="bg-card rounded-xl p-3 sm:p-5 shadow-card border border-border">
+            <div className="flex items-center justify-between mb-2 sm:mb-3">
+              <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center ${stat.color}`}><stat.icon className="w-4 h-4 sm:w-5 sm:h-5" /></div>
             </div>
-            <p className="text-2xl font-bold text-foreground">{stat.value}</p>
-            <p className="text-sm text-muted-foreground">{stat.label}</p>
+            <p className="text-xl sm:text-2xl font-bold text-foreground">{stat.value}</p>
+            <p className="text-xs sm:text-sm text-muted-foreground">{stat.label}</p>
           </motion.div>
         ))}
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6 mb-8">
-        <div className="lg:col-span-2 bg-card rounded-xl p-6 shadow-card border border-border">
-          <h3 className="font-semibold text-foreground mb-4">Revenus mensuels (paiements encaissés)</h3>
-          {revenueData.length === 0 ? <p className="text-center py-12 text-muted-foreground">Aucun paiement encaissé</p> : (
-            <ResponsiveContainer width="100%" height={260}>
+      <div className="grid lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+        <div className="lg:col-span-2 bg-card rounded-xl p-4 sm:p-6 shadow-card border border-border">
+          <h3 className="font-semibold text-foreground mb-3 sm:mb-4 text-sm sm:text-base">Revenus mensuels (paiements encaissés)</h3>
+          {revenueData.length === 0 ? <p className="text-center py-12 text-muted-foreground text-sm">Aucun paiement encaissé</p> : (
+            <ResponsiveContainer width="100%" height={200}>
               <LineChart data={revenueData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickFormatter={(v) => `${(v / 1000).toFixed(0)}K`} />
+                <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={10} />
+                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={10} tickFormatter={(v) => `${(v / 1000).toFixed(0)}K`} />
                 <Tooltip formatter={(v: number) => [`${v.toLocaleString()} FCFA`, "Revenus"]} />
                 <Line type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={2.5} dot={{ fill: "hsl(var(--primary))", r: 4 }} />
               </LineChart>
             </ResponsiveContainer>
           )}
         </div>
-        <div className="bg-card rounded-xl p-6 shadow-card border border-border">
-          <h3 className="font-semibold text-foreground mb-4">Types de consultations</h3>
-          {consultationTypes.length === 0 ? <p className="text-center py-12 text-muted-foreground">Aucun rendez-vous</p> : (
+        <div className="bg-card rounded-xl p-4 sm:p-6 shadow-card border border-border">
+          <h3 className="font-semibold text-foreground mb-3 sm:mb-4 text-sm sm:text-base">Types de consultations</h3>
+          {consultationTypes.length === 0 ? <p className="text-center py-12 text-muted-foreground text-sm">Aucun rendez-vous</p> : (
             <>
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart><Pie data={consultationTypes} cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="value" paddingAngle={3}>{consultationTypes.map((entry, i) => <Cell key={i} fill={entry.color} />)}</Pie><Tooltip /></PieChart>
+              <ResponsiveContainer width="100%" height={160}>
+                <PieChart><Pie data={consultationTypes} cx="50%" cy="50%" innerRadius={40} outerRadius={60} dataKey="value" paddingAngle={3}>{consultationTypes.map((entry, i) => <Cell key={i} fill={entry.color} />)}</Pie><Tooltip /></PieChart>
               </ResponsiveContainer>
               <div className="grid grid-cols-2 gap-2 mt-2">
                 {consultationTypes.map((ct) => (
-                  <div key={ct.name} className="flex items-center gap-2 text-xs"><div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: ct.color }} /><span className="text-muted-foreground">{ct.name} ({ct.value})</span></div>
+                  <div key={ct.name} className="flex items-center gap-2 text-[10px] sm:text-xs"><div className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full" style={{ backgroundColor: ct.color }} /><span className="text-muted-foreground">{ct.name} ({ct.value})</span></div>
                 ))}
               </div>
             </>
@@ -154,65 +154,65 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6 mb-8">
-        <div className="bg-card rounded-xl p-6 shadow-card border border-border">
-          <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2"><Stethoscope className="w-5 h-5 text-primary" />Rendez-vous cette semaine</h3>
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={weeklyAppointments}><CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" /><XAxis dataKey="day" stroke="hsl(var(--muted-foreground))" fontSize={12} /><YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} allowDecimals={false} /><Tooltip /><Bar dataKey="count" fill="hsl(var(--accent))" radius={[6, 6, 0, 0]} name="RDV" /></BarChart>
+      <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+        <div className="bg-card rounded-xl p-4 sm:p-6 shadow-card border border-border">
+          <h3 className="font-semibold text-foreground mb-3 sm:mb-4 flex items-center gap-2 text-sm sm:text-base"><Stethoscope className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />Rendez-vous cette semaine</h3>
+          <ResponsiveContainer width="100%" height={180}>
+            <BarChart data={weeklyAppointments}><CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" /><XAxis dataKey="day" stroke="hsl(var(--muted-foreground))" fontSize={10} /><YAxis stroke="hsl(var(--muted-foreground))" fontSize={10} allowDecimals={false} /><Tooltip /><Bar dataKey="count" fill="hsl(var(--accent))" radius={[6, 6, 0, 0]} name="RDV" /></BarChart>
           </ResponsiveContainer>
         </div>
-        <div className="bg-card rounded-xl p-6 shadow-card border border-border">
-          <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2"><Pill className="w-5 h-5 text-warning" />Stock pharmacie critique</h3>
-          {pharmacyItems.length === 0 ? <p className="text-sm text-muted-foreground">Aucun produit enregistré</p> : lowStockMeds.length === 0 ? <p className="text-sm text-muted-foreground">Tous les stocks sont suffisants ✓</p> : (
-            <div className="space-y-3">
+        <div className="bg-card rounded-xl p-4 sm:p-6 shadow-card border border-border">
+          <h3 className="font-semibold text-foreground mb-3 sm:mb-4 flex items-center gap-2 text-sm sm:text-base"><Pill className="w-4 h-4 sm:w-5 sm:h-5 text-warning" />Stock pharmacie critique</h3>
+          {pharmacyItems.length === 0 ? <p className="text-xs sm:text-sm text-muted-foreground">Aucun produit enregistré</p> : lowStockMeds.length === 0 ? <p className="text-xs sm:text-sm text-muted-foreground">Tous les stocks sont suffisants ✓</p> : (
+            <div className="space-y-2 sm:space-y-3">
               {lowStockMeds.slice(0, 6).map((med) => {
                 const pct = Math.min((med.quantity / Math.max(med.threshold, 1)) * 100, 100);
                 return (
-                  <div key={med.id}><div className="flex items-center justify-between mb-1"><span className="text-sm text-foreground">{med.name}</span><span className="text-xs font-medium text-destructive">{med.quantity}/{med.threshold}</span></div><Progress value={pct} className="h-2 [&>div]:bg-destructive" /></div>
+                  <div key={med.id}><div className="flex items-center justify-between mb-1"><span className="text-xs sm:text-sm text-foreground">{med.name}</span><span className="text-[10px] sm:text-xs font-medium text-destructive">{med.quantity}/{med.threshold}</span></div><Progress value={pct} className="h-1.5 sm:h-2 [&>div]:bg-destructive" /></div>
                 );
               })}
             </div>
           )}
-          <Link to="/pharmacy" className="inline-flex items-center gap-1 text-sm text-primary mt-4 hover:underline">Voir tout <ChevronRight className="w-4 h-4" /></Link>
+          <Link to="/pharmacy" className="inline-flex items-center gap-1 text-xs sm:text-sm text-primary mt-3 sm:mt-4 hover:underline">Voir tout <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" /></Link>
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6 mb-8">
-        <div className="bg-card rounded-xl p-6 shadow-card border border-border">
-          <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2"><Activity className="w-5 h-5 text-primary" />Activités récentes</h3>
-          <div className="space-y-4">
-            {recentActivities.length === 0 ? <p className="text-sm text-muted-foreground">Aucune activité récente</p> : recentActivities.map((act, i) => (
-              <div key={i} className="flex items-start gap-3">
-                <div className={`w-8 h-8 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0 ${act.color}`}><act.icon className="w-4 h-4" /></div>
-                <div className="flex-1 min-w-0"><p className="text-sm text-foreground leading-tight">{act.text}</p><p className="text-xs text-muted-foreground mt-0.5">{act.time}</p></div>
+      <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+        <div className="bg-card rounded-xl p-4 sm:p-6 shadow-card border border-border">
+          <h3 className="font-semibold text-foreground mb-3 sm:mb-4 flex items-center gap-2 text-sm sm:text-base"><Activity className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />Activités récentes</h3>
+          <div className="space-y-3 sm:space-y-4">
+            {recentActivities.length === 0 ? <p className="text-xs sm:text-sm text-muted-foreground">Aucune activité récente</p> : recentActivities.map((act, i) => (
+              <div key={i} className="flex items-start gap-2 sm:gap-3">
+                <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0 ${act.color}`}><act.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" /></div>
+                <div className="flex-1 min-w-0"><p className="text-xs sm:text-sm text-foreground leading-tight">{act.text}</p><p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">{act.time}</p></div>
               </div>
             ))}
           </div>
         </div>
-        <div className="bg-card rounded-xl p-6 shadow-card border border-border">
-          <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2"><Clock className="w-5 h-5 text-primary" />Rendez-vous à venir</h3>
-          <div className="space-y-3">
-            {upcomingAppts.length === 0 ? <p className="text-sm text-muted-foreground">Aucun rendez-vous à venir</p> : upcomingAppts.map((a) => (
-              <div key={a.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/50">
-                <div><p className="text-sm font-medium text-foreground">{a.patient_name}</p><p className="text-xs text-muted-foreground">{a.doctor_name} — {a.type}</p></div>
-                <div className="text-right"><p className="text-sm font-medium text-foreground">{a.time}</p><p className="text-xs text-muted-foreground">{a.date}</p></div>
+        <div className="bg-card rounded-xl p-4 sm:p-6 shadow-card border border-border">
+          <h3 className="font-semibold text-foreground mb-3 sm:mb-4 flex items-center gap-2 text-sm sm:text-base"><Clock className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />Rendez-vous à venir</h3>
+          <div className="space-y-2 sm:space-y-3">
+            {upcomingAppts.length === 0 ? <p className="text-xs sm:text-sm text-muted-foreground">Aucun rendez-vous à venir</p> : upcomingAppts.map((a) => (
+              <div key={a.id} className="flex items-center justify-between p-2 sm:p-3 rounded-lg bg-secondary/50">
+                <div><p className="text-xs sm:text-sm font-medium text-foreground">{a.patient_name}</p><p className="text-[10px] sm:text-xs text-muted-foreground">{a.doctor_name} — {a.type}</p></div>
+                <div className="text-right"><p className="text-xs sm:text-sm font-medium text-foreground">{a.time}</p><p className="text-[10px] sm:text-xs text-muted-foreground">{a.date}</p></div>
               </div>
             ))}
           </div>
-          <Link to="/appointments" className="inline-flex items-center gap-1 text-sm text-primary mt-4 hover:underline">Voir tout <ChevronRight className="w-4 h-4" /></Link>
+          <Link to="/appointments" className="inline-flex items-center gap-1 text-xs sm:text-sm text-primary mt-3 sm:mt-4 hover:underline">Voir tout <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" /></Link>
         </div>
       </div>
 
-      <div className="bg-card rounded-xl p-6 shadow-card border border-border">
-        <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2"><UserCheck className="w-5 h-5 text-accent-foreground" />Médecins ({doctors.length})</h3>
-        {doctors.length === 0 ? <p className="text-sm text-muted-foreground">Aucun médecin enregistré. <Link to="/staff" className="text-primary hover:underline">Ajoutez-en un</Link>.</p> : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="bg-card rounded-xl p-4 sm:p-6 shadow-card border border-border">
+        <h3 className="font-semibold text-foreground mb-3 sm:mb-4 flex items-center gap-2 text-sm sm:text-base"><UserCheck className="w-4 h-4 sm:w-5 sm:h-5 text-accent-foreground" />Médecins ({doctors.length})</h3>
+        {doctors.length === 0 ? <p className="text-xs sm:text-sm text-muted-foreground">Aucun médecin enregistré. <Link to="/staff" className="text-primary hover:underline">Ajoutez-en un</Link>.</p> : (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
             {doctors.map((d) => {
               const initials = d.name.replace(/^Dr\.?\s*/i, "").split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
               return (
-                <div key={d.id} className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
-                  <div className="w-10 h-10 rounded-full gradient-hero flex items-center justify-center text-sm font-bold text-primary-foreground">{initials}</div>
-                  <div className="flex-1"><p className="text-sm font-medium text-foreground">{d.name}</p><p className="text-xs text-muted-foreground">{d.specialty}</p></div>
+                <div key={d.id} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-secondary/50">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full gradient-hero flex items-center justify-center text-xs sm:text-sm font-bold text-primary-foreground">{initials}</div>
+                  <div className="flex-1 min-w-0"><p className="text-xs sm:text-sm font-medium text-foreground truncate">{d.name}</p><p className="text-[10px] sm:text-xs text-muted-foreground">{d.specialty}</p></div>
                   <Badge variant="outline" className={d.status === "active" ? "bg-success/10 text-success border-success/20" : "bg-muted text-muted-foreground"}>{d.status === "active" ? "Actif" : "—"}</Badge>
                 </div>
               );

@@ -39,18 +39,18 @@ const faqs = [
 
 const FAQSection = () => {
   return (
-    <section id="faq" className="py-20 bg-background">
+    <section id="faq" className="py-16 sm:py-20 bg-background">
       <div className="container mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-12"
+          className="text-center mb-10 sm:mb-12"
         >
-          <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-3 sm:mb-4">
             Questions fréquentes
           </h2>
-          <p className="text-muted-foreground text-lg">
+          <p className="text-base sm:text-lg text-muted-foreground">
             Tout ce que vous devez savoir sur Gesclic.
           </p>
         </motion.div>
@@ -61,13 +61,13 @@ const FAQSection = () => {
           viewport={{ once: true }}
           className="max-w-3xl mx-auto"
         >
-          <Accordion type="single" collapsible className="space-y-3">
+          <Accordion type="single" collapsible className="space-y-2 sm:space-y-3">
             {faqs.map((faq, i) => (
-              <AccordionItem key={i} value={`item-${i}`} className="bg-card rounded-xl border border-border px-6 shadow-card">
-                <AccordionTrigger className="text-left text-foreground font-medium hover:no-underline">
+              <AccordionItem key={i} value={`item-${i}`} className="bg-card rounded-xl border border-border px-4 sm:px-6 shadow-card">
+                <AccordionTrigger className="text-left text-foreground font-medium text-sm sm:text-base hover:no-underline">
                   {faq.q}
                 </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground leading-relaxed">
+                <AccordionContent className="text-muted-foreground leading-relaxed text-xs sm:text-sm">
                   {faq.a}
                 </AccordionContent>
               </AccordionItem>

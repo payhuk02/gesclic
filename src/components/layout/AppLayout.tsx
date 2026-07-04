@@ -27,16 +27,17 @@ const AppLayout = ({ children, title }: { children: ReactNode; title: string }) 
     <div className="min-h-screen bg-background">
       <AppSidebar />
       <div className={isMobile ? "pl-0" : "lg:pl-64 pl-16"}>
-        <header className="h-16 border-b border-border bg-card flex items-center justify-between px-6 sticky top-0 z-30">
+        <header className="h-16 border-b border-border bg-card flex items-center justify-between px-4 sm:px-6 sticky top-0 z-30">
           <div className="flex items-center">
             {isMobile && <div className="w-10" />}
-            <h1 className="text-lg font-semibold text-foreground">{title}</h1>
+            <h1 className="text-base sm:text-lg font-semibold text-foreground truncate">{title}</h1>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             <ClinicSwitcher />
             <button
               onClick={() => setSearchOpen(true)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-secondary/50 hover:bg-secondary transition-colors text-sm text-muted-foreground"
+              className="flex items-center gap-2 px-2 sm:px-3 py-1.5 rounded-lg border border-border bg-secondary/50 hover:bg-secondary transition-colors text-sm text-muted-foreground"
+              aria-label="Rechercher"
             >
               <Search className="w-4 h-4" />
               <span className="hidden sm:inline">Rechercher...</span>
@@ -47,14 +48,15 @@ const AppLayout = ({ children, title }: { children: ReactNode; title: string }) 
             <NotificationBell />
             <button
               onClick={() => setShowAI(!showAI)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors text-sm font-medium"
+              className="flex items-center gap-2 px-2 sm:px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors text-sm font-medium"
+              aria-label="Assistant IA"
             >
               <Bot className="w-4 h-4" />
               <span className="hidden sm:inline">Assistant IA</span>
             </button>
           </div>
         </header>
-        <main className="p-6">{children}</main>
+        <main className="p-4 sm:p-6">{children}</main>
       </div>
       {showAI && <MedicalAIAssistant onClose={() => setShowAI(false)} />}
       <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />

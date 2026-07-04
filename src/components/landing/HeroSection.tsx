@@ -13,40 +13,41 @@ const floatingItems = [
 
 const HeroSection = () => {
   return (
-    <section className="relative overflow-hidden bg-background pt-20 pb-16 lg:pt-28 lg:pb-24">
+    <section className="relative overflow-hidden bg-background pt-16 pb-12 sm:pt-20 sm:pb-16 lg:pt-28 lg:pb-24">
       {/* Background decorations */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
-          className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-primary/5 blur-3xl"
+          className="absolute -top-40 -right-40 w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] rounded-full bg-primary/5 blur-3xl"
           animate={{ scale: [1, 1.15, 1], opacity: [0.5, 0.8, 0.5] }}
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div
-          className="absolute -bottom-40 -left-40 w-[500px] h-[500px] rounded-full bg-accent/5 blur-3xl"
+          className="absolute -bottom-40 -left-40 w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] rounded-full bg-accent/5 blur-3xl"
           animate={{ scale: [1.1, 1, 1.1], opacity: [0.6, 0.4, 0.6] }}
           transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
         />
       </div>
 
       <div className="container relative mx-auto px-4">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           {/* Left: Text */}
           <div>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 rounded-full bg-medical-light px-4 py-1.5 text-sm font-medium text-primary mb-6"
+              className="inline-flex items-center gap-2 rounded-full bg-medical-light px-3 py-1.5 sm:px-4 text-xs sm:text-sm font-medium text-primary mb-4 sm:mb-6"
             >
-              <Shield className="w-4 h-4" />
-              Plateforme certifiée pour la santé en Afrique
+              <Shield className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Plateforme certifiée pour la santé en Afrique</span>
+              <span className="sm:hidden">Certifié santé Afrique</span>
             </motion.div>
 
             <motion.h1
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-4xl lg:text-6xl font-extrabold tracking-tight text-foreground leading-[1.1] mb-6"
+              className="text-3xl sm:text-4xl lg:text-6xl font-extrabold tracking-tight text-foreground leading-[1.1] mb-4 sm:mb-6"
             >
               La gestion médicale{" "}
               <span className="gradient-hero-text">
@@ -59,7 +60,7 @@ const HeroSection = () => {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-lg text-muted-foreground leading-relaxed mb-8 max-w-lg"
+              className="text-base sm:text-lg text-muted-foreground leading-relaxed mb-6 sm:mb-8 max-w-lg"
             >
               Gérez vos rendez-vous, patients, dossiers médicaux et paiements
               depuis une seule plateforme. Conçu pour les cliniques, cabinets et
@@ -70,17 +71,17 @@ const HeroSection = () => {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.35 }}
-              className="flex flex-wrap gap-4 mb-12"
+              className="flex flex-col sm:flex-wrap sm:flex-row gap-3 sm:gap-4 mb-8 sm:mb-12"
             >
-              <Button asChild size="lg" className="gradient-hero border-0 text-lg px-8 shadow-hero hover:opacity-90 transition-opacity">
+              <Button asChild size="lg" className="gradient-hero border-0 text-base sm:text-lg px-6 sm:px-8 shadow-hero hover:opacity-90 transition-opacity w-full sm:w-auto">
                 <Link to="/register">
                   Commencer gratuitement
-                  <ArrowRight className="ml-2 w-5 h-5" />
+                  <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
                 </Link>
               </Button>
-              <Button asChild variant="outline" size="lg" className="text-lg px-8">
+              <Button asChild variant="outline" size="lg" className="text-base sm:text-lg px-6 sm:px-8 w-full sm:w-auto">
                 <Link to="/login">
-                  <Play className="mr-2 w-5 h-5" />
+                  <Play className="mr-2 w-4 h-4 sm:w-5 sm:h-5" />
                   Voir la démo
                 </Link>
               </Button>
@@ -90,14 +91,14 @@ const HeroSection = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.5 }}
-              className="flex items-center gap-8 text-sm text-muted-foreground"
+              className="flex items-center gap-4 sm:gap-8 text-xs sm:text-sm text-muted-foreground"
             >
               <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-primary" />
+                <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
                 <span>Mise en place en 5 min</span>
               </div>
               <div className="flex items-center gap-2">
-                <Users className="w-4 h-4 text-accent" />
+                <Users className="w-3 h-3 sm:w-4 sm:h-4 text-accent" />
                 <span>+500 cliniques</span>
               </div>
             </motion.div>

@@ -21,23 +21,23 @@ const features = [
 
 const FeaturesSection = () => {
   return (
-    <section id="features" className="py-20 bg-secondary/30">
+    <section id="features" className="py-16 sm:py-20 bg-secondary/30">
       <div className="container mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-16"
+          className="text-center mb-12 sm:mb-16"
         >
-          <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-3 sm:mb-4">
             Tout ce dont votre clinique a besoin
           </h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
             Une suite complète d'outils pour gérer votre établissement de santé efficacement.
           </p>
         </motion.div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
           {features.map((feature, i) => (
             <motion.div
               key={feature.title}
@@ -45,13 +45,13 @@ const FeaturesSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.05 }}
-              className="bg-card rounded-xl p-6 shadow-card hover:shadow-elevated transition-shadow border border-border group"
+              className="bg-card rounded-xl p-4 sm:p-6 shadow-card hover:shadow-elevated transition-shadow border border-border group"
             >
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${feature.color} group-hover:scale-110 transition-transform`}>
-                <feature.icon className="w-6 h-6" />
+              <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center mb-3 sm:mb-4 ${feature.color} group-hover:scale-110 transition-transform`}>
+                <feature.icon className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
-              <h3 className="font-semibold text-foreground mb-2">{feature.title}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">{feature.desc}</p>
+              <h3 className="font-semibold text-foreground mb-2 text-sm sm:text-base">{feature.title}</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">{feature.desc}</p>
             </motion.div>
           ))}
         </div>

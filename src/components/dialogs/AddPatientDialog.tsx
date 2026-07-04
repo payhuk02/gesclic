@@ -54,32 +54,32 @@ const AddPatientDialog = ({ onAdd, onEdit, editData, trigger }: Props) => {
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Modifier le patient" : "Ajouter un patient"}</DialogTitle>
+          <DialogTitle className="text-base sm:text-lg">{isEdit ? "Modifier le patient" : "Ajouter un patient"}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid sm:grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+          <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
-              <Label>Nom complet *</Label>
-              <Input className="mt-1" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Moussa Camara" />
+              <Label className="text-sm">Nom complet *</Label>
+              <Input className="mt-1.5" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Moussa Camara" />
             </div>
             <div>
-              <Label>Téléphone *</Label>
-              <Input className="mt-1" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+225 07 08 09 10" />
+              <Label className="text-sm">Téléphone *</Label>
+              <Input className="mt-1.5" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+225 07 08 09 10" />
             </div>
             <div>
-              <Label>Email</Label>
-              <Input className="mt-1" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="email@example.com" />
+              <Label className="text-sm">Email</Label>
+              <Input className="mt-1.5" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="email@example.com" />
             </div>
             <div>
-              <Label>Date de naissance</Label>
-              <Input className="mt-1" type="date" value={form.dob} onChange={(e) => setForm({ ...form, dob: e.target.value })} />
+              <Label className="text-sm">Date de naissance</Label>
+              <Input className="mt-1.5" type="date" value={form.dob} onChange={(e) => setForm({ ...form, dob: e.target.value })} />
             </div>
             <div>
-              <Label>Sexe</Label>
+              <Label className="text-sm">Sexe</Label>
               <Select value={form.sex} onValueChange={(v) => setForm({ ...form, sex: v })}>
-                <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="M">Homme</SelectItem>
                   <SelectItem value="F">Femme</SelectItem>
@@ -87,9 +87,9 @@ const AddPatientDialog = ({ onAdd, onEdit, editData, trigger }: Props) => {
               </Select>
             </div>
             <div>
-              <Label>Groupe sanguin</Label>
+              <Label className="text-sm">Groupe sanguin</Label>
               <Select value={form.bloodGroup} onValueChange={(v) => setForm({ ...form, bloodGroup: v })}>
-                <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((g) => (
                     <SelectItem key={g} value={g}>{g}</SelectItem>
@@ -99,8 +99,8 @@ const AddPatientDialog = ({ onAdd, onEdit, editData, trigger }: Props) => {
             </div>
           </div>
           <div>
-            <Label>Allergies</Label>
-            <Input className="mt-1" value={form.allergies} onChange={(e) => setForm({ ...form, allergies: e.target.value })} placeholder="Aucune" />
+            <Label className="text-sm">Allergies</Label>
+            <Input className="mt-1.5" value={form.allergies} onChange={(e) => setForm({ ...form, allergies: e.target.value })} placeholder="Aucune" />
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>Annuler</Button>

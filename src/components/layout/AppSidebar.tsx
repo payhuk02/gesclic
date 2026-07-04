@@ -126,20 +126,27 @@ const AppSidebar = () => {
       <>
         <button
           onClick={() => setMobileOpen(true)}
-          className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-card border border-border shadow-md"
+          className="fixed top-4 left-4 z-50 p-3 rounded-xl bg-card border border-border shadow-lg hover:bg-secondary/50 transition-colors"
           aria-label="Ouvrir le menu"
         >
-          <Menu className="w-5 h-5" />
+          <Menu className="w-6 h-6" />
         </button>
 
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-          <SheetContent side="left" className="w-64 p-0 bg-sidebar text-sidebar-foreground">
+          <SheetContent side="left" className="w-full sm:w-80 p-0 bg-sidebar text-sidebar-foreground">
             <SheetTitle className="sr-only">Menu de navigation</SheetTitle>
-            <div className="h-16 flex items-center px-4 border-b border-sidebar-border">
-              <Link to="/dashboard" className="flex items-center gap-2 font-bold text-lg">
+            <div className="h-16 flex items-center justify-between px-4 border-b border-sidebar-border">
+              <Link to="/dashboard" className="flex items-center gap-2 font-bold text-lg" onClick={() => setMobileOpen(false)}>
                 <Heart className="w-6 h-6 text-primary fill-primary" />
                 <span>Gesclic</span>
               </Link>
+              <button
+                onClick={() => setMobileOpen(false)}
+                className="p-2 rounded-lg hover:bg-sidebar-accent transition-colors"
+                aria-label="Fermer le menu"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
             <SidebarNav onNavigate={() => setMobileOpen(false)} />
           </SheetContent>
