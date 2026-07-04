@@ -182,11 +182,11 @@ CREATE TRIGGER update_mfa_settings_updated_at
 
 -- Function to log audit event
 CREATE OR REPLACE FUNCTION public.log_audit_event(
+  p_action TEXT,
+  p_resource_type TEXT,
   p_clinic_id UUID DEFAULT NULL,
   p_user_id UUID DEFAULT NULL,
   p_user_type TEXT DEFAULT NULL,
-  p_action TEXT,
-  p_resource_type TEXT,
   p_resource_id UUID DEFAULT NULL,
   p_changes JSONB DEFAULT NULL,
   p_success BOOLEAN DEFAULT true,
@@ -235,10 +235,10 @@ GRANT EXECUTE ON FUNCTION public.log_audit_event TO authenticated, service_role;
 
 -- Function to create security event
 CREATE OR REPLACE FUNCTION public.create_security_event(
-  p_clinic_id UUID DEFAULT NULL,
-  p_user_id UUID DEFAULT NULL,
   p_event_type TEXT,
   p_severity TEXT,
+  p_clinic_id UUID DEFAULT NULL,
+  p_user_id UUID DEFAULT NULL,
   p_details JSONB DEFAULT NULL
 )
 RETURNS UUID

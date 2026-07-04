@@ -172,7 +172,7 @@ BEGIN
   END IF;
   
   -- Generate unique room name
-  v_room_name := 'gesclic-' || encode(gen_random_bytes(16), 'hex');
+  v_room_name := 'gesclic-' || encode(extensions.gen_random_bytes(16), 'hex');
   
   -- Create session
   INSERT INTO public.telemedicine_sessions (

@@ -1,3 +1,5 @@
+-- Requires pgcrypto for gen_random_bytes()
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 -- Table for clinic invitations
 CREATE TABLE public.clinic_invitations (
@@ -5,7 +7,7 @@ CREATE TABLE public.clinic_invitations (
   clinic_id uuid NOT NULL REFERENCES public.clinics(id) ON DELETE CASCADE,
   email text NOT NULL,
   role public.app_role NOT NULL,
-  token text NOT NULL UNIQUE DEFAULT encode(gen_random_bytes(24), 'hex'),
+  token text NOT NULL UNIQUE DEFAULT encode(extensions.gen_random_bytes(24), 'hex'),
   invited_by uuid NOT NULL REFERENCES auth.users(id),
   status text NOT NULL DEFAULT 'pending',
   expires_at timestamptz NOT NULL DEFAULT (now() + interval '7 days'),

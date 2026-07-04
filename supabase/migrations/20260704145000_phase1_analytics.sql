@@ -86,8 +86,8 @@ SELECT
   SUM(CASE WHEN a.status = 'completed' THEN 1 ELSE 0 END) as completed_appointments,
   SUM(CASE WHEN a.status = 'no_show' THEN 1 ELSE 0 END) as no_shows,
   ROUND(
-    (SUM(CASE WHEN a.status = 'completed' THEN 1 ELSE 0 END)::FLOAT / 
-     NULLIF(COUNT(*), 0)) * 100, 2
+    ((SUM(CASE WHEN a.status = 'completed' THEN 1 ELSE 0 END)::numeric /
+     NULLIF(COUNT(*), 0)) * 100)::numeric, 2
   ) as completion_rate,
   COUNT(DISTINCT a.patient_name) as unique_patients_seen
 FROM public.doctors d
@@ -116,10 +116,10 @@ GRANT EXECUTE ON FUNCTION public.refresh_analytics_views TO authenticated, servi
 -- Function to track analytics event
 CREATE OR REPLACE FUNCTION public.track_analytics_event(
   p_clinic_id UUID,
-  p_user_id UUID DEFAULT NULL,
-  p_user_type TEXT DEFAULT NULL,
   p_event_name TEXT,
   p_event_category TEXT,
+  p_user_id UUID DEFAULT NULL,
+  p_user_type TEXT DEFAULT NULL,
   p_event_properties JSONB DEFAULT NULL,
   p_page_url TEXT DEFAULT NULL
 )
