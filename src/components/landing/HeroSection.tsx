@@ -109,29 +109,30 @@ const HeroSection = () => {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.3 }}
-            className="relative hidden lg:flex items-center justify-center"
+            className="relative flex items-center justify-center lg:flex"
           >
             {/* Glow behind image */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="w-80 h-80 rounded-full bg-primary/10 blur-[80px]" />
+              <div className="w-60 h-60 sm:w-80 sm:h-80 rounded-full bg-primary/10 blur-[60px] sm:blur-[80px]" />
             </div>
 
             <img
               src={heroImage}
-              alt="Médecin africaine utilisant une tablette pour la gestion médicale"
+              alt="Infirmière professionnelle utilisant une tablette pour la gestion médicale"
               width={1024}
               height={1024}
-              className="relative z-10 w-[420px] h-auto drop-shadow-2xl"
+              className="relative z-10 w-full max-w-[320px] sm:max-w-[420px] h-auto drop-shadow-2xl rounded-2xl object-cover"
+              loading="lazy"
             />
 
-            {/* Floating cards */}
+            {/* Floating cards - hidden on mobile, visible on lg screens */}
             {floatingItems.map((item) => (
               <motion.div
                 key={item.label}
                 initial={{ opacity: 0, scale: 0.5 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, delay: item.delay, type: "spring", stiffness: 200 }}
-                className={`absolute ${item.x} ${item.y} z-20`}
+                className={`absolute ${item.x} ${item.y} z-20 hidden lg:block`}
               >
                 <motion.div
                   animate={{ y: [0, -8, 0] }}

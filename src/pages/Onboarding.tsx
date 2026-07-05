@@ -545,7 +545,7 @@ const Onboarding = () => {
                         </ul>
                         {p.cta === "contact" && isSelected && (
                           <a
-                            href="mailto:sales@mediflow.app?subject=Demande%20plan%20Enterprise"
+                            href="mailto:sales@gesclic.app?subject=Demande%20plan%20Enterprise"
                             className="inline-flex mt-3 text-sm text-primary font-medium hover:underline"
                           >
                             Contacter l'équipe commerciale →

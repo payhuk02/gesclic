@@ -1,5 +1,5 @@
-import { Heart } from "lucide-react";
 import { Link } from "react-router-dom";
+import logo from "@/assets/Logo_Gesclic.png";
 
 const FooterSection = () => {
   return (
@@ -8,7 +8,7 @@ const FooterSection = () => {
         <div className="grid md:grid-cols-4 gap-8 mb-8">
           <div>
             <Link to="/" className="flex items-center gap-2 font-bold text-xl mb-4">
-              <Heart className="w-6 h-6 text-primary fill-primary" />
+              <img src={logo} alt="Gesclic" className="h-6 w-auto" />
               <span>Gesclic</span>
             </Link>
             <p className="text-sm opacity-70">La plateforme de gestion médicale conçue pour l'Afrique.</p>

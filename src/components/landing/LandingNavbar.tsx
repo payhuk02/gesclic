@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Menu, X, Heart } from "lucide-react";
+import { Menu, X } from "lucide-react";
+import logo from "@/assets/Logo_Gesclic.png";
 
 const LandingNavbar = () => {
   const [open, setOpen] = useState(false);
@@ -10,8 +11,8 @@ const LandingNavbar = () => {
     <nav className="fixed top-0 left-0 right-0 z-50 glass">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 font-bold text-xl text-foreground">
-          <Heart className="w-7 h-7 text-primary fill-primary" />
-          <span>Medi<span className="text-primary">Flow</span></span>
+          <img src={logo} alt="Gesclic" className="h-8 w-auto" />
+          <span>Gesclic</span>
         </Link>
 
         <div className="hidden md:flex items-center gap-8">
