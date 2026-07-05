@@ -1,5 +1,6 @@
 import { ReactNode, useState, useEffect } from "react";
 import AppSidebar from "./AppSidebar";
+import MobileBottomNav from "./MobileBottomNav";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Bot, Search } from "lucide-react";
 import MedicalAIAssistant from "@/components/MedicalAIAssistant";
@@ -26,7 +27,8 @@ const AppLayout = ({ children, title }: { children: ReactNode; title: string }) 
   return (
     <div className="min-h-screen bg-background">
       <AppSidebar />
-      <div className={isMobile ? "pl-0" : "lg:pl-64 pl-16"}>
+      <MobileBottomNav />
+      <div className={isMobile ? "pl-0 pb-16" : "lg:pl-64 pl-16"}>
         <header className="h-16 border-b border-border bg-card flex items-center justify-between px-4 sm:px-6 sticky top-0 z-30">
           <div className="flex items-center">
             {isMobile && <div className="w-10" />}
