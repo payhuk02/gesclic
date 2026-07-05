@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
@@ -9,6 +9,7 @@ import { ClinicProvider } from "@/contexts/ClinicContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { Loader2 } from "lucide-react";
+import { createQueryClient } from "@/lib/cache/react-query-config";
 
 // Lazy load pages for code splitting
 const Index = lazy(() => import("./pages/Index"));
@@ -45,7 +46,7 @@ const APIPlatform = lazy(() => import("./pages/APIPlatform"));
 const WorkflowAutomation = lazy(() => import("./pages/WorkflowAutomation"));
 const Webhooks = lazy(() => import("./pages/Webhooks"));
 
-const queryClient = new QueryClient();
+const queryClient = createQueryClient();
 
 const ProtectedPages = ({ children }: { children: React.ReactNode }) => (
   <ProtectedRoute>{children}</ProtectedRoute>
