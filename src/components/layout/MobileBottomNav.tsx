@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import {
-  LayoutDashboard, Calendar, Users, Video, Menu, X, LogOut, Heart,
+  LayoutDashboard, Calendar, Users, Video, Menu, X, LogOut, Heart, Bot,
   FileText, FileEdit, CreditCard, FlaskConical, Pill, BarChart3,
   Shield, Puzzle, Key, Workflow, Globe, UserCog, Crown, Settings
 } from "lucide-react";
@@ -9,6 +9,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import MedicalAIAssistant from "@/components/MedicalAIAssistant";
 
 interface NavItem {
   icon: any;
@@ -21,6 +22,7 @@ const mobileNavItems: NavItem[] = [
   { icon: Calendar, label: "RDV", path: "/appointments" },
   { icon: Users, label: "Patients", path: "/patients" },
   { icon: Video, label: "Télé", path: "/telemedicine" },
+  { icon: Bot, label: "IA", path: "/ai-assistant" },
 ];
 
 const allNavItems: NavItem[] = [
@@ -49,6 +51,7 @@ const MobileBottomNav = () => {
   const isMobile = useIsMobile();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showAI, setShowAI] = useState(false);
   const { signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -63,23 +66,42 @@ const MobileBottomNav = () => {
   return (
     <>
       {/* Bottom Navigation Bar */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-card border-t border-border px-2 py-2 pb-safe">
-        <div className="flex items-center justify-around">
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-md border-t border-border/50 px-2 py-2 pb-safe safe-area-inset-bottom">
+        <div className="flex items-center justify-around max-w-lg mx-auto">
           {mobileNavItems.map((item) => {
             const active = location.pathname === item.path || location.pathname.startsWith(item.path + "/");
+            // Special handling for AI button
+            if (item.label === "IA") {
+              return (
+                <button
+                  key="ai-button"
+                  onClick={() => setShowAI(!showAI)}
+                  className={cn(
+                    "flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all duration-200 min-w-[60px]",
+                    showAI
+                      ? "text-primary bg-primary/10 scale-105"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                  )}
+                  aria-label="Assistant IA"
+                >
+                  <Bot className="w-5 h-5 transition-transform duration-200" />
+                  <span className="text-[11px] font-medium leading-tight">IA</span>
+                </button>
+              );
+            }
             return (
               <Link
                 key={item.path}
                 to={item.path}
                 className={cn(
-                  "flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors",
+                  "flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all duration-200 min-w-[60px]",
                   active
-                    ? "text-primary"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "text-primary bg-primary/10 scale-105"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                 )}
               >
-                <item.icon className="w-5 h-5" />
-                <span className="text-xs font-medium">{item.label}</span>
+                <item.icon className="w-5 h-5 transition-transform duration-200" />
+                <span className="text-[11px] font-medium leading-tight">{item.label}</span>
               </Link>
             );
           })}
@@ -88,13 +110,13 @@ const MobileBottomNav = () => {
           <button
             onClick={() => setSidebarOpen(true)}
             className={cn(
-              "flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors",
-              "text-muted-foreground hover:text-foreground"
+              "flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all duration-200 min-w-[60px]",
+              "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
             )}
             aria-label="Menu complet"
           >
-            <Menu className="w-5 h-5" />
-            <span className="text-xs font-medium">Menu</span>
+            <Menu className="w-5 h-5 transition-transform duration-200" />
+            <span className="text-[11px] font-medium leading-tight">Menu</span>
           </button>
         </div>
       </nav>
@@ -110,13 +132,13 @@ const MobileBottomNav = () => {
         {/* Sidebar Panel */}
         <div 
           className={cn(
-            "fixed left-0 top-0 bottom-0 w-80 bg-sidebar text-sidebar-foreground transition-transform duration-300 ease-in-out",
+            "fixed left-0 top-0 bottom-0 w-80 h-full bg-sidebar text-sidebar-foreground transition-transform duration-300 ease-in-out flex flex-col",
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           )}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="h-16 flex items-center justify-between px-4 border-b border-sidebar-border sticky top-0 bg-sidebar z-10">
+          <div className="h-16 flex items-center justify-between px-4 border-b border-sidebar-border flex-shrink-0">
             <Link to="/dashboard" className="flex items-center gap-2 font-bold text-lg" onClick={() => setSidebarOpen(false)}>
               <Heart className="w-6 h-6 text-primary fill-primary" />
               <span>Gesclic</span>
@@ -167,6 +189,7 @@ const MobileBottomNav = () => {
         </div>
       </div>
 
+      {showAI && <MedicalAIAssistant onClose={() => setShowAI(false)} />}
     </>
   );
 };

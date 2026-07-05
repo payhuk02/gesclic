@@ -135,9 +135,41 @@ const AppSidebar = () => {
     setMobileOpen(false);
   }, [location.pathname]);
 
-  // Mobile: bottom nav handles navigation, no hamburger needed
+  // Mobile: hamburger menu positioned to not overlap bottom nav
   if (isMobile) {
-    return null;
+    return (
+      <>
+        <button
+          onClick={() => setMobileOpen(true)}
+          className="fixed top-4 left-4 z-50 p-3 rounded-xl bg-card/95 backdrop-blur-md border border-border/50 shadow-lg hover:bg-secondary/50 transition-all duration-200"
+          aria-label="Ouvrir le menu"
+        >
+          <Menu className="w-6 h-6" />
+        </button>
+
+        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+          <SheetContent side="left" className="w-full sm:w-80 p-0 bg-sidebar text-sidebar-foreground h-full flex flex-col">
+            <SheetTitle className="sr-only">Menu de navigation</SheetTitle>
+            <div className="h-16 flex items-center justify-between px-4 border-b border-sidebar-border flex-shrink-0">
+              <Link to="/dashboard" className="flex items-center gap-2 font-bold text-lg" onClick={() => setMobileOpen(false)}>
+                <Heart className="w-6 h-6 text-primary fill-primary" />
+                <span>Gesclic</span>
+              </Link>
+              <button
+                onClick={() => setMobileOpen(false)}
+                className="p-2 rounded-lg hover:bg-sidebar-accent transition-colors"
+                aria-label="Fermer le menu"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              <SidebarNav onNavigate={() => setMobileOpen(false)} />
+            </div>
+          </SheetContent>
+        </Sheet>
+      </>
+    );
   }
 
   // Desktop: fixed sidebar

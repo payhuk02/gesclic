@@ -28,7 +28,7 @@ const AppLayout = ({ children, title }: { children: ReactNode; title: string }) 
     <div className="min-h-screen bg-background">
       <AppSidebar />
       <MobileBottomNav />
-      <div className={isMobile ? "pl-0 pb-16" : "lg:pl-64 pl-16"}>
+      <div className={isMobile ? "pl-0 pb-20" : "lg:pl-64 pl-16"}>
         <header className="h-16 border-b border-border bg-card flex items-center justify-between px-4 sm:px-6 sticky top-0 z-30">
           <div className="flex items-center">
             {isMobile && <div className="w-10" />}
@@ -48,9 +48,10 @@ const AppLayout = ({ children, title }: { children: ReactNode; title: string }) 
               </kbd>
             </button>
             <NotificationBell />
+            {/* Desktop-only AI button */}
             <button
               onClick={() => setShowAI(!showAI)}
-              className="flex items-center gap-2 px-2 sm:px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors text-sm font-medium"
+              className="hidden sm:flex items-center gap-2 px-2 sm:px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors text-sm font-medium"
               aria-label="Assistant IA"
             >
               <Bot className="w-4 h-4" />
