@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Calendar, Users, FileText, CreditCard,
   Pill, FlaskConical, UserCog, Settings, Heart, ChevronLeft,
-  ChevronRight, FileEdit, LogOut, Crown, Menu, X, BarChart3,
+  ChevronRight, FileEdit, LogOut, Crown, Menu, X, BarChart3, Puzzle,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
@@ -29,6 +29,7 @@ const navItems: NavItem[] = [
   { icon: FlaskConical, label: "Laboratoire", path: "/laboratory", roles: ["admin", "medecin", "infirmier"] },
   { icon: Pill, label: "Pharmacie", path: "/pharmacy", roles: ["admin", "medecin", "infirmier"] },
   { icon: BarChart3, label: "Rapports", path: "/reports", roles: ["admin", "medecin"] },
+  { icon: Puzzle, label: "Intégrations", path: "/integrations", roles: ["admin"] },
   { icon: UserCog, label: "Personnel", path: "/staff", roles: ["admin"] },
   { icon: Crown, label: "Abonnements", path: "/subscriptions", roles: ["admin"] },
   { icon: Settings, label: "Paramètres", path: "/settings" },

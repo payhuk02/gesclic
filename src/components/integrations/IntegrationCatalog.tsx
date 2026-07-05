@@ -10,7 +10,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { integrationMarketplaceService } from '@/services/integration-marketplace.service';
-import type { IntegrationCatalog, IntegrationFilters, IntegrationCategory, PricingModel } from '@/types/phase2';
+import { useClinic } from '@/contexts/ClinicContext';
+import type { IntegrationCatalog as IntegrationCatalogItem, IntegrationFilters, IntegrationCategory, PricingModel } from '@/types/phase2';
 
 const categories: { value: IntegrationCategory; label: string }[] = [
   { value: 'ehr', label: 'Dossiers Médicaux' },
@@ -31,7 +32,7 @@ const pricingModels: { value: PricingModel; label: string }[] = [
 ];
 
 export function IntegrationCatalog() {
-  const [integrations, setIntegrations] = useState<IntegrationCatalog[]>([]);
+  const [integrations, setIntegrations] = useState<IntegrationCatalogItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<IntegrationFilters>({});
   const [searchQuery, setSearchQuery] = useState('');
@@ -185,31 +186,26 @@ export function IntegrationCatalog() {
 }
 
 interface IntegrationCardProps {
-  integration: IntegrationCatalog;
+  integration: IntegrationCatalogItem;
 }
 
 function IntegrationCard({ integration }: IntegrationCardProps) {
   const [isInstalled, setIsInstalled] = useState(false);
+  const { activeClinicId } = useClinic();
 
   const handleInstall = async () => {
     try {
-      const clinicId = await getCurrentClinicId();
-      if (!clinicId) {
+      if (!activeClinicId) {
         alert('Veuillez sélectionner une clinique');
         return;
       }
 
-      await integrationMarketplaceService.installIntegration(clinicId, integration.id);
+      await integrationMarketplaceService.installIntegration(activeClinicId, integration.id);
       setIsInstalled(true);
     } catch (error) {
       console.error('Error installing integration:', error);
       alert('Erreur lors de l\'installation');
     }
-  };
-
-  const getCurrentClinicId = async () => {
-    // This would come from your app context
-    return localStorage.getItem('currentClinicId');
   };
 
   const getPricingBadge = () => {

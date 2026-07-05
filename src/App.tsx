@@ -32,6 +32,8 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const Reports = lazy(() => import("./pages/Reports"));
 const InviteAccept = lazy(() => import("./pages/InviteAccept"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
+const Integrations = lazy(() => import("./pages/Integrations"));
+const OAuthCallback = lazy(() => import("./pages/OAuthCallback"));
 
 const queryClient = new QueryClient();
 
@@ -76,6 +78,8 @@ const App = () => (
                   <Route path="/settings" element={<ProtectedPages><SettingsPage /></ProtectedPages>} />
                   <Route path="/subscriptions" element={<ProtectedPages><Subscriptions /></ProtectedPages>} />
                   <Route path="/reports" element={<ProtectedPages><Reports /></ProtectedPages>} />
+                  <Route path="/integrations" element={<ProtectedPages><Integrations /></ProtectedPages>} />
+                  <Route path="/oauth/callback" element={<ProtectedPages><OAuthCallback /></ProtectedPages>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
