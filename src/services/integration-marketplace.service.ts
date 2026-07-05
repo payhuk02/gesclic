@@ -442,12 +442,14 @@ export class IntegrationMarketplaceService {
     deliveryUrl: string
   ): Promise<void> {
     try {
+      const signature = await this.generateSignature(eventData);
+      
       const response = await fetch(deliveryUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-Gesclic-Event': eventType,
-          'X-Gesclic-Signature': this.generateSignature(eventData)
+          'X-Gesclic-Signature': signature
         },
         body: JSON.stringify(eventData)
       });
@@ -502,15 +504,39 @@ export class IntegrationMarketplaceService {
   }
 
   /**
-   * Generate webhook signature
+   * Generate HMAC-SHA256 webhook signature
    */
-  private generateSignature(data: Record<string, any>): string {
-    // In a real implementation, use HMAC-SHA256 with a secret key
+  private async generateSignature(data: Record<string, any>): Promise<string> {
     const secret = import.meta.env.VITE_WEBHOOK_SECRET || 'default-secret';
     const payload = JSON.stringify(data);
     
-    // Simple hash for demonstration - use proper HMAC in production
-    return btoa(payload + secret);
+    try {
+      // Import the secret key
+      const keyData = new TextEncoder().encode(secret);
+      const key = await crypto.subtle.importKey(
+        'raw',
+        keyData,
+        { name: 'HMAC', hash: 'SHA-256' },
+        false,
+        ['sign']
+      );
+      
+      // Sign the payload
+      const signature = await crypto.subtle.sign(
+        'HMAC',
+        key,
+        new TextEncoder().encode(payload)
+      );
+      
+      // Convert to hex string
+      const hashArray = Array.from(new Uint8Array(signature));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      
+      return hashHex;
+    } catch (error) {
+      console.error('Error generating HMAC signature:', error);
+      throw new Error('Failed to generate webhook signature');
+    }
   }
 
   // ============================================================================

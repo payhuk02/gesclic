@@ -35,6 +35,16 @@ const Onboarding = lazy(() => import("./pages/Onboarding"));
 const Integrations = lazy(() => import("./pages/Integrations"));
 const OAuthCallback = lazy(() => import("./pages/OAuthCallback"));
 
+// Phase 1 Features
+const Telemedicine = lazy(() => import("./pages/Telemedicine"));
+const Security = lazy(() => import("./pages/Security"));
+const AdvancedAnalytics = lazy(() => import("./pages/AdvancedAnalytics"));
+
+// Phase 2 Features
+const APIPlatform = lazy(() => import("./pages/APIPlatform"));
+const WorkflowAutomation = lazy(() => import("./pages/WorkflowAutomation"));
+const Webhooks = lazy(() => import("./pages/Webhooks"));
+
 const queryClient = new QueryClient();
 
 const ProtectedPages = ({ children }: { children: React.ReactNode }) => (
@@ -80,6 +90,17 @@ const App = () => (
                   <Route path="/reports" element={<ProtectedPages><Reports /></ProtectedPages>} />
                   <Route path="/integrations" element={<ProtectedPages><Integrations /></ProtectedPages>} />
                   <Route path="/oauth/callback" element={<ProtectedPages><OAuthCallback /></ProtectedPages>} />
+                  
+                  {/* Phase 1 Features */}
+                  <Route path="/telemedicine" element={<ProtectedPages><Telemedicine /></ProtectedPages>} />
+                  <Route path="/security" element={<ProtectedPages><Security /></ProtectedPages>} />
+                  <Route path="/advanced-analytics" element={<ProtectedPages><AdvancedAnalytics /></ProtectedPages>} />
+                  
+                  {/* Phase 2 Features */}
+                  <Route path="/api-platform" element={<ProtectedPages><APIPlatform /></ProtectedPages>} />
+                  <Route path="/workflow-automation" element={<ProtectedPages><WorkflowAutomation /></ProtectedPages>} />
+                  <Route path="/webhooks" element={<ProtectedPages><Webhooks /></ProtectedPages>} />
+                  
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>

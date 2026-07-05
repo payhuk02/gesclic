@@ -62,8 +62,15 @@ cp .env.example .env
 
 Éditer `.env` avec vos clés Supabase (obtenues depuis le dashboard Supabase Gesclic Pro):
 ```env
+# Supabase
 VITE_SUPABASE_URL=your_supabase_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# Daily.co (pour Télémédecine)
+VITE_DAILY_API_KEY=your_daily_co_api_key
+
+# Webhooks (signature)
+VITE_WEBHOOK_SECRET=your_webhook_secret
 ```
 
 4. Lancer les migrations Supabase

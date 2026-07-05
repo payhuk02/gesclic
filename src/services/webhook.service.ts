@@ -26,7 +26,7 @@ export class WebhookService {
     deliveryUrl: string
   ): Promise<WebhookDeliveryResult> {
     try {
-      const signature = this.generateSignature(eventData);
+      const signature = await this.generateSignature(eventData);
       
       const response = await fetch(deliveryUrl, {
         method: 'POST',
@@ -380,8 +380,8 @@ export class WebhookService {
   /**
    * Verify webhook signature
    */
-  verifySignature(payload: string, signature: string, secret?: string): boolean {
-    const expectedSignature = this.generateSignature(
+  async verifySignature(payload: string, signature: string, secret?: string): Promise<boolean> {
+    const expectedSignature = await this.generateSignature(
       JSON.parse(payload),
       secret || this.WEBHOOK_SECRET
     );
@@ -390,16 +390,39 @@ export class WebhookService {
   }
 
   /**
-   * Generate HMAC signature for webhook
+   * Generate HMAC-SHA256 signature for webhook
    */
-  private generateSignature(data: Record<string, any>, secret?: string): string {
+  private async generateSignature(data: Record<string, any>, secret?: string): Promise<string> {
     const secretKey = secret || this.WEBHOOK_SECRET;
     const payload = JSON.stringify(data);
     
-    // In a real implementation, use HMAC-SHA256
-    // For now, use a simple hash
-    const hash = btoa(payload + secretKey);
-    return `sha256=${hash}`;
+    try {
+      // Import the secret key
+      const keyData = new TextEncoder().encode(secretKey);
+      const key = await crypto.subtle.importKey(
+        'raw',
+        keyData,
+        { name: 'HMAC', hash: 'SHA-256' },
+        false,
+        ['sign']
+      );
+      
+      // Sign the payload
+      const signature = await crypto.subtle.sign(
+        'HMAC',
+        key,
+        new TextEncoder().encode(payload)
+      );
+      
+      // Convert to hex string
+      const hashArray = Array.from(new Uint8Array(signature));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      
+      return `sha256=${hashHex}`;
+    } catch (error) {
+      console.error('Error generating HMAC signature:', error);
+      throw new Error('Failed to generate webhook signature');
+    }
   }
 
   /**

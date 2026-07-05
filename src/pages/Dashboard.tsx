@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import {
   Calendar, Users, TrendingUp, UserCheck, Clock,
   Activity, FlaskConical, Pill, Stethoscope, ChevronRight,
-  AlertTriangle, CreditCard,
+  AlertTriangle, CreditCard, Bot,
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
 import { usePatients } from "@/hooks/usePatients";
@@ -15,6 +15,8 @@ import { usePharmacyStock } from "@/hooks/usePharmacyStock";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
+import { useState } from "react";
+import MedicalAIAssistant from "@/components/MedicalAIAssistant";
 
 const MONTHS = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Aoû", "Sep", "Oct", "Nov", "Déc"];
 const DAYS_FR = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
@@ -26,6 +28,7 @@ const Dashboard = () => {
   const { doctors } = useDoctors();
   const { results: labResults } = useLabResults();
   const { items: pharmacyItems } = usePharmacyStock();
+  const [showAI, setShowAI] = useState(false);
 
   const today = new Date().toISOString().split("T")[0];
   const totalRevenuePaid = payments.filter((p) => p.status === "paid").reduce((sum, p) => sum + p.amount, 0);
@@ -220,6 +223,18 @@ const Dashboard = () => {
           </div>
         )}
       </div>
+
+      {/* AI Assistant Floating Button */}
+      <button
+        onClick={() => setShowAI(true)}
+        className="fixed bottom-6 right-6 z-50 p-4 rounded-full bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-lg hover:shadow-xl transition-all hover:scale-105"
+        title="Assistant IA Médical"
+      >
+        <Bot className="w-6 h-6" />
+      </button>
+
+      {/* AI Assistant Dialog */}
+      {showAI && <MedicalAIAssistant onClose={() => setShowAI(false)} />}
     </AppLayout>
   );
 };

@@ -3,6 +3,7 @@ import {
   LayoutDashboard, Calendar, Users, FileText, CreditCard,
   Pill, FlaskConical, UserCog, Settings, Heart, ChevronLeft,
   ChevronRight, FileEdit, LogOut, Crown, Menu, X, BarChart3, Puzzle,
+  Video, Shield, Bot, Key, Workflow, Globe, BarChart3 as AnalyticsIcon,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
@@ -20,6 +21,7 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
+  // Core Features
   { icon: LayoutDashboard, label: "Tableau de bord", path: "/dashboard" },
   { icon: Calendar, label: "Rendez-vous", path: "/appointments" },
   { icon: Users, label: "Patients", path: "/patients" },
@@ -29,7 +31,19 @@ const navItems: NavItem[] = [
   { icon: FlaskConical, label: "Laboratoire", path: "/laboratory", roles: ["admin", "medecin", "infirmier"] },
   { icon: Pill, label: "Pharmacie", path: "/pharmacy", roles: ["admin", "medecin", "infirmier"] },
   { icon: BarChart3, label: "Rapports", path: "/reports", roles: ["admin", "medecin"] },
+  
+  // Phase 1 Features
+  { icon: Video, label: "Télémédecine", path: "/telemedicine", roles: ["admin", "medecin"] },
+  { icon: Shield, label: "Sécurité", path: "/security" },
+  { icon: AnalyticsIcon, label: "Analytics Avancés", path: "/advanced-analytics", roles: ["admin", "medecin"] },
+  
+  // Phase 2 Features
   { icon: Puzzle, label: "Intégrations", path: "/integrations", roles: ["admin"] },
+  { icon: Key, label: "API Platform", path: "/api-platform", roles: ["admin"] },
+  { icon: Workflow, label: "Workflows", path: "/workflow-automation", roles: ["admin"] },
+  { icon: Globe, label: "Webhooks", path: "/webhooks", roles: ["admin"] },
+  
+  // Admin
   { icon: UserCog, label: "Personnel", path: "/staff", roles: ["admin"] },
   { icon: Crown, label: "Abonnements", path: "/subscriptions", roles: ["admin"] },
   { icon: Settings, label: "Paramètres", path: "/settings" },

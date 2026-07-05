@@ -129,13 +129,13 @@ export class OAuthService {
         : null;
 
       const { error } = await supabase
-        .from('oauth_tokens')
+        .from('oauth_tokens' as any)
         .insert({
           integration_instance_id: instanceId,
           user_id: userId,
-          access_token: this.encrypt(tokenResponse.access_token),
+          access_token: await this.encrypt(tokenResponse.access_token),
           refresh_token: tokenResponse.refresh_token 
-            ? this.encrypt(tokenResponse.refresh_token)
+            ? await this.encrypt(tokenResponse.refresh_token)
             : null,
           token_type: tokenResponse.token_type || 'Bearer',
           expires_at: expiresAt,
@@ -155,7 +155,7 @@ export class OAuthService {
   async getOAuthToken(instanceId: string, userId: string): Promise<OAuthToken | null> {
     try {
       const { data, error } = await supabase
-        .from('oauth_tokens')
+        .from('oauth_tokens' as any)
         .select('*')
         .eq('integration_instance_id', instanceId)
         .eq('user_id', userId)
@@ -164,11 +164,15 @@ export class OAuthService {
       if (error) throw error;
 
       // Decrypt tokens
-      if (data) {
+      if (data && typeof data === 'object') {
+        const dataObj = data as any;
+        const decryptedAccessToken = await this.decrypt(dataObj.access_token);
+        const decryptedRefreshToken = dataObj.refresh_token ? await this.decrypt(dataObj.refresh_token) : undefined;
+        
         return {
-          ...data,
-          access_token: this.decrypt(data.access_token),
-          refresh_token: data.refresh_token ? this.decrypt(data.refresh_token) : undefined
+          ...dataObj,
+          access_token: decryptedAccessToken,
+          refresh_token: decryptedRefreshToken
         };
       }
 
@@ -218,23 +222,23 @@ export class OAuthService {
       // Refresh the token
       const tokenResponse = await this.refreshAccessToken(
         config,
-        this.decrypt(token.refresh_token)
+        token.refresh_token
       );
 
       // Update stored token
       await supabase
-        .from('oauth_tokens')
+        .from('oauth_tokens' as any)
         .update({
-          access_token: this.encrypt(tokenResponse.access_token),
+          access_token: await this.encrypt(tokenResponse.access_token),
           refresh_token: tokenResponse.refresh_token
-            ? this.encrypt(tokenResponse.refresh_token)
-            : token.refresh_token,
+            ? await this.encrypt(tokenResponse.refresh_token)
+            : await this.encrypt(token.refresh_token),
           expires_at: tokenResponse.expires_in
             ? new Date(Date.now() + tokenResponse.expires_in * 1000).toISOString()
             : token.expires_at,
           updated_at: new Date().toISOString()
         })
-        .eq('id', token.id);
+        .eq('id', (token as any).id);
 
       return tokenResponse.access_token;
     } catch (error) {
@@ -249,7 +253,7 @@ export class OAuthService {
   async revokeOAuthToken(instanceId: string, userId: string): Promise<void> {
     try {
       const { error } = await supabase
-        .from('oauth_tokens')
+        .from('oauth_tokens' as any)
         .delete()
         .eq('integration_instance_id', instanceId)
         .eq('user_id', userId);
@@ -264,10 +268,10 @@ export class OAuthService {
   /**
    * Generate secure state parameter
    */
-  generateState(): string {
+  async generateState(): Promise<string> {
     const timestamp = Date.now().toString(36);
     const random = Math.random().toString(36).substring(2, 15);
-    const userId = this.getUserId();
+    const userId = await this.getUserId();
     
     return btoa(`${timestamp}:${random}:${userId}`);
   }
@@ -275,7 +279,7 @@ export class OAuthService {
   /**
    * Validate state parameter
    */
-  validateState(state: string): boolean {
+  async validateState(state: string): Promise<boolean> {
     try {
       const decoded = atob(state);
       const parts = decoded.split(':');
@@ -290,7 +294,7 @@ export class OAuthService {
       if (age > 5 * 60 * 1000) return false;
       
       // Check if user ID matches
-      const currentUserId = this.getUserId();
+      const currentUserId = await this.getUserId();
       if (userId !== currentUserId) return false;
       
       return true;
@@ -300,28 +304,113 @@ export class OAuthService {
   }
 
   /**
-   * Encrypt data using AES
+   * Encrypt data using AES-256-GCM
    */
-  private encrypt(data: string): string {
-    // In a real implementation, use proper encryption
-    // For now, use base64 encoding as placeholder
-    return btoa(data);
+  private async encrypt(data: string): Promise<string> {
+    try {
+      const encoder = new TextEncoder();
+      const dataBytes = encoder.encode(data);
+      
+      // Generate a random IV (Initialization Vector)
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      
+      // Derive a key from the encryption key
+      const keyMaterial = await crypto.subtle.importKey(
+        'raw',
+        new TextEncoder().encode(this.ENCRYPTION_KEY.padEnd(32, '0').slice(0, 32)),
+        'PBKDF2',
+        false,
+        ['deriveKey']
+      );
+      
+      const key = await crypto.subtle.deriveKey(
+        {
+          name: 'PBKDF2',
+          salt: new TextEncoder().encode('gesclic-oauth-salt'),
+          iterations: 100000,
+          hash: 'SHA-256'
+        },
+        keyMaterial,
+        { name: 'AES-GCM', length: 256 },
+        false,
+        ['encrypt']
+      );
+      
+      // Encrypt the data
+      const encryptedBytes = await crypto.subtle.encrypt(
+        { name: 'AES-GCM', iv },
+        key,
+        dataBytes
+      );
+      
+      // Combine IV and encrypted data
+      const combined = new Uint8Array(iv.length + encryptedBytes.byteLength);
+      combined.set(iv);
+      combined.set(new Uint8Array(encryptedBytes), iv.length);
+      
+      // Convert to base64 for storage
+      return btoa(String.fromCharCode(...combined));
+    } catch (error) {
+      console.error('Encryption error:', error);
+      throw new Error('Failed to encrypt data');
+    }
   }
 
   /**
-   * Decrypt data using AES
+   * Decrypt data using AES-256-GCM
    */
-  private decrypt(encryptedData: string): string {
-    // In a real implementation, use proper decryption
-    // For now, use base64 decoding as placeholder
-    return atob(encryptedData);
+  private async decrypt(encryptedData: string): Promise<string> {
+    try {
+      // Convert from base64
+      const combined = Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0));
+      
+      // Extract IV (first 12 bytes)
+      const iv = combined.slice(0, 12);
+      const encryptedBytes = combined.slice(12);
+      
+      // Derive the same key
+      const keyMaterial = await crypto.subtle.importKey(
+        'raw',
+        new TextEncoder().encode(this.ENCRYPTION_KEY.padEnd(32, '0').slice(0, 32)),
+        'PBKDF2',
+        false,
+        ['deriveKey']
+      );
+      
+      const key = await crypto.subtle.deriveKey(
+        {
+          name: 'PBKDF2',
+          salt: new TextEncoder().encode('gesclic-oauth-salt'),
+          iterations: 100000,
+          hash: 'SHA-256'
+        },
+        keyMaterial,
+        { name: 'AES-GCM', length: 256 },
+        false,
+        ['decrypt']
+      );
+      
+      // Decrypt the data
+      const decryptedBytes = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv },
+        key,
+        encryptedBytes
+      );
+      
+      // Convert back to string
+      const decoder = new TextDecoder();
+      return decoder.decode(decryptedBytes);
+    } catch (error) {
+      console.error('Decryption error:', error);
+      throw new Error('Failed to decrypt data');
+    }
   }
 
   /**
    * Get current user ID
    */
-  private getUserId(): string {
-    const { data } = supabase.auth.getUser();
+  private async getUserId(): Promise<string> {
+    const { data } = await supabase.auth.getUser();
     return data.user?.id || 'anonymous';
   }
 

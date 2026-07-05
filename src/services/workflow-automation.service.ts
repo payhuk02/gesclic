@@ -148,6 +148,8 @@ export class WorkflowAutomationService {
 
   /**
    * Execute workflow manually
+   * Note: In production, this should use a proper background job system
+   * like Supabase Edge Functions, BullMQ, or similar
    */
   async executeWorkflow(
     workflowId: string,
@@ -165,13 +167,36 @@ export class WorkflowAutomationService {
 
       if (error) throw error;
 
-      // Execute the workflow (this would be a background job in production)
-      this.executeWorkflowLogic(data, workflowId, inputData).catch(console.error);
+      // Execute workflow in background
+      // In production, this should be a proper background job queue
+      // For now, we use a non-blocking async execution
+      this.executeWorkflowLogic(data, workflowId, inputData)
+        .catch(error => {
+          console.error('Workflow execution failed:', error);
+          // Log the error to the workflow execution record
+          this.logWorkflowExecutionError(data, error).catch(console.error);
+        });
 
       return data;
     } catch (error) {
       console.error('Error executing workflow:', error);
       throw new Error('Failed to execute workflow');
+    }
+  }
+
+  /**
+   * Log workflow execution error
+   */
+  private async logWorkflowExecutionError(executionId: string, error: Error): Promise<void> {
+    try {
+      await supabase.rpc('complete_workflow_execution', {
+        p_execution_id: executionId,
+        p_status: 'failed',
+        p_error_message: error.message,
+        p_error_details: { stack: error.stack }
+      });
+    } catch (logError) {
+      console.error('Failed to log workflow error:', logError);
     }
   }
 
