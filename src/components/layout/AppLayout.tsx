@@ -2,15 +2,13 @@ import { ReactNode, useState, useEffect } from "react";
 import AppSidebar from "./AppSidebar";
 import MobileBottomNav from "./MobileBottomNav";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Bot, Search } from "lucide-react";
-import MedicalAIAssistant from "@/components/MedicalAIAssistant";
+import { Search } from "lucide-react";
 import GlobalSearch from "@/components/GlobalSearch";
 import NotificationBell from "@/components/NotificationBell";
 import ClinicSwitcher from "@/components/layout/ClinicSwitcher";
 
 const AppLayout = ({ children, title }: { children: ReactNode; title: string }) => {
   const isMobile = useIsMobile();
-  const [showAI, setShowAI] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 
   useEffect(() => {
@@ -48,20 +46,10 @@ const AppLayout = ({ children, title }: { children: ReactNode; title: string }) 
               </kbd>
             </button>
             <NotificationBell />
-            {/* Desktop-only AI button */}
-            <button
-              onClick={() => setShowAI(!showAI)}
-              className="hidden sm:flex items-center gap-2 px-2 sm:px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors text-sm font-medium"
-              aria-label="Assistant IA"
-            >
-              <Bot className="w-4 h-4" />
-              <span className="hidden sm:inline">Assistant IA</span>
-            </button>
           </div>
         </header>
         <main className="p-4 sm:p-6">{children}</main>
       </div>
-      {showAI && <MedicalAIAssistant onClose={() => setShowAI(false)} />}
       <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
     </div>
   );

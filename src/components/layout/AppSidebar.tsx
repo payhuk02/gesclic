@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useAuth } from "@/contexts/AuthContext";
+import logo from "@/assets/Logo_Gesclic.png";
 
 type AppRole = "admin" | "medecin" | "secretaire" | "infirmier";
 
@@ -152,7 +153,7 @@ const AppSidebar = () => {
             <SheetTitle className="sr-only">Menu de navigation</SheetTitle>
             <div className="h-16 flex items-center justify-between px-4 border-b border-sidebar-border flex-shrink-0">
               <Link to="/dashboard" className="flex items-center gap-2 font-bold text-lg" onClick={() => setMobileOpen(false)}>
-                <Heart className="w-6 h-6 text-primary fill-primary" />
+                <img src={logo} alt="Gesclic" className="w-6 h-6" />
                 <span>Gesclic</span>
               </Link>
               <button
@@ -183,11 +184,11 @@ const AppSidebar = () => {
       <div className="h-16 flex items-center justify-between px-4 border-b border-sidebar-border">
         {!collapsed && (
           <Link to="/dashboard" className="flex items-center gap-2 font-bold text-lg">
-            <Heart className="w-6 h-6 text-primary fill-primary" />
+            <img src={logo} alt="Gesclic" className="w-6 h-6" />
             <span>Gesclic</span>
           </Link>
         )}
-        {collapsed && <Heart className="w-6 h-6 text-primary fill-primary mx-auto" />}
+        {collapsed && <img src={logo} alt="Gesclic" className="w-6 h-6 mx-auto" />}
         <button
           onClick={() => setCollapsed(!collapsed)}
           className="p-1 rounded-md hover:bg-sidebar-accent transition-colors"

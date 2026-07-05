@@ -22,7 +22,6 @@ const mobileNavItems: NavItem[] = [
   { icon: Calendar, label: "RDV", path: "/appointments" },
   { icon: Users, label: "Patients", path: "/patients" },
   { icon: Video, label: "Télé", path: "/telemedicine" },
-  { icon: Bot, label: "IA", path: "/ai-assistant" },
 ];
 
 const allNavItems: NavItem[] = [
@@ -70,25 +69,6 @@ const MobileBottomNav = () => {
         <div className="flex items-center justify-around max-w-lg mx-auto">
           {mobileNavItems.map((item) => {
             const active = location.pathname === item.path || location.pathname.startsWith(item.path + "/");
-            // Special handling for AI button
-            if (item.label === "IA") {
-              return (
-                <button
-                  key="ai-button"
-                  onClick={() => setShowAI(!showAI)}
-                  className={cn(
-                    "flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all duration-200 min-w-[60px]",
-                    showAI
-                      ? "text-primary bg-primary/10 scale-105"
-                      : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
-                  )}
-                  aria-label="Assistant IA"
-                >
-                  <Bot className="w-5 h-5 transition-transform duration-200" />
-                  <span className="text-[11px] font-medium leading-tight">IA</span>
-                </button>
-              );
-            }
             return (
               <Link
                 key={item.path}
@@ -120,6 +100,20 @@ const MobileBottomNav = () => {
           </button>
         </div>
       </nav>
+
+      {/* Premium Floating AI Button */}
+      <button
+        onClick={() => setShowAI(!showAI)}
+        className={cn(
+          "fixed bottom-20 right-4 z-50 w-14 h-14 rounded-full shadow-lg transition-all duration-300 flex items-center justify-center",
+          showAI
+            ? "bg-primary text-primary-foreground scale-110 shadow-primary/50"
+            : "bg-primary/10 text-primary hover:bg-primary/20 hover:scale-105"
+        )}
+        aria-label="Assistant IA"
+      >
+        <Bot className="w-6 h-6" />
+      </button>
 
       {/* Full Menu Sidebar Overlay */}
       <div 

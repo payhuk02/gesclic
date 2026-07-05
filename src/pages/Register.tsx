@@ -6,6 +6,7 @@ import { Heart, Mail, Lock, User, Eye, EyeOff, Building2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import logo from "@/assets/Logo_Gesclic.png";
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -58,8 +59,8 @@ const Register = () => {
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="w-full max-w-md">
           <Link to="/" className="flex items-center gap-2 font-bold text-2xl mb-8">
-            <Heart className="w-8 h-8 text-primary fill-primary" />
-            <span>Medi<span className="text-primary">Flow</span></span>
+            <img src={logo} alt="Gesclic" className="w-8 h-8" />
+            <span>Gesclic</span>
           </Link>
 
           <h2 className="text-2xl font-bold text-foreground mb-2">Créer un compte</h2>
