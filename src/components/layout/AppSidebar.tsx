@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Calendar, Users, FileText, CreditCard,
   Pill, FlaskConical, UserCog, Settings, Heart, ChevronLeft,
   ChevronRight, FileEdit, LogOut, Crown, Menu, X, BarChart3, Puzzle,
-  Video, Shield, Bot, Key, Workflow, Globe, BarChart3 as AnalyticsIcon,
+  Video, Shield, Key, Workflow, Globe, BarChart3 as AnalyticsIcon,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
