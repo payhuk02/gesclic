@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ClinicProvider } from "@/contexts/ClinicContext";
+import { SuperAdminProvider } from "@/contexts/SuperAdminContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { Loader2 } from "lucide-react";
@@ -46,6 +47,15 @@ const APIPlatform = lazy(() => import("./pages/APIPlatform"));
 const WorkflowAutomation = lazy(() => import("./pages/WorkflowAutomation"));
 const Webhooks = lazy(() => import("./pages/Webhooks"));
 
+// Super Admin Pages
+const SuperAdminDashboard = lazy(() => import("./pages/super-admin/SuperAdminDashboard"));
+const SuperAdminClinics = lazy(() => import("./pages/super-admin/SuperAdminClinics"));
+const SuperAdminUsers = lazy(() => import("./pages/super-admin/SuperAdminUsers"));
+const SuperAdminAnalytics = lazy(() => import("./pages/super-admin/SuperAdminAnalytics"));
+const SuperAdminBilling = lazy(() => import("./pages/super-admin/SuperAdminBilling"));
+const SuperAdminActivity = lazy(() => import("./pages/super-admin/SuperAdminActivity"));
+const SuperAdminSettings = lazy(() => import("./pages/super-admin/SuperAdminSettings"));
+
 const queryClient = createQueryClient();
 
 const ProtectedPages = ({ children }: { children: React.ReactNode }) => (
@@ -67,8 +77,9 @@ const App = () => (
         <BrowserRouter>
           <AuthProvider>
             <ClinicProvider>
-              <Suspense fallback={<LoadingFallback />}>
-                <Routes>
+              <SuperAdminProvider>
+                <Suspense fallback={<LoadingFallback />}>
+                  <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
@@ -102,9 +113,19 @@ const App = () => (
                   <Route path="/workflow-automation" element={<ProtectedPages><WorkflowAutomation /></ProtectedPages>} />
                   <Route path="/webhooks" element={<ProtectedPages><Webhooks /></ProtectedPages>} />
                   
+                  {/* Super Admin Routes */}
+                  <Route path="/super-admin" element={<SuperAdminDashboard />} />
+                  <Route path="/super-admin/clinics" element={<SuperAdminClinics />} />
+                  <Route path="/super-admin/users" element={<SuperAdminUsers />} />
+                  <Route path="/super-admin/analytics" element={<SuperAdminAnalytics />} />
+                  <Route path="/super-admin/billing" element={<SuperAdminBilling />} />
+                  <Route path="/super-admin/activity" element={<SuperAdminActivity />} />
+                  <Route path="/super-admin/settings" element={<SuperAdminSettings />} />
+                  
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
+              </SuperAdminProvider>
             </ClinicProvider>
           </AuthProvider>
         </BrowserRouter>
