@@ -5,18 +5,18 @@ import {
 } from "lucide-react";
 
 const features = [
-  { icon: Calendar, title: "Rendez-vous", desc: "Calendrier intelligent avec réservation en ligne et rappels automatiques.", color: "text-primary bg-primary/10" },
-  { icon: Users, title: "Patients", desc: "Dossiers complets avec historique médical, allergies et contacts d'urgence.", color: "text-accent bg-accent/10" },
-  { icon: FileText, title: "Dossiers médicaux", desc: "Dossier médical électronique avec timeline, diagnostics et documents.", color: "text-primary bg-primary/10" },
-  { icon: CreditCard, title: "Paiements", desc: "Orange Money, MTN, Wave, espèces. Factures et reçus automatiques.", color: "text-warning bg-warning/10" },
-  { icon: Bell, title: "Rappels SMS/WhatsApp", desc: "Notifications automatiques de rendez-vous par SMS et WhatsApp.", color: "text-accent bg-accent/10" },
-  { icon: Video, title: "Téléconsultation", desc: "Consultations vidéo sécurisées avec partage de documents.", color: "text-primary bg-primary/10" },
-  { icon: FlaskConical, title: "Laboratoire", desc: "Gestion des analyses, résultats et validation par le médecin.", color: "text-destructive bg-destructive/10" },
-  { icon: Pill, title: "Pharmacie", desc: "Stock, ventes, alertes de rupture et liaison ordonnances.", color: "text-accent bg-accent/10" },
-  { icon: Building2, title: "Multi-clinique", desc: "Architecture multi-tenant. Chaque clinique a son propre espace.", color: "text-primary bg-primary/10" },
-  { icon: BarChart3, title: "Statistiques", desc: "Graphiques de revenus, fréquentation et performance en temps réel.", color: "text-warning bg-warning/10" },
-  { icon: Shield, title: "Sécurité", desc: "Données chiffrées, rôles et permissions granulaires.", color: "text-accent bg-accent/10" },
-  { icon: Smartphone, title: "Mobile", desc: "Interface responsive parfaitement adaptée aux smartphones.", color: "text-primary bg-primary/10" },
+  { icon: Calendar, title: "Rendez-vous", desc: "Calendrier intelligent avec réservation en ligne et rappels automatiques." },
+  { icon: Users, title: "Patients", desc: "Dossiers complets avec historique médical, allergies et contacts d'urgence." },
+  { icon: FileText, title: "Dossiers médicaux", desc: "Dossier médical électronique avec timeline, diagnostics et documents." },
+  { icon: CreditCard, title: "Paiements", desc: "Orange Money, MTN, Wave, espèces. Factures et reçus automatiques." },
+  { icon: Bell, title: "Rappels SMS/WhatsApp", desc: "Notifications automatiques de rendez-vous par SMS et WhatsApp." },
+  { icon: Video, title: "Téléconsultation", desc: "Consultations vidéo sécurisées avec partage de documents." },
+  { icon: FlaskConical, title: "Laboratoire", desc: "Gestion des analyses, résultats et validation par le médecin." },
+  { icon: Pill, title: "Pharmacie", desc: "Stock, ventes, alertes de rupture et liaison ordonnances." },
+  { icon: Building2, title: "Multi-clinique", desc: "Architecture multi-tenant. Chaque clinique a son propre espace." },
+  { icon: BarChart3, title: "Statistiques", desc: "Graphiques de revenus, fréquentation et performance en temps réel." },
+  { icon: Shield, title: "Sécurité", desc: "Données chiffrées, rôles et permissions granulaires." },
+  { icon: Smartphone, title: "Mobile", desc: "Interface responsive parfaitement adaptée aux smartphones." },
 ];
 
 const FeaturesSection = () => {
@@ -45,10 +45,10 @@ const FeaturesSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.05 }}
-              className="bg-card rounded-xl p-4 sm:p-6 shadow-card hover:shadow-elevated transition-shadow border border-border group"
+              className="bg-card rounded-xl p-4 sm:p-6 shadow-card hover:shadow-elevated transition-shadow border border-border group text-center"
             >
-              <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center mb-3 sm:mb-4 ${feature.color} group-hover:scale-110 transition-transform`}>
-                <feature.icon className="w-5 h-5 sm:w-6 sm:h-6" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center mb-3 sm:mb-4 mx-auto">
+                <feature.icon className="w-5 h-5 sm:w-6 sm:h-6 text-foreground" />
               </div>
               <h3 className="font-semibold text-foreground mb-2 text-sm sm:text-base">{feature.title}</h3>
               <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">{feature.desc}</p>

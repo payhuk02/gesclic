@@ -55,7 +55,7 @@
     --success: 152 60% 45%;
     --success-foreground: 0 0% 100%;
 
-    --gradient-hero: linear-gradient(135deg, hsl(199, 89%, 48%), hsl(152, 60%, 45%));
+    --gradient-hero: linear-gradient(135deg, hsl(199, 89%, 48%), hsl(199, 89%, 40%));
     --gradient-card: linear-gradient(135deg, hsl(199, 89%, 95%), hsl(152, 50%, 94%));
     --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
     --shadow-elevated: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
