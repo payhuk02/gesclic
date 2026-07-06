@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import {
-  LayoutDashboard, Calendar, Users, Video, Menu, X, LogOut, Heart, Bot,
+  LayoutDashboard, Calendar, Users, Video, Menu, X, LogOut, Heart,
   FileText, FileEdit, CreditCard, FlaskConical, Pill, BarChart3,
   Shield, Puzzle, Key, Workflow, Globe, UserCog, Crown, Settings
 } from "lucide-react";
@@ -9,7 +9,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import MedicalAIAssistant from "@/components/MedicalAIAssistant";
 
 interface NavItem {
   icon: any;
@@ -50,7 +49,6 @@ const MobileBottomNav = () => {
   const isMobile = useIsMobile();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [showAI, setShowAI] = useState(false);
   const { signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -100,20 +98,6 @@ const MobileBottomNav = () => {
           </button>
         </div>
       </nav>
-
-      {/* Premium Floating AI Button */}
-      <button
-        onClick={() => setShowAI(!showAI)}
-        className={cn(
-          "fixed bottom-20 right-4 z-50 w-14 h-14 rounded-full shadow-lg transition-all duration-300 flex items-center justify-center",
-          showAI
-            ? "bg-primary text-primary-foreground scale-110 shadow-primary/50"
-            : "bg-primary/10 text-primary hover:bg-primary/20 hover:scale-105"
-        )}
-        aria-label="Assistant IA"
-      >
-        <Bot className="w-6 h-6" />
-      </button>
 
       {/* Full Menu Sidebar Overlay */}
       <div 
@@ -182,8 +166,6 @@ const MobileBottomNav = () => {
           </div>
         </div>
       </div>
-
-      {showAI && <MedicalAIAssistant onClose={() => setShowAI(false)} />}
     </>
   );
 };
