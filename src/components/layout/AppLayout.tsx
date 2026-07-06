@@ -29,7 +29,7 @@ const AppLayout = ({ children, title }: { children: ReactNode; title: string }) 
       <div className={isMobile ? "pl-0 pb-20" : "lg:pl-64 pl-16"}>
         <header className="h-16 border-b border-border bg-card flex items-center justify-between px-4 sm:px-6 sticky top-0 z-30">
           <div className="flex items-center">
-            {isMobile && <div className="w-10" />}
+            {isMobile && <div className="w-16" />}
             <h1 className="text-base sm:text-lg font-semibold text-foreground truncate">{title}</h1>
           </div>
           <div className="flex items-center gap-1 sm:gap-2">
