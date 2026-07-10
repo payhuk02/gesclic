@@ -55,6 +55,15 @@ const SuperAdminAnalytics = lazy(() => import("./pages/super-admin/SuperAdminAna
 const SuperAdminBilling = lazy(() => import("./pages/super-admin/SuperAdminBilling"));
 const SuperAdminActivity = lazy(() => import("./pages/super-admin/SuperAdminActivity"));
 const SuperAdminSettings = lazy(() => import("./pages/super-admin/SuperAdminSettings"));
+const SuperAdminSecurity = lazy(() => import("./pages/super-admin/SuperAdminSecurity"));
+const SuperAdminAuditLogs = lazy(() => import("./pages/super-admin/SuperAdminAuditLogs"));
+const SuperAdminFeatureFlags = lazy(() => import("./pages/super-admin/SuperAdminFeatureFlags"));
+const SuperAdminSystemHealth = lazy(() => import("./pages/super-admin/SuperAdminSystemHealth"));
+const SuperAdminEmailTemplates = lazy(() => import("./pages/super-admin/SuperAdminEmailTemplates"));
+const SuperAdminSupport = lazy(() => import("./pages/super-admin/SuperAdminSupport"));
+const SuperAdminAnnouncements = lazy(() => import("./pages/super-admin/SuperAdminAnnouncements"));
+const SuperAdminBackup = lazy(() => import("./pages/super-admin/SuperAdminBackup"));
+const SuperAdminAPIManagement = lazy(() => import("./pages/super-admin/SuperAdminAPIManagement"));
 
 const queryClient = createQueryClient();
 
@@ -120,6 +129,15 @@ const App = () => (
                   <Route path="/super-admin/analytics" element={<SuperAdminAnalytics />} />
                   <Route path="/super-admin/billing" element={<SuperAdminBilling />} />
                   <Route path="/super-admin/activity" element={<SuperAdminActivity />} />
+                  <Route path="/super-admin/security" element={<SuperAdminSecurity />} />
+                  <Route path="/super-admin/audit" element={<SuperAdminAuditLogs />} />
+                  <Route path="/super-admin/feature-flags" element={<SuperAdminFeatureFlags />} />
+                  <Route path="/super-admin/health" element={<SuperAdminSystemHealth />} />
+                  <Route path="/super-admin/email" element={<SuperAdminEmailTemplates />} />
+                  <Route path="/super-admin/support" element={<SuperAdminSupport />} />
+                  <Route path="/super-admin/announcements" element={<SuperAdminAnnouncements />} />
+                  <Route path="/super-admin/backup" element={<SuperAdminBackup />} />
+                  <Route path="/super-admin/api" element={<SuperAdminAPIManagement />} />
                   <Route path="/super-admin/settings" element={<SuperAdminSettings />} />
                   
                   <Route path="*" element={<NotFound />} />

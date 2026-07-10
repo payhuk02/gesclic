@@ -15,6 +15,14 @@ import {
   Menu,
   X,
   Crown,
+  FileText,
+  Flag,
+  Server,
+  Mail,
+  MessageSquare,
+  Megaphone,
+  Database,
+  Key,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -35,6 +43,15 @@ const superAdminNavItems: SuperAdminNavItem[] = [
   { icon: BarChart3, label: "Analytics", path: "/super-admin/analytics" },
   { icon: CreditCard, label: "Billing", path: "/super-admin/billing" },
   { icon: Activity, label: "Activity Logs", path: "/super-admin/activity" },
+  { icon: Shield, label: "Security Center", path: "/super-admin/security" },
+  { icon: FileText, label: "Audit Logs", path: "/super-admin/audit" },
+  { icon: Flag, label: "Feature Flags", path: "/super-admin/feature-flags" },
+  { icon: Server, label: "System Health", path: "/super-admin/health" },
+  { icon: Mail, label: "Email Templates", path: "/super-admin/email" },
+  { icon: MessageSquare, label: "Support Tickets", path: "/super-admin/support" },
+  { icon: Megaphone, label: "Announcements", path: "/super-admin/announcements" },
+  { icon: Database, label: "Backup & Restore", path: "/super-admin/backup" },
+  { icon: Key, label: "API Management", path: "/super-admin/api" },
   { icon: Settings, label: "Platform Settings", path: "/super-admin/settings" },
 ];
 
