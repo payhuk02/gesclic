@@ -39,9 +39,13 @@ const Dashboard = () => {
 
   const { stats, recentActivity, charts } = data;
   const today = new Date().toISOString().split("T")[0];
-  const todayAppts = []; // Would be filtered from appointments data
-  const pendingLabs = []; // Would be filtered from lab results data
-  const lowStockMeds = []; // Would be filtered from pharmacy data
+  const todayAppts = [];
+  const pendingLabs = [];
+  const lowStockMeds = [];
+  const pharmacyItems = [];
+  const doctors = [];
+  const payments = [];
+  const appointments = [];
 
   // Use the centralized chart data
   const revenueData = charts.revenue.map(item => ({
@@ -63,45 +67,6 @@ const Dashboard = () => {
     { name: "Suivi", value: Math.round(stats.totalAppointments * 0.10) || 0, color: "hsl(var(--warning))" },
   ];
 
-  // Build revenue per month from real payments
-  const revenueData = (() => {
-    const map = new Map<string, number>();
-    payments.filter((p) => p.status === "paid").forEach((p) => {
-      const d = new Date(p.date);
-      if (Number.isNaN(d.getTime())) return;
-      const key = `${d.getFullYear()}-${d.getMonth()}`;
-      map.set(key, (map.get(key) || 0) + p.amount);
-    });
-    return Array.from(map.entries())
-      .sort(([a], [b]) => a.localeCompare(b))
-      .slice(-6)
-      .map(([key, revenue]) => {
-        const [, m] = key.split("-").map(Number);
-        return { month: MONTHS[m], revenue };
-      });
-  })();
-
-  // Weekly appointments (current week, Mon-Sat) from real appointments
-  const weeklyAppointments = (() => {
-    const base = new Date();
-    const dow = base.getDay();
-    const monday = new Date(base);
-    monday.setDate(base.getDate() - (dow === 0 ? 6 : dow - 1));
-    return Array.from({ length: 6 }, (_, i) => {
-      const d = new Date(monday);
-      d.setDate(monday.getDate() + i);
-      const iso = d.toISOString().split("T")[0];
-      return { day: DAYS_FR[d.getDay()], count: appointments.filter((a) => a.date === iso).length };
-    });
-  })();
-
-  // Consultation types from real appointments
-  const consultationTypes = (() => {
-    const map = new Map<string, number>();
-    appointments.forEach((a) => map.set(a.type, (map.get(a.type) || 0) + 1));
-    const palette = ["hsl(var(--primary))", "hsl(var(--accent))", "hsl(var(--destructive))", "hsl(var(--warning))", "hsl(var(--success))"];
-    return Array.from(map.entries()).slice(0, 5).map(([name, value], i) => ({ name, value, color: palette[i % palette.length] }));
-  })();
 
   const statCards = [
     { label: "RDV aujourd'hui", value: `${todayAppts.length}`, icon: Calendar, color: "text-primary bg-primary/10" },
