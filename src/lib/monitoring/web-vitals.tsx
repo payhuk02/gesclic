@@ -120,8 +120,10 @@ export function initWebVitalsMonitoring() {
   // Report initial load time
   window.addEventListener('load', () => {
     const navigation = window.performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-    const loadTime = navigation ? navigation.loadEventEnd - navigation.fetchStart : 0;
-    console.log(`Page load time: ${loadTime}ms`);
+    if (navigation && navigation.loadEventEnd > 0 && navigation.fetchStart > 0) {
+      const loadTime = navigation.loadEventEnd - navigation.fetchStart;
+      console.log(`Page load time: ${loadTime.toFixed(2)}ms`);
+    }
   });
 }
 

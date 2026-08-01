@@ -89,12 +89,27 @@ function useDashboardStats(clinicId: string | undefined) {
           .in('status', ['pending', 'in_progress']),
         supabase
           .from('pharmacy_stock')
-          .select('id', { count: 'exact', head: true })
-          .eq('clinic_id', clinicId)
-          .lte('quantity', supabase.raw('quantity <= threshold'))
+          .select('quantity, threshold')
+          .eq('clinic_id', clinicId),
       ]);
 
+      const queryErrors = [
+        patientsResult.error,
+        appointmentsResult.error,
+        paymentsResult.error,
+        doctorsResult.error,
+        labResultsResult.error,
+        pharmacyResult.error,
+      ].filter(Boolean);
+
+      if (queryErrors.length > 0) {
+        throw queryErrors[0];
+      }
+
       const payments = paymentsResult.data || [];
+      const lowStockItems = (pharmacyResult.data || []).filter(
+        (item) => item.quantity <= item.threshold
+      ).length;
       const totalRevenue = payments
         .filter(p => p.status === 'paid')
         .reduce((sum, p) => sum + p.amount, 0);
@@ -108,7 +123,7 @@ function useDashboardStats(clinicId: string | undefined) {
         totalRevenue,
         pendingPayments,
         activeDoctors: doctorsResult.count || 0,
-        lowStockItems: pharmacyResult.count || 0,
+        lowStockItems,
         pendingLabResults: labResultsResult.count || 0,
       };
     },
