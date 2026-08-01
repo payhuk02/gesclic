@@ -1,11 +1,7 @@
-<<<<<<< HEAD
-import { useEffect, useState } from "react";
-import SuperAdminLayout from "@/components/layout/SuperAdminLayout";
-import { supabase } from "@/integrations/supabase/client";
-=======
+
 import { useState } from "react";
 import SuperAdminLayout from "@/components/layout/SuperAdminLayout";
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
 import {
   Key,
   Search,
@@ -48,10 +44,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-<<<<<<< HEAD
-  DropdownMenuSeparator,
-=======
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
+
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import DeleteConfirmDialog from "@/components/dialogs/DeleteConfirmDialog";
@@ -59,32 +53,24 @@ import DeleteConfirmDialog from "@/components/dialogs/DeleteConfirmDialog";
 interface APIKey {
   id: string;
   name: string;
-<<<<<<< HEAD
-  key: string | null; // plaintext only right after creation
-=======
+
   key: string;
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
   prefix: string;
   scopes: string[];
   rateLimit: number;
   status: "active" | "revoked" | "expired";
   createdAt: string;
-<<<<<<< HEAD
-  lastUsed?: string | null;
-  expiresAt?: string | null;
-=======
+
   lastUsed?: string;
   expiresAt?: string;
   createdBy: string;
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
   requests: number;
 }
 
 const SuperAdminAPIManagement = () => {
-<<<<<<< HEAD
-  const [apiKeys, setApiKeys] = useState<APIKey[]>([]);
-  const [loading, setLoading] = useState(true);
-=======
+
   const [apiKeys, setApiKeys] = useState<APIKey[]>([
     {
       id: "1",
@@ -127,7 +113,7 @@ const SuperAdminAPIManagement = () => {
       requests: 89000,
     },
   ]);
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -140,61 +126,17 @@ const SuperAdminAPIManagement = () => {
     expiresIn: "never",
   });
 
-<<<<<<< HEAD
-  const loadKeys = async () => {
-    setLoading(true);
-    try {
-      const [keysRes, logsRes] = await Promise.all([
-        supabase.from("api_keys").select("*").order("created_at", { ascending: false }),
-        supabase.from("api_request_logs").select("api_key_id"),
-      ]);
-      if (keysRes.error) throw keysRes.error;
 
-      const now = Date.now();
-      setApiKeys(
-        (keysRes.data ?? []).map((k: any) => ({
-          id: k.id,
-          name: k.name,
-          key: null,
-          prefix: k.key_prefix,
-          scopes: k.scopes ?? [],
-          rateLimit: k.requests_per_minute ?? 0,
-          status: !k.is_active
-            ? "revoked"
-            : k.expires_at && new Date(k.expires_at).getTime() < now
-            ? "expired"
-            : "active",
-          createdAt: k.created_at,
-          lastUsed: k.last_used_at,
-          expiresAt: k.expires_at,
-          requests: (logsRes.data ?? []).filter((l: any) => l.api_key_id === k.id).length,
-        }))
-      );
-    } catch (error) {
-      console.error("Error loading API keys:", error);
-      toast.error("Erreur lors du chargement des clés API");
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  useEffect(() => {
-    loadKeys();
-  }, []);
-
-=======
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
   const statusConfig = {
     active: { label: "Actif", icon: CheckCircle, color: "bg-success/10 text-success border-success/20" },
     revoked: { label: "Révoqué", icon: XCircle, color: "bg-destructive/10 text-destructive border-destructive/20" },
     expired: { label: "Expiré", icon: Clock, color: "bg-warning/10 text-warning border-warning/20" },
   };
 
-<<<<<<< HEAD
-  const scopeConfig: Record<string, { label: string; color: string }> = {
-=======
+
   const scopeConfig = {
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
     read: { label: "Read", color: "bg-blue-500/10 text-blue-600 border-blue-500/20" },
     write: { label: "Write", color: "bg-orange-500/10 text-orange-600 border-orange-500/20" },
     admin: { label: "Admin", color: "bg-destructive/10 text-destructive border-destructive/20" },
@@ -203,11 +145,9 @@ const SuperAdminAPIManagement = () => {
   const filteredKeys = apiKeys.filter((key) => {
     const matchesSearch =
       key.name.toLowerCase().includes(search.toLowerCase()) ||
-<<<<<<< HEAD
-      (key.prefix ?? "").toLowerCase().includes(search.toLowerCase());
-=======
+
       key.prefix.toLowerCase().includes(search.toLowerCase());
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
     const matchesStatus = statusFilter === "all" || key.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -221,84 +161,7 @@ const SuperAdminAPIManagement = () => {
     setShowKeys({ ...showKeys, [keyId]: !showKeys[keyId] });
   };
 
-<<<<<<< HEAD
-  const handleRevokeKey = async (keyId: string) => {
-    const { error } = await supabase.from("api_keys").update({ is_active: false }).eq("id", keyId);
-    if (error) {
-      toast.error("Erreur lors de la révocation");
-      return;
-    }
-    toast.success("Clé API révoquée");
-    loadKeys();
-  };
 
-  const handleDeleteKey = async (keyId: string) => {
-    const { error } = await supabase.from("api_keys").delete().eq("id", keyId);
-    if (error) {
-      toast.error("Erreur lors de la suppression");
-      return;
-    }
-    toast.success("Clé API supprimée");
-    loadKeys();
-  };
-
-  const toggleScope = (scope: string) => {
-    setNewKey((prev) => ({
-      ...prev,
-      scopes: prev.scopes.includes(scope)
-        ? prev.scopes.filter((s) => s !== scope)
-        : [...prev.scopes, scope],
-    }));
-  };
-
-  const handleCreateKey = async () => {
-    if (!newKey.name.trim()) {
-      toast.error("Le nom de la clé est requis");
-      return;
-    }
-    try {
-      const { data: generated, error: genError } = await supabase.rpc("generate_api_key");
-      if (genError || !generated) throw genError ?? new Error("generation failed");
-
-      const { data: hashed, error: hashError } = await supabase.rpc("hash_api_key", {
-        api_key: generated as string,
-      });
-      if (hashError) throw hashError;
-
-      const expiresMap: Record<string, number | null> = { never: null, "30d": 30, "90d": 90, "1y": 365 };
-      const days = expiresMap[newKey.expiresIn];
-
-      const { data: userData } = await supabase.auth.getUser();
-
-      const { data: inserted, error } = await supabase
-        .from("api_keys")
-        .insert({
-          name: newKey.name,
-          user_id: userData.user?.id ?? null,
-          key_prefix: (generated as string).slice(0, 12),
-          key_hash: hashed as string,
-          scopes: newKey.scopes,
-          requests_per_minute: newKey.rateLimit,
-          is_active: true,
-          expires_at: days ? new Date(Date.now() + days * 86400000).toISOString() : null,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      setDialogOpen(false);
-      setNewKey({ name: "", scopes: [], rateLimit: 1000, expiresIn: "never" });
-      await loadKeys();
-      setApiKeys((prev) =>
-        prev.map((k) => (k.id === inserted.id ? { ...k, key: generated as string } : k))
-      );
-      setShowKeys((prev) => ({ ...prev, [inserted.id]: true }));
-      toast.success("Clé API créée — copiez-la maintenant, elle ne sera plus affichée");
-    } catch (error) {
-      console.error("Error creating API key:", error);
-      toast.error("Erreur lors de la création de la clé API");
-=======
   const handleRevokeKey = (keyId: string) => {
     setApiKeys(apiKeys.map((key) => (key.id === keyId ? { ...key, status: "revoked" } : key)));
     toast.success("Clé API révoquée");
@@ -333,7 +196,7 @@ const SuperAdminAPIManagement = () => {
       setNewKey({ ...newKey, scopes: newKey.scopes.filter((s) => s !== scope) });
     } else {
       setNewKey({ ...newKey, scopes: [...newKey.scopes, scope] });
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
     }
   };
 
@@ -480,11 +343,9 @@ const SuperAdminAPIManagement = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-<<<<<<< HEAD
-                {apiKeys.length ? Math.round(apiKeys.reduce((sum, k) => sum + k.rateLimit, 0) / apiKeys.length) : 0} req/min
-=======
+
                 {Math.round(apiKeys.reduce((sum, k) => sum + k.rateLimit, 0) / apiKeys.length)} req/min
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
               </div>
             </CardContent>
           </Card>
@@ -495,13 +356,9 @@ const SuperAdminAPIManagement = () => {
             <CardTitle>Clés API</CardTitle>
           </CardHeader>
           <CardContent>
-<<<<<<< HEAD
-            {loading ? (
-              <div className="text-center py-12 text-muted-foreground">Chargement...</div>
-            ) : filteredKeys.length === 0 ? (
-=======
+
             {filteredKeys.length === 0 ? (
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
               <div className="text-center py-12 text-muted-foreground">
                 <Key className="w-12 h-12 mx-auto mb-4 opacity-50" />
                 <p>Aucune clé API trouvée</p>
@@ -531,11 +388,9 @@ const SuperAdminAPIManagement = () => {
                           </div>
                           <div className="flex items-center gap-2 mb-1">
                             <code className="text-sm bg-muted px-2 py-1 rounded font-mono">
-<<<<<<< HEAD
-                              {showKeys[apiKey.id] && apiKey.key ? apiKey.key : `${apiKey.prefix}${"•".repeat(12)}`}
-=======
+
                               {showKeys[apiKey.id] ? apiKey.key : apiKey.key.replace(/\*/g, "•")}
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
                             </code>
                             <Button
                               variant="ghost"
@@ -549,11 +404,9 @@ const SuperAdminAPIManagement = () => {
                               variant="ghost"
                               size="icon"
                               className="h-6 w-6"
-<<<<<<< HEAD
-                              onClick={() => handleCopyKey(apiKey.key ?? apiKey.prefix)}
-=======
+
                               onClick={() => handleCopyKey(apiKey.key)}
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
                             >
                               <Copy className="w-3 h-3" />
                             </Button>

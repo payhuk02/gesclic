@@ -2,13 +2,9 @@
 // Service layer for webhook delivery and management
 
 import { supabase } from '@/integrations/supabase/client';
-<<<<<<< HEAD
-import type {
-  WebhookSubscription,
-} from '@/types/phase2';
-=======
+
 import type { WebhookEvent, WebhookSubscription } from '@/types/phase2';
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
 
 export interface WebhookDeliveryResult {
   success: boolean;
@@ -149,11 +145,9 @@ export class WebhookService {
           integration_instance_id: instanceId,
           event_type: eventType,
           event_data: eventData,
-<<<<<<< HEAD
-          delivery_url: deliveryUrl,
-=======
+
           delivery_url,
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
           delivery_status: 'pending',
           delivery_attempts: 0
         })
@@ -201,11 +195,9 @@ export class WebhookService {
       return await this.deliverWithRetry(
         eventId,
         event.event_type,
-<<<<<<< HEAD
-        event.event_data as Record<string, any>,
-=======
+
         event.event_data,
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
         event.delivery_url
       );
     } catch (error) {
@@ -278,11 +270,9 @@ export class WebhookService {
         .from('webhook_subscriptions')
         .insert({
           user_id: userId,
-<<<<<<< HEAD
-          clinic_id: clinicId,
-=======
+
           clinic_id,
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
           name,
           url,
           events,
@@ -296,11 +286,9 @@ export class WebhookService {
 
       if (error) throw error;
 
-<<<<<<< HEAD
-      return data as any;
-=======
+
       return data;
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
     } catch (error) {
       console.error('Error creating webhook subscription:', error);
       throw new Error('Failed to create webhook subscription');
@@ -359,11 +347,9 @@ export class WebhookService {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-<<<<<<< HEAD
-      return (data || []) as any;
-=======
+
       return data || [];
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
     } catch (error) {
       console.error('Error getting webhook subscriptions:', error);
       return [];
@@ -470,11 +456,9 @@ export class WebhookService {
     try {
       const { error } = await supabase
         .from('webhook_events')
-<<<<<<< HEAD
-        .update(updates as any)
-=======
+
         .update(updates)
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
         .eq('id', eventId);
 
       if (error) throw error;
@@ -532,11 +516,9 @@ export class WebhookService {
           await this.deliverWithRetry(
             event.id,
             event.event_type,
-<<<<<<< HEAD
-            event.event_data as Record<string, any>,
-=======
+
             event.event_data,
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
             event.delivery_url
           );
           processed++;

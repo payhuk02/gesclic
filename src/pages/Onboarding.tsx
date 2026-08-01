@@ -10,10 +10,9 @@ import {
   Image as ImageIcon,
   Loader2,
   Sparkles,
-<<<<<<< HEAD
-=======
+
   Trash2,
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
   UserPlus,
   X,
 } from "lucide-react";
@@ -438,11 +437,9 @@ const Onboarding = () => {
                   Ajoutez les emails de vos collaborateurs. Ils recevront un lien pour rejoindre votre clinique avec le rôle attribué. Vous pouvez ignorer cette étape et inviter plus tard.
                 </p>
                 <div className="space-y-3">
-<<<<<<< HEAD
-                  {invites.map((inv, _i) => (
-=======
+
                   {invites.map((inv, i) => (
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
                     <div key={inv.id} className="flex gap-2 items-start">
                       <div className="flex-1">
                         <Input

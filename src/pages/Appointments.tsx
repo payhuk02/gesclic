@@ -15,11 +15,8 @@ import AddAppointmentDialog from "@/components/dialogs/AddAppointmentDialog";
 import DeleteConfirmDialog from "@/components/dialogs/DeleteConfirmDialog";
 import type { AppointmentForm } from "@/components/dialogs/AddAppointmentDialog";
 import EmptyState from "@/components/EmptyState";
-<<<<<<< HEAD
-import { toast } from "sonner";
 
-=======
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
 
 const statusConfig: Record<AppointmentStatus, { label: string; className: string }> = {
   confirmed: { label: "Confirmé", className: "bg-success/10 text-success border-success/20" },
@@ -78,28 +75,8 @@ const Appointments = () => {
     updateAppointment(id, { patient_name: form.patientName, doctor_name: form.doctorName, date: form.date, time: form.time, type: form.type });
   };
 
-<<<<<<< HEAD
-  /** Appelle le patient en consultation : le RDV passe de « en attente » à « confirmé ». */
-  const handleCall = (id: string, patientName: string) => {
-    updateAppointment(id, { status: "confirmed" });
-    toast.success(`${patientName} appelé(e) en consultation`);
-  };
-
-  /** Urgence : RDV créé sur la date affichée, à l'heure courante, de type « Urgence ». */
-  const handleAddUrgency = (form: AppointmentForm) => {
-    const now = new Date();
-    addAppointment({
-      patient_name: form.patientName,
-      doctor_name: form.doctorName,
-      date: form.date || selectedDate,
-      time: form.time || `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`,
-      type: form.type === "Consultation" ? "Urgence" : form.type,
-    });
-  };
 
 
-=======
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
   return (
     <AppLayout title="Rendez-vous">
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -294,26 +271,13 @@ const Appointments = () => {
                     <p className="text-sm text-muted-foreground">{a.time} — {a.type} avec {a.doctor_name}</p>
                   </div>
                   <div className="flex gap-2">
-<<<<<<< HEAD
-                    <AddAppointmentDialog
-                      editData={{ patientName: a.patient_name, doctorName: a.doctor_name, date: a.date, time: a.time, type: a.type }}
-                      onEdit={(form) => handleEdit(a.id, form)}
-                      patients={patients.map((p) => ({ id: p.id, name: p.name }))}
-                      doctors={doctors.map((d) => ({ id: d.id, name: d.name, specialty: d.specialty }))}
-                      trigger={<Button size="sm" variant="outline">Reporter</Button>}
-                    />
-                    <Button size="sm" className="gradient-hero border-0" onClick={() => handleCall(a.id, a.patient_name)}>Appeler</Button>
-                  </div>
-                </div>
-              ))}
 
-=======
                     <Button size="sm" variant="outline">Reporter</Button>
                     <Button size="sm" className="gradient-hero border-0">Appeler</Button>
                   </div>
                 </div>
               ))}
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
             </div>
           </TabsContent>
 
@@ -329,25 +293,12 @@ const Appointments = () => {
                 </div>
                 <h3 className="text-lg font-semibold text-foreground mb-2">Consultation sans rendez-vous</h3>
                 <p className="text-muted-foreground mb-4">Ajoutez un patient en urgence dans la file d'attente</p>
-<<<<<<< HEAD
-                <AddAppointmentDialog
-                  onAdd={handleAddUrgency}
-                  patients={patients.map((p) => ({ id: p.id, name: p.name }))}
-                  doctors={doctors.map((d) => ({ id: d.id, name: d.name, specialty: d.specialty }))}
-                  trigger={
-                    <Button className="gradient-hero border-0 gap-2">
-                      <Plus className="w-4 h-4" />
-                      Ajouter une urgence
-                    </Button>
-                  }
-                />
 
-=======
                 <Button className="gradient-hero border-0 gap-2">
                   <Plus className="w-4 h-4" />
                   Ajouter une urgence
                 </Button>
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
               </div>
               <div className="bg-card rounded-xl p-5 border border-border">
                 <h4 className="font-semibold text-foreground mb-3">Médecins disponibles maintenant</h4>

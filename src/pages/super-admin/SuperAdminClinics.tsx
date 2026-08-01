@@ -1,28 +1,24 @@
 import { useState, useEffect } from "react";
-<<<<<<< HEAD
-=======
+
 import { Link } from "react-router-dom";
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
 import SuperAdminLayout from "@/components/layout/SuperAdminLayout";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Building2,
   Search,
-<<<<<<< HEAD
-  MoreVertical,
-=======
+
   Filter,
   MoreVertical,
   Shield,
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
   Ban,
   Trash2,
   Eye,
   Edit,
-<<<<<<< HEAD
-=======
+
   Crown,
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
   Users,
   Calendar,
   CreditCard,
@@ -55,19 +51,15 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-<<<<<<< HEAD
-=======
+
   DialogTrigger,
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import DeleteConfirmDialog from "@/components/dialogs/DeleteConfirmDialog";
-<<<<<<< HEAD
-import ClinicFormDialog from "@/components/dialogs/ClinicFormDialog";
 
-=======
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
 
 interface Clinic {
   id: string;
@@ -78,13 +70,10 @@ interface Clinic {
   user_count: number;
   appointment_count: number;
   revenue: number;
-<<<<<<< HEAD
-  country: string | null;
-  email: string | null;
-=======
+
   country: string;
   email: string;
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
 }
 
 const SuperAdminClinics = () => {
@@ -95,12 +84,8 @@ const SuperAdminClinics = () => {
   const [planFilter, setPlanFilter] = useState("all");
   const [selectedClinic, setSelectedClinic] = useState<Clinic | null>(null);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
-<<<<<<< HEAD
-  const [formDialogOpen, setFormDialogOpen] = useState(false);
-  const [editingClinic, setEditingClinic] = useState<Clinic | null>(null);
 
-=======
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
 
   useEffect(() => {
     loadClinics();
@@ -109,29 +94,7 @@ const SuperAdminClinics = () => {
   const loadClinics = async () => {
     try {
       setLoading(true);
-<<<<<<< HEAD
-      const [{ data, error }, membersRes, apptRes, payRes] = await Promise.all([
-        supabase.from("clinics").select("*").order("created_at", { ascending: false }),
-        supabase.from("clinic_members").select("clinic_id, is_active"),
-        supabase.from("appointments").select("clinic_id"),
-        supabase.from("payments").select("clinic_id, amount, status"),
-      ]);
 
-      if (error) throw error;
-
-      // Real aggregates computed from the platform data
-      const enrichedClinics = (data || []).map((clinic: any) => ({
-        ...clinic,
-        user_count: (membersRes.data ?? []).filter(
-          (m: any) => m.clinic_id === clinic.id && m.is_active !== false
-        ).length,
-        appointment_count: (apptRes.data ?? []).filter((a: any) => a.clinic_id === clinic.id).length,
-        revenue: (payRes.data ?? [])
-          .filter((p: any) => p.clinic_id === clinic.id && p.status === "paid")
-          .reduce((s: number, p: any) => s + (p.amount ?? 0), 0),
-        email: (clinic.settings as any)?.email ?? null,
-        country: (clinic.settings as any)?.country ?? null,
-=======
       const { data, error } = await supabase
         .from("clinics")
         .select("*")
@@ -147,7 +110,7 @@ const SuperAdminClinics = () => {
         revenue: Math.floor(Math.random() * 200000) + 10000,
         country: "Côte d'Ivoire",
         email: `contact@${clinic.name.toLowerCase().replace(/\s+/g, "-")}.com`,
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
       })) as Clinic[];
 
       setClinics(enrichedClinics);
@@ -213,11 +176,9 @@ const SuperAdminClinics = () => {
   const filteredClinics = clinics.filter((clinic) => {
     const matchesSearch =
       clinic.name.toLowerCase().includes(search.toLowerCase()) ||
-<<<<<<< HEAD
-      (clinic.email ?? "").toLowerCase().includes(search.toLowerCase());
-=======
+
       clinic.email.toLowerCase().includes(search.toLowerCase());
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
     const matchesStatus = statusFilter === "all" || clinic.status === statusFilter;
     const matchesPlan = planFilter === "all" || clinic.plan === planFilter;
     return matchesSearch && matchesStatus && matchesPlan;
@@ -257,21 +218,12 @@ const SuperAdminClinics = () => {
               Gérez toutes les cliniques de la plateforme ({clinics.length} cliniques)
             </p>
           </div>
-<<<<<<< HEAD
-          <Button
-            className="gradient-hero border-0"
-            onClick={() => { setEditingClinic(null); setFormDialogOpen(true); }}
-          >
-            <Building2 className="w-4 h-4 mr-2" />
-            Nouvelle Clinique
-          </Button>
 
-=======
           <Button className="gradient-hero border-0">
             <Building2 className="w-4 h-4 mr-2" />
             Nouvelle Clinique
           </Button>
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
         </div>
 
         {/* Filters */}
@@ -391,11 +343,9 @@ const SuperAdminClinics = () => {
                               {statusInfo.label}
                             </Badge>
                           </div>
-<<<<<<< HEAD
-                          <p className="text-sm text-muted-foreground">{clinic.email ?? "Email non renseigné"}</p>
-=======
+
                           <p className="text-sm text-muted-foreground">{clinic.email}</p>
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
                           <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                             <span className="flex items-center gap-1">
                               <Users className="w-3 h-3" />
@@ -425,18 +375,12 @@ const SuperAdminClinics = () => {
                               <Eye className="w-4 h-4 mr-2" />
                               Voir détails
                             </DropdownMenuItem>
-<<<<<<< HEAD
-                            <DropdownMenuItem onClick={() => { setEditingClinic(clinic); setFormDialogOpen(true); }}>
-                              <Edit className="w-4 h-4 mr-2" />
-                              Modifier
-                            </DropdownMenuItem>
 
-=======
                             <DropdownMenuItem>
                               <Edit className="w-4 h-4 mr-2" />
                               Modifier
                             </DropdownMenuItem>
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
                             <DropdownMenuSeparator />
                             {clinic.status === "active" ? (
                               <DropdownMenuItem onClick={() => handleSuspendClinic(clinic.id)} className="text-destructive">
@@ -491,13 +435,10 @@ const SuperAdminClinics = () => {
                       </div>
                       <div>
                         <h3 className="text-lg font-semibold">{selectedClinic.name}</h3>
-<<<<<<< HEAD
-                        <p className="text-sm text-muted-foreground">{selectedClinic.email ?? "Email non renseigné"}</p>
-                        <Badge className={`${planConfig[selectedClinic.plan].color} mt-1`}>
-=======
+
                         <p className="text-sm text-muted-foreground">{selectedClinic.email}</p>
                         <Badge className={planConfig[selectedClinic.plan].color} className="mt-1">
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
                           {planConfig[selectedClinic.plan].label}
                         </Badge>
                       </div>
@@ -550,19 +491,9 @@ const SuperAdminClinics = () => {
             )}
           </DialogContent>
         </Dialog>
-<<<<<<< HEAD
 
-        <ClinicFormDialog
-          open={formDialogOpen}
-          onOpenChange={setFormDialogOpen}
-          clinic={editingClinic}
-          onSaved={loadClinics}
-        />
       </div>
 
-=======
-      </div>
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     </SuperAdminLayout>
   );
 };

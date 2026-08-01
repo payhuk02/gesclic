@@ -1,23 +1,8 @@
 import AppLayout from "@/components/layout/AppLayout";
 import { useState, useEffect } from "react";
-<<<<<<< HEAD
-import {
-  Webhook,
-  Plus,
-  Trash2,
-  RefreshCw,
-  Clock,
-  CheckCircle,
-  AlertCircle,
-  Loader2,
-  Globe,
-  Send,
-  Copy,
-  Search,
-} from "lucide-react";
-=======
+
 import { Webhook, Plus, Trash2, RefreshCw, Clock, CheckCircle, AlertCircle, Loader2, Globe, Send, Copy, Filter, Search } from "lucide-react";
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,10 +11,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-<<<<<<< HEAD
-=======
+
 import { Textarea } from "@/components/ui/textarea";
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
 import { webhookService } from "@/services/webhook.service";
 import { useClinic } from "@/contexts/ClinicContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -53,11 +37,9 @@ const emptyForm: WebhookSubscriptionForm = {
 const Webhooks = () => {
   const { activeClinicId } = useClinic();
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
-<<<<<<< HEAD
-  const [events, _setEvents] = useState<any[]>([]);
-=======
+
   const [events, setEvents] = useState<any[]>([]);
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
   const [deliveryStats, setDeliveryStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -74,11 +56,9 @@ const Webhooks = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-<<<<<<< HEAD
-      const subs = await webhookService.getSubscriptions(activeClinicId!);
-=======
+
       const subs = await webhookService.getSubscriptions(activeClinicId);
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
       setSubscriptions(subs);
 
       // Get delivery stats for first subscription if available
@@ -102,11 +82,9 @@ const Webhooks = () => {
 
       await webhookService.createSubscription(
         user.id,
-<<<<<<< HEAD
-        activeClinicId!,
-=======
+
         activeClinicId,
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
         form.name,
         form.endpointUrl,
         [form.eventType]
@@ -133,12 +111,9 @@ const Webhooks = () => {
     }
   };
 
-<<<<<<< HEAD
-  // @ts-ignore kept for future manual event triggering
-  const _handleTriggerEvent = async (eventType: string, eventData: any) => {
-=======
+
   const handleTriggerEvent = async (eventType: string, eventData: any) => {
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
     try {
       await webhookService.triggerEvent(eventType, eventData);
       toast.success("Événement déclenché avec succès");

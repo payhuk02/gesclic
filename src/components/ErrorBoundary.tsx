@@ -1,9 +1,6 @@
-<<<<<<< HEAD
-import { reportError } from "@/lib/monitoring";
-import { Component, ErrorInfo, ReactNode } from 'react';
-=======
+
 import React, { Component, ErrorInfo, ReactNode } from 'react';
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertCircle } from 'lucide-react';
@@ -47,13 +44,10 @@ class ErrorBoundary extends Component<Props, State> {
       console.error('Error caught by ErrorBoundary:', error, errorInfo);
     }
 
-<<<<<<< HEAD
-    // Reporting vers le service de monitoring
-    reportError(error.message, error, { componentStack: errorInfo.componentStack }, "fatal");
-=======
+
     // TODO: Send error to monitoring service (e.g., Sentry)
     // logErrorToService(error, errorInfo);
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
   }
 
   handleReset = (): void => {

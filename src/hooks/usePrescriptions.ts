@@ -24,47 +24,11 @@ interface DbPrescription {
   status: string;
 }
 
-<<<<<<< HEAD
-const parseMeds = (raw: unknown): string[] => {
-  if (raw == null) return [];
-  if (Array.isArray(raw)) return raw.map(medToString).filter(Boolean);
-  if (typeof raw === "object") return [medToString(raw)].filter(Boolean);
-  const text = String(raw).trim();
-  if (!text) return [];
-  try {
-    const v = JSON.parse(text);
-    if (Array.isArray(v)) return v.map(medToString).filter(Boolean);
-    if (v && typeof v === "object") return [medToString(v)].filter(Boolean);
-    if (typeof v === "string") return splitMeds(v);
-  } catch {
-    /* pas du JSON : on retombe sur le découpage texte */
-  }
-  return splitMeds(text);
-};
 
-/** Découpe une liste écrite à la main : retours ligne, « ; », « , » ou puces. */
-const splitMeds = (text: string): string[] =>
-  text
-    .split(/\r?\n|;|,|(?:^|\s)[-•*]\s+/g)
-    .map((s) => s.trim().replace(/^[-•*]\s*/, ""))
-    .filter(Boolean);
-
-/** Normalise un médicament objet ({ name, dosage, frequency }) en texte lisible. */
-const medToString = (m: unknown): string => {
-  if (typeof m === "string") return m.trim();
-  if (m && typeof m === "object") {
-    const o = m as Record<string, unknown>;
-    const parts = [o.name ?? o.nom ?? o.medication, o.dosage ?? o.dose, o.frequency ?? o.frequence, o.duration ?? o.duree]
-      .filter((v) => typeof v === "string" && v.trim())
-      .map((v) => (v as string).trim());
-    if (parts.length) return parts.join(" — ");
-  }
-  return "";
-=======
 const parseMeds = (raw: string): string[] => {
   if (!raw) return [];
   try { const v = JSON.parse(raw); return Array.isArray(v) ? v : [raw]; } catch { return raw.split(",").map((s) => s.trim()).filter(Boolean); }
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
 };
 
 export const usePrescriptions = () => {

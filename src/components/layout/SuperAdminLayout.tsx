@@ -23,10 +23,8 @@ import {
   Megaphone,
   Database,
   Key,
-<<<<<<< HEAD
-  Brain,
-=======
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
+
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -56,10 +54,8 @@ const superAdminNavItems: SuperAdminNavItem[] = [
   { icon: Megaphone, label: "Announcements", path: "/super-admin/announcements" },
   { icon: Database, label: "Backup & Restore", path: "/super-admin/backup" },
   { icon: Key, label: "API Management", path: "/super-admin/api" },
-<<<<<<< HEAD
-  { icon: Brain, label: "Intelligence Artificielle", path: "/super-admin/ai" },
-=======
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
+
   { icon: Settings, label: "Platform Settings", path: "/super-admin/settings" },
 ];
 

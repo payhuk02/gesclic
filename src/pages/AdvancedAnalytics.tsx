@@ -1,20 +1,8 @@
 import AppLayout from "@/components/layout/AppLayout";
 import { useState, useEffect } from "react";
-<<<<<<< HEAD
-import {
-  Users,
-  Calendar,
-  DollarSign,
-  Activity,
-  Download,
-  RefreshCw,
-  Loader2,
-  LineChart,
-  PieChart,
-} from "lucide-react";
-=======
+
 import { BarChart3, TrendingUp, Users, Calendar, DollarSign, Activity, Download, Filter, RefreshCw, Loader2, LineChart, PieChart, Target, Zap } from "lucide-react";
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -62,17 +50,12 @@ const AdvancedAnalytics = () => {
       const days = parseInt(period);
       
       const [revenue, patients, operational, financial] = await Promise.all([
-<<<<<<< HEAD
-        analyticsService.getRevenueMetrics(activeClinicId!, days),
-        analyticsService.getPatientMetrics(activeClinicId!, days),
-        analyticsService.getOperationalMetrics(activeClinicId!, days),
-        analyticsService.getFinancialHealth(activeClinicId!),
-=======
+
         analyticsService.getRevenueMetrics(activeClinicId, days),
         analyticsService.getPatientMetrics(activeClinicId, days),
         analyticsService.getOperationalMetrics(activeClinicId, days),
         analyticsService.getFinancialHealth(activeClinicId),
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
       ]);
 
       setRevenueMetrics(revenue);
@@ -279,11 +262,9 @@ const AdvancedAnalytics = () => {
                         fill="#8884d8"
                         dataKey="count"
                       >
-<<<<<<< HEAD
-                        {patientMetrics.patients_by_category.map((_entry: any, index: number) => (
-=======
+
                         {patientMetrics.patients_by_category.map((entry: any, index: number) => (
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>

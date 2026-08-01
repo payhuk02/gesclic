@@ -2,18 +2,13 @@
 // Service layer for AI-powered clinical decision support
 
 import { supabase } from '@/integrations/supabase/client';
-<<<<<<< HEAD
-import type {
-  DiagnosticRequest,
-  DiagnosticResponse,
-  ClinicalDecision,
-=======
+
 import type { 
   DiagnosticRequest, 
   DiagnosticResponse, 
   ClinicalDecision,
   MedicalKnowledge 
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
 } from '@/types/phase1';
 
 export class AIDiagnosticService {
@@ -70,19 +65,7 @@ export class AIDiagnosticService {
   async getClinicalGuidelines(condition: string): Promise<any[]> {
     try {
       // Search medical knowledge base first
-<<<<<<< HEAD
-      const embedding = await this.generateEmbedding(condition);
-      if (embedding) {
-        const { data: knowledge } = await supabase.rpc('search_medical_knowledge', {
-          query_embedding: embedding as any,
-          category_filter: 'guideline',
-          limit_count: 5
-        });
 
-        if (knowledge && knowledge.length > 0) {
-          return knowledge;
-        }
-=======
       const { data: knowledge } = await supabase.rpc('search_medical_knowledge', {
         query_embedding: await this.generateEmbedding(condition),
         category_filter: 'guideline',
@@ -91,7 +74,7 @@ export class AIDiagnosticService {
 
       if (knowledge && knowledge.length > 0) {
         return knowledge;
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
       }
 
       // Fallback to AI if no local knowledge
@@ -140,11 +123,9 @@ export class AIDiagnosticService {
         .limit(20);
 
       if (error) throw error;
-<<<<<<< HEAD
-      return (data || []) as any;
-=======
+
       return data || [];
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
     } catch (error) {
       console.error('Error getting clinical decisions:', error);
       return [];
@@ -166,19 +147,13 @@ export class AIDiagnosticService {
         patient_id: request.patient_id,
         provider_id: userData.user.id,
         clinic_id: await this.getCurrentClinicId(),
-<<<<<<< HEAD
-        symptoms: request.symptoms as any,
-        vitals: request.vitals as any,
-        medical_history_summary: request.medical_history,
-        current_medications: request.current_medications as any,
-        ai_differential_diagnosis: response.differential_diagnosis as any,
-=======
+
         symptoms: request.symptoms,
         vitals: request.vitals,
         medical_history_summary: request.medical_history,
         current_medications: request.current_medications,
         ai_differential_diagnosis: response.differential_diagnosis,
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
         ai_risk_factors: response.risk_assessment.specific_risks,
         ai_confidence_score: response.confidence_score,
       });
@@ -390,22 +365,13 @@ Always respond in French.`;
   /**
    * Generate embedding for semantic search
    */
-<<<<<<< HEAD
-  private async generateEmbedding(text: string): Promise<number[] | null> {
-    try {
-      const { data, error } = await supabase.functions.invoke('ai-embeddings', { body: { input: text } });
-      if (error || !data?.embedding || !Array.isArray(data.embedding)) return null;
-      return data.embedding as number[];
-    } catch {
-      return null;
-    }
-=======
+
   private async generateEmbedding(text: string): Promise<number[]> {
     // This would call an embedding service like OpenAI's text-embedding-ada-002
     // For now, return a placeholder
     // TODO: Implement actual embedding generation
     return new Array(1536).fill(0);
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
   }
 
   /**

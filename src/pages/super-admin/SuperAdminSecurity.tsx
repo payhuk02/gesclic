@@ -1,8 +1,6 @@
-<<<<<<< HEAD
-import { useEffect, useState } from "react";
-=======
+
 import { useState } from "react";
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
 import SuperAdminLayout from "@/components/layout/SuperAdminLayout";
 import {
   Shield,
@@ -16,10 +14,9 @@ import {
   Clock,
   Globe,
   Smartphone,
-<<<<<<< HEAD
-=======
+
   RefreshCw,
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
   Ban,
   MoreVertical,
   Download,
@@ -45,43 +42,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
-<<<<<<< HEAD
-import { supabase } from "@/integrations/supabase/client";
-import { usePlatformSettings } from "@/hooks/usePlatformSettings";
 
-
-interface SessionRow {
-  id: string;
-  user: string;
-  device: string;
-  ip: string;
-  location: string;
-  lastActivity: Date;
-  status: "active" | "suspicious" | "revoked";
-}
-
-interface SecurityEventRow {
-  id: string;
-  type: string;
-  severity: "critical" | "warning" | "info";
-  user: string;
-  ip: string;
-  description: string;
-  timestamp: Date;
-}
-
-const SuperAdminSecurity = () => {
-  const {
-    settings: securitySettings,
-    setSettings: setSecuritySettings,
-    saving: savingSettings,
-    save: saveSecuritySettings,
-  } = usePlatformSettings("security", {
-=======
 
 const SuperAdminSecurity = () => {
   const [securitySettings, setSecuritySettings] = useState({
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
     enforce2FA: true,
     sessionTimeout: 30,
     maxLoginAttempts: 5,
@@ -91,117 +56,7 @@ const SuperAdminSecurity = () => {
     ipBlacklist: "",
   });
 
-<<<<<<< HEAD
-  const [sessions, setSessions] = useState<SessionRow[]>([]);
-  const [securityEvents, setSecurityEvents] = useState<SecurityEventRow[]>([]);
-  const [mfaStats, setMfaStats] = useState({ total: 0, enabled: 0 });
-  const [loading, setLoading] = useState(true);
 
-
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      try {
-        const [eventsRes, loginsRes, mfaRes, membersRes] = await Promise.all([
-          supabase
-            .from("security_events")
-            .select("id, event_type, severity, details, created_at, user_id, resolved")
-            .order("created_at", { ascending: false })
-            .limit(50),
-          supabase
-            .from("audit_logs")
-            .select("id, user_id, action, ip_address, user_agent, created_at, success")
-            .ilike("action", "%login%")
-            .order("created_at", { ascending: false })
-            .limit(50),
-          supabase.from("mfa_settings").select("user_id, enabled"),
-          supabase.from("clinic_members").select("user_id"),
-        ]);
-
-        setSecurityEvents(
-          (eventsRes.data ?? []).map((e: any) => ({
-            id: e.id,
-            type: e.event_type,
-            severity: ["critical", "warning", "info"].includes(e.severity)
-              ? e.severity
-              : e.severity === "high"
-              ? "critical"
-              : e.severity === "medium"
-              ? "warning"
-              : "info",
-            user: e.user_id ?? "—",
-            ip: e.details?.ip ?? "—",
-            description: e.details?.description ?? e.event_type,
-            timestamp: new Date(e.created_at),
-          }))
-        );
-
-        setSessions(
-          (loginsRes.data ?? []).map((l: any) => ({
-            id: l.id,
-            user: l.user_id ?? "—",
-            device: l.user_agent ?? "Appareil inconnu",
-            ip: l.ip_address ? String(l.ip_address) : "—",
-            location: "—",
-            lastActivity: new Date(l.created_at),
-            status: l.success === false ? "suspicious" : "active",
-          }))
-        );
-
-        const uniqueUsers = new Set((membersRes.data ?? []).map((m: any) => m.user_id));
-        const enabled = new Set(
-          (mfaRes.data ?? []).filter((m: any) => m.enabled).map((m: any) => m.user_id)
-        );
-        setMfaStats({ total: uniqueUsers.size, enabled: enabled.size });
-      } catch (error) {
-        console.error("Error loading security data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, []);
-
-  const handleSaveSettings = () => {
-    void saveSecuritySettings();
-  };
-
-  /** Déconnecte toutes les sessions de l'utilisateur via la fonction edge sécurisée. */
-  const handleRevokeSession = async (userId: string) => {
-    if (!/^[0-9a-f-]{36}$/i.test(userId)) {
-      toast.error("Utilisateur inconnu pour cette entrée de journal");
-      return;
-    }
-    const { data, error } = await supabase.functions.invoke("admin-users", {
-      body: { action: "revoke_sessions", userId },
-    });
-    if (error || (data as any)?.error) {
-      toast.error((data as any)?.error || "Erreur lors de la révocation");
-      return;
-    }
-    toast.success("Sessions révoquées");
-  };
-
-  /** Ajoute l'IP à la liste noire persistée dans les paramètres de sécurité. */
-  const handleBlockIP = async (ip: string) => {
-    if (!ip || ip === "—") {
-      toast.error("Adresse IP inconnue");
-      return;
-    }
-    const current = securitySettings.ipBlacklist
-      .split("\n")
-      .map((l) => l.trim())
-      .filter(Boolean);
-    if (current.includes(ip)) {
-      toast.info(`IP ${ip} déjà bloquée`);
-      return;
-    }
-    const ok = await saveSecuritySettings({ ipBlacklist: [...current, ip].join("\n") });
-    if (ok) toast.success(`IP ${ip} bloquée`);
-  };
-
-
-=======
   const sessions = [
     {
       id: "1",
@@ -274,7 +129,7 @@ const SuperAdminSecurity = () => {
     toast.success(`IP ${ip} bloquée`);
   };
 
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
   const severityConfig = {
     critical: { label: "Critique", color: "bg-destructive/10 text-destructive border-destructive/20" },
     warning: { label: "Avertissement", color: "bg-warning/10 text-warning border-warning/20" },
@@ -404,16 +259,11 @@ const SuperAdminSecurity = () => {
               </Card>
             </div>
 
-<<<<<<< HEAD
-            <Button onClick={handleSaveSettings} disabled={savingSettings} className="gradient-hero border-0 mt-4">
-              {savingSettings ? "Sauvegarde…" : "Sauvegarder les Paramètres"}
-            </Button>
 
-=======
             <Button onClick={handleSaveSettings} className="gradient-hero border-0 mt-4">
               Sauvegarder les Paramètres
             </Button>
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
           </TabsContent>
 
           <TabsContent value="sessions">
@@ -452,18 +302,10 @@ const SuperAdminSecurity = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-<<<<<<< HEAD
-                  {!loading && sessions.length === 0 && (
-                    <p className="text-sm text-muted-foreground text-center py-6">
-                      Aucune connexion enregistrée dans les journaux d'audit.
-                    </p>
-                  )}
-                  {sessions.map((session) => {
-                    const statusInfo = (statusConfig as Record<string, any>)[session.status];
-=======
+
                   {sessions.map((session) => {
                     const statusInfo = statusConfig[session.status];
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
                     const StatusIcon = statusInfo.icon;
 
                     return (
@@ -508,11 +350,9 @@ const SuperAdminSecurity = () => {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-<<<<<<< HEAD
-                              <DropdownMenuItem onClick={() => handleRevokeSession(session.user)}>
-=======
+
                               <DropdownMenuItem onClick={() => handleRevokeSession(session.id)}>
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
                                 <Ban className="w-4 h-4 mr-2" />
                                 Révoquer Session
                               </DropdownMenuItem>
@@ -571,18 +411,10 @@ const SuperAdminSecurity = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-<<<<<<< HEAD
-                  {!loading && securityEvents.length === 0 && (
-                    <p className="text-sm text-muted-foreground text-center py-6">
-                      Aucun événement de sécurité enregistré.
-                    </p>
-                  )}
-                  {securityEvents.map((event) => {
-                    const severityInfo = (severityConfig as Record<string, any>)[event.severity];
-=======
+
                   {securityEvents.map((event) => {
                     const severityInfo = severityConfig[event.severity];
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
 
                     return (
                       <div
@@ -632,17 +464,7 @@ const SuperAdminSecurity = () => {
                 <CardContent className="space-y-4">
                   <div className="p-4">
                     <p className="text-sm text-muted-foreground mb-1">Utilisateurs avec 2FA activé</p>
-<<<<<<< HEAD
-                    <p className="text-2xl font-bold text-success">{mfaStats.total ? Math.round((mfaStats.enabled / mfaStats.total) * 100) : 0}%</p>
-                  </div>
-                  <div className="p-4">
-                    <p className="text-sm text-muted-foreground mb-1">Utilisateurs sans 2FA</p>
-                    <p className="text-2xl font-bold text-warning">{mfaStats.total ? 100 - Math.round((mfaStats.enabled / mfaStats.total) * 100) : 0}%</p>
-                  </div>
-                  <div className="p-4">
-                    <p className="text-sm text-muted-foreground mb-1">Utilisateurs suivis</p>
-                    <p className="text-2xl font-bold">{mfaStats.total}</p>
-=======
+
                     <p className="text-2xl font-bold text-success">78%</p>
                   </div>
                   <div className="p-4">
@@ -652,7 +474,7 @@ const SuperAdminSecurity = () => {
                   <div className="p-4">
                     <p className="text-sm text-muted-foreground mb-1">Super Admins avec 2FA</p>
                     <p className="text-2xl font-bold">100%</p>
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
                   </div>
                 </CardContent>
               </Card>

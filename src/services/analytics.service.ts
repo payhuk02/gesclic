@@ -2,22 +2,19 @@
 // Service layer for advanced analytics and business intelligence
 
 import { supabase } from '@/integrations/supabase/client';
-<<<<<<< HEAD
-import type {
-=======
+
 import type { 
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
   AnalyticsEvent,
   RevenueMetrics,
   PatientMetrics,
   OperationalMetrics,
   FinancialHealth,
   ProviderPerformance,
-<<<<<<< HEAD
-=======
+
   DailyRevenue,
   DailyAppointments
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
 } from '@/types/phase1';
 
 export class AnalyticsService {
@@ -80,11 +77,9 @@ export class AnalyticsService {
       startDate.setDate(startDate.getDate() - days);
 
       const { data: revenueData, error } = await supabase
-<<<<<<< HEAD
-        .from('v_daily_revenue')
-=======
+
         .from('mv_daily_revenue')
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
         .select('*')
         .eq('clinic_id', clinicId)
         .gte('date', startDate.toISOString().split('T')[0])
@@ -139,14 +134,10 @@ export class AnalyticsService {
         .eq('clinic_id', clinicId)
         .gte('created_at', new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString());
 
-<<<<<<< HEAD
-      const feedbackRows = feedback ?? [];
-      const avgRating = feedbackRows.length > 0
-        ? feedbackRows.reduce((sum, f) => sum + f.overall_rating, 0) / feedbackRows.length
-=======
+
       const avgRating = feedback?.length > 0
         ? feedback.reduce((sum, f) => sum + f.overall_rating, 0) / feedback.length
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
         : 0;
 
       return {
@@ -169,11 +160,9 @@ export class AnalyticsService {
   async getOperationalMetrics(clinicId: string, days: number = 30): Promise<OperationalMetrics> {
     try {
       const { data: appointments, error } = await supabase
-<<<<<<< HEAD
-        .from('v_daily_appointments')
-=======
+
         .from('mv_daily_appointments')
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
         .select('*')
         .eq('clinic_id', clinicId)
         .gte('date', new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
@@ -230,21 +219,17 @@ export class AnalyticsService {
   async getProviderPerformance(clinicId: string): Promise<ProviderPerformance[]> {
     try {
       const { data, error } = await supabase
-<<<<<<< HEAD
-        .from('v_provider_performance')
-=======
+
         .from('mv_provider_performance')
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
         .select('*')
         .eq('clinic_id', clinicId)
         .order('completion_rate', { ascending: false });
 
       if (error) throw error;
-<<<<<<< HEAD
-      return (data || []) as any;
-=======
+
       return data || [];
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
     } catch (error) {
       console.error('Error getting provider performance:', error);
       return [];
@@ -280,11 +265,9 @@ export class AnalyticsService {
         .range(offset, offset + limit - 1);
 
       if (error) throw error;
-<<<<<<< HEAD
-      return (data || []) as any;
-=======
+
       return data || [];
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
     } catch (error) {
       console.error('Error getting analytics events:', error);
       return [];
@@ -364,11 +347,9 @@ export class AnalyticsService {
     endDate.setDate(endDate.getDate() - days);
 
     const { data } = await supabase
-<<<<<<< HEAD
-      .from('v_daily_revenue')
-=======
+
       .from('mv_daily_revenue')
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
       .select('total_revenue')
       .eq('clinic_id', clinicId)
       .gte('date', startDate.toISOString().split('T')[0])
@@ -377,11 +358,9 @@ export class AnalyticsService {
     return data?.reduce((sum, day) => sum + Number(day.total_revenue), 0) || 0;
   }
 
-<<<<<<< HEAD
-  private async getRevenueByService(_clinicId: string, _days: number): Promise<any[]> {
-=======
+
   private async getRevenueByService(clinicId: string, days: number): Promise<any[]> {
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
     // This would be implemented with service categorization
     return [];
   }
@@ -411,11 +390,9 @@ export class AnalyticsService {
   private async getRevenueForecast(clinicId: string): Promise<any[]> {
     // Simple linear forecast based on last 30 days
     const { data } = await supabase
-<<<<<<< HEAD
-      .from('v_daily_revenue')
-=======
+
       .from('mv_daily_revenue')
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
       .select('date, total_revenue')
       .eq('clinic_id', clinicId)
       .gte('date', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
@@ -457,74 +434,58 @@ export class AnalyticsService {
     return totalAmount > 0 ? (collectedAmount / totalAmount) * 100 : 0;
   }
 
-<<<<<<< HEAD
-  private async getRetentionRate(_clinicId: string, _days: number): Promise<number> {
-=======
+
   private async getRetentionRate(clinicId: string, days: number): Promise<number> {
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
     // Simplified retention calculation
     return 85; // Placeholder
   }
 
-<<<<<<< HEAD
-  private async getPatientAcquisitionCost(_clinicId: string, _days: number): Promise<number> {
-=======
+
   private async getPatientAcquisitionCost(clinicId: string, days: number): Promise<number> {
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
     // Would integrate with marketing spend data
     return 50; // Placeholder
   }
 
-<<<<<<< HEAD
-  private async getPatientLifetimeValue(_clinicId: string): Promise<number> {
-=======
+
   private async getPatientLifetimeValue(clinicId: string): Promise<number> {
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
     // Simplified LTV calculation
     return 500; // Placeholder
   }
 
-<<<<<<< HEAD
-  private async getAverageWaitTime(_clinicId: string, _days: number): Promise<number> {
-=======
+
   private async getAverageWaitTime(clinicId: string, days: number): Promise<number> {
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
     // Would calculate from appointment data
     return 15; // Placeholder in minutes
   }
 
-<<<<<<< HEAD
-  private async getStaffEfficiency(_clinicId: string, _days: number): Promise<number> {
-=======
+
   private async getStaffEfficiency(clinicId: string, days: number): Promise<number> {
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
     // Would calculate from provider performance
     return 85; // Placeholder percentage
   }
 
-<<<<<<< HEAD
-  private async getResourceUtilization(_clinicId: string, _days: number): Promise<number> {
-=======
+
   private async getResourceUtilization(clinicId: string, days: number): Promise<number> {
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
     // Would calculate from equipment and room usage
     return 75; // Placeholder percentage
   }
 
-<<<<<<< HEAD
-  private async getCurrentRatio(_clinicId: string): Promise<number> {
-=======
+
   private async getCurrentRatio(clinicId: string): Promise<number> {
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
     // Would calculate from financial data
     return 1.5; // Placeholder
   }
 
-<<<<<<< HEAD
-  private async getProfitMargin(_clinicId: string): Promise<number> {
-=======
+
   private async getProfitMargin(clinicId: string): Promise<number> {
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
     // Would calculate from revenue and expenses
     return 25; // Placeholder percentage
   }
@@ -550,11 +511,9 @@ export class AnalyticsService {
     return Math.floor(avgAge / (1000 * 60 * 60 * 24));
   }
 
-<<<<<<< HEAD
-  private async getBadDebtRatio(_clinicId: string): Promise<number> {
-=======
+
   private async getBadDebtRatio(clinicId: string): Promise<number> {
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
     // Would calculate from uncollectible payments
     return 5; // Placeholder percentage
   }

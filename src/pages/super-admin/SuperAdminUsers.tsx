@@ -4,10 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Users,
   Search,
-<<<<<<< HEAD
-=======
+
   Filter,
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
   MoreVertical,
   Shield,
   Ban,
@@ -66,69 +65,14 @@ const SuperAdminUsers = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedUser, setSelectedUser] = useState<PlatformUser | null>(null);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
-<<<<<<< HEAD
-  const [editUser, setEditUser] = useState<PlatformUser | null>(null);
-  const [editRole, setEditRole] = useState<PlatformUser["role"]>("secretaire");
-  const [savingRole, setSavingRole] = useState(false);
-=======
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
+
 
   useEffect(() => {
     loadUsers();
   }, []);
 
-<<<<<<< HEAD
-  /** Appelle la fonction edge sécurisée `admin-users` (réservée aux super-admins). */
-  const callAdmin = async (body: Record<string, unknown>) => {
-    const { data, error } = await supabase.functions.invoke("admin-users", { body });
-    if (error) throw new Error((data as any)?.error || error.message);
-    if ((data as any)?.error) throw new Error((data as any).error);
-    return data as any;
-  };
 
-  const loadUsers = async () => {
-    try {
-      setLoading(true);
-      const [{ data: profiles, error }, { data: roles }] = await Promise.all([
-        supabase
-          .from("profiles")
-          .select("*")
-          .order("created_at", { ascending: false }),
-        supabase.from("user_roles").select("user_id, role"),
-      ]);
-
-      if (error) throw error;
-
-      // Comptes d'authentification (email réel, statut, dernière connexion)
-      let accounts = new Map<string, any>();
-      try {
-        const res = await callAdmin({ action: "list" });
-        accounts = new Map((res?.users ?? []).map((u: any) => [u.id, u]));
-      } catch (e) {
-        console.warn("admin-users list indisponible:", e);
-      }
-
-      const roleByUser = new Map<string, PlatformUser["role"]>();
-      (roles || []).forEach((r: any) => {
-        if (!roleByUser.has(r.user_id)) roleByUser.set(r.user_id, r.role);
-      });
-
-      const enrichedUsers = (profiles || []).map((user: any) => {
-        const account = accounts.get(user.user_id);
-        return {
-          id: user.user_id,
-          email: account?.email || user.email || "N/A",
-          full_name: user.first_name && user.last_name
-            ? `${user.first_name} ${user.last_name}`
-            : user.first_name || user.last_name || null,
-          role: roleByUser.get(user.user_id) || "secretaire",
-          clinic_name: user.clinic_name,
-          created_at: user.created_at,
-          last_sign_in: account?.last_sign_in_at ?? null,
-          status: account?.suspended ? "suspended" : "active",
-        };
-      }) as PlatformUser[];
-=======
   const loadUsers = async () => {
     try {
       setLoading(true);
@@ -151,7 +95,7 @@ const SuperAdminUsers = () => {
         last_sign_in: user.last_sign_in_at,
         status: "active",
       })) as PlatformUser[];
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
 
       setUsers(enrichedUsers);
     } catch (error) {
@@ -163,53 +107,7 @@ const SuperAdminUsers = () => {
   };
 
   const handleSuspendUser = async (userId: string) => {
-<<<<<<< HEAD
-    try {
-      await callAdmin({ action: "suspend", userId });
-      toast.success("Utilisateur suspendu");
-      loadUsers();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Erreur lors de la suspension");
-    }
-  };
 
-  const handleActivateUser = async (userId: string) => {
-    try {
-      await callAdmin({ action: "activate", userId });
-      toast.success("Utilisateur activé");
-      loadUsers();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Erreur lors de l'activation");
-    }
-  };
-
-  const handleDeleteUser = async (userId: string) => {
-    try {
-      await callAdmin({ action: "delete", userId });
-      toast.success("Utilisateur supprimé");
-      loadUsers();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Erreur lors de la suppression");
-    }
-  };
-
-  const handleSaveRole = async () => {
-    if (!editUser) return;
-    try {
-      setSavingRole(true);
-      await callAdmin({ action: "set_role", userId: editUser.id, role: editRole });
-      toast.success("Rôle mis à jour");
-      setEditUser(null);
-      loadUsers();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Erreur lors de la mise à jour du rôle");
-    } finally {
-      setSavingRole(false);
-    }
-  };
-
-
-=======
     toast.success("Utilisateur suspendu");
   };
 
@@ -222,7 +120,7 @@ const SuperAdminUsers = () => {
     loadUsers();
   };
 
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
       user.email.toLowerCase().includes(search.toLowerCase()) ||
@@ -409,18 +307,12 @@ const SuperAdminUsers = () => {
                               <Eye className="w-4 h-4 mr-2" />
                               Voir détails
                             </DropdownMenuItem>
-<<<<<<< HEAD
-                            <DropdownMenuItem onClick={() => { setEditUser(user); setEditRole(user.role); }}>
-                              <Edit className="w-4 h-4 mr-2" />
-                              Modifier
-                            </DropdownMenuItem>
 
-=======
                             <DropdownMenuItem>
                               <Edit className="w-4 h-4 mr-2" />
                               Modifier
                             </DropdownMenuItem>
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
                             <DropdownMenuSeparator />
                             {user.status === "active" ? (
                               <DropdownMenuItem onClick={() => handleSuspendUser(user.id)} className="text-destructive">
@@ -468,11 +360,9 @@ const SuperAdminUsers = () => {
                   <div>
                     <h3 className="text-lg font-semibold">{selectedUser.full_name || "Utilisateur"}</h3>
                     <p className="text-sm text-muted-foreground">{selectedUser.email}</p>
-<<<<<<< HEAD
-                    <Badge className={`${roleConfig[selectedUser.role].color} mt-1`}>
-=======
+
                     <Badge className={roleConfig[selectedUser.role].color} className="mt-1">
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
                       {roleConfig[selectedUser.role].label}
                     </Badge>
                   </div>
@@ -503,49 +393,8 @@ const SuperAdminUsers = () => {
             )}
           </DialogContent>
         </Dialog>
-<<<<<<< HEAD
 
-        {/* Édition du rôle */}
-        <Dialog open={!!editUser} onOpenChange={(o) => !o && setEditUser(null)}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Modifier l'utilisateur</DialogTitle>
-            </DialogHeader>
-            {editUser && (
-              <div className="space-y-4">
-                <div>
-                  <p className="font-medium">{editUser.full_name || "Utilisateur"}</p>
-                  <p className="text-sm text-muted-foreground">{editUser.email}</p>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Rôle</label>
-                  <Select value={editRole} onValueChange={(v) => setEditRole(v as PlatformUser["role"])}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="super_admin">Super Admin</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                      <SelectItem value="medecin">Médecin</SelectItem>
-                      <SelectItem value="secretaire">Secrétaire</SelectItem>
-                      <SelectItem value="infirmier">Infirmier</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex justify-end gap-2">
-                  <Button variant="outline" onClick={() => setEditUser(null)}>Annuler</Button>
-                  <Button onClick={handleSaveRole} disabled={savingRole} className="gradient-hero border-0">
-                    {savingRole && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                    Enregistrer
-                  </Button>
-                </div>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
 
-=======
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
       </div>
     </SuperAdminLayout>
   );

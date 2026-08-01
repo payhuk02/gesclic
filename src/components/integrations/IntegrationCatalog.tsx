@@ -2,26 +2,17 @@
 // Main component for browsing and discovering integrations
 
 import { useState, useEffect } from 'react';
-<<<<<<< HEAD
-import {
-  Search,
-  Star,
-  Download,
-  ExternalLink,
-  Shield,
-} from 'lucide-react';
-=======
+
 import { Search, Filter, Star, Download, ExternalLink, Shield, Clock, Users } from 'lucide-react';
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-<<<<<<< HEAD
-=======
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
 import { integrationMarketplaceService } from '@/services/integration-marketplace.service';
 import { useClinic } from '@/contexts/ClinicContext';
 import type { IntegrationCatalog as IntegrationCatalogItem, IntegrationFilters, IntegrationCategory, PricingModel } from '@/types/phase2';

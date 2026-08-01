@@ -41,11 +41,9 @@ export class APIPlatformService {
           user_id: userId,
           clinic_id: clinicId,
           key_prefix: keyPrefix,
-<<<<<<< HEAD
-          key_hash: hashData as any,
-=======
+
           key_hash: hashData,
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
           name,
           scopes,
           rate_limit_tier: rateLimitTier,
@@ -80,11 +78,9 @@ export class APIPlatformService {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-<<<<<<< HEAD
-      return (data || []) as any;
-=======
+
       return data || [];
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
     } catch (error) {
       console.error('Error getting API keys:', error);
       return [];
@@ -103,11 +99,9 @@ export class APIPlatformService {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-<<<<<<< HEAD
-      return (data || []) as any;
-=======
+
       return data || [];
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
     } catch (error) {
       console.error('Error getting clinic API keys:', error);
       return [];
@@ -126,11 +120,9 @@ export class APIPlatformService {
         .single();
 
       if (error) throw error;
-<<<<<<< HEAD
-      return data as any;
-=======
+
       return data;
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
     } catch (error) {
       console.error('Error getting API key:', error);
       return null;
@@ -311,13 +303,10 @@ export class APIPlatformService {
         p_status_code: statusCode,
         p_response_body: responseBody || {},
         p_response_time_ms: responseTimeMs,
-<<<<<<< HEAD
-        p_ip_address: ipAddress as any,
-        p_user_agent: userAgent as any,
-=======
+
         p_ip_address: ipAddress,
         p_user_agent: userAgent
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
       });
 
       if (error) throw error;
@@ -350,11 +339,9 @@ export class APIPlatformService {
       if (error) throw error;
 
       return {
-<<<<<<< HEAD
-        data: (data || []) as any,
-=======
+
         data: data || [],
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
         total: count || 0,
         page,
         per_page: perPage,
@@ -448,11 +435,9 @@ export class APIPlatformService {
         .single();
 
       if (error) throw error;
-<<<<<<< HEAD
-      return data as any;
-=======
+
       return data;
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
     } catch (error) {
       console.error('Error creating webhook subscription:', error);
       throw new Error('Failed to create webhook subscription');
@@ -471,11 +456,9 @@ export class APIPlatformService {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-<<<<<<< HEAD
-      return (data || []) as any;
-=======
+
       return data || [];
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
     } catch (error) {
       console.error('Error getting webhook subscriptions:', error);
       return [];
@@ -625,12 +608,9 @@ export class APIPlatformService {
   /**
    * Get current user ID
    */
-<<<<<<< HEAD
-  // @ts-ignore unused helper kept for future use
-  private async _getCurrentUserId(): Promise<string> {
-=======
+
   private async getCurrentUserId(): Promise<string> {
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
     const { data } = await supabase.auth.getUser();
     return data.user?.id || '';
   }
@@ -638,12 +618,9 @@ export class APIPlatformService {
   /**
    * Get current clinic ID
    */
-<<<<<<< HEAD
-  // @ts-ignore unused helper kept for future use
-  private async _getCurrentClinicId(): Promise<string> {
-=======
+
   private async getCurrentClinicId(): Promise<string> {
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
     try {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) return '';

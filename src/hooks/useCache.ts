@@ -40,11 +40,9 @@ export function useCachedQuery<T>(
  * Custom hook for cached mutations with automatic invalidation
  */
 export function useCachedMutation<TData, TVariables>(
-<<<<<<< HEAD
-  _key: string,
-=======
+
   key: string,
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
   mutationFn: (variables: TVariables) => Promise<TData>,
   options: {
     invalidateTags?: string[];

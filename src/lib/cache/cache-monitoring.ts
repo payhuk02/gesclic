@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-<<<<<<< HEAD
-=======
+
 import { cacheService } from './cache-service';
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
 
 /**
  * Cache monitoring and metrics service

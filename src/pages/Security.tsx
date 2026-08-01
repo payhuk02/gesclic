@@ -1,22 +1,8 @@
 import AppLayout from "@/components/layout/AppLayout";
 import { useState, useEffect } from "react";
-<<<<<<< HEAD
-import {
-  Shield,
-  Lock,
-  AlertTriangle,
-  CheckCircle,
-  Copy,
-  Download,
-  RefreshCw,
-  Loader2,
-  Smartphone,
-  Eye,
-  EyeOff,
-} from "lucide-react";
-=======
+
 import { Shield, Lock, Key, AlertTriangle, CheckCircle, Copy, Download, RefreshCw, Loader2, QrCode, Smartphone, Eye, EyeOff } from "lucide-react";
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";

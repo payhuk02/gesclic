@@ -1,22 +1,8 @@
 import AppLayout from "@/components/layout/AppLayout";
 import { useState, useEffect } from "react";
-<<<<<<< HEAD
-import {
-  Key,
-  Clock,
-  AlertTriangle,
-  Copy,
-  Plus,
-  Trash2,
-  Loader2,
-  Shield,
-  Globe,
-  Code,
-  BarChart3,
-} from "lucide-react";
-=======
+
 import { Key, Clock, AlertTriangle, Copy, Plus, Trash2, RefreshCw, Loader2, Shield, Globe, Code, BarChart3 } from "lucide-react";
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,16 +10,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-<<<<<<< HEAD
-import { apiPlatformService } from "@/services/api-platform.service";
-import { useClinic } from "@/contexts/ClinicContext";
-import { useAuth } from "@/contexts/AuthContext";
-=======
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { apiPlatformService } from "@/services/api-platform.service";
 import { useClinic } from "@/contexts/ClinicContext";
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
 import { toast } from "sonner";
 import EmptyState from "@/components/EmptyState";
 
@@ -53,10 +35,8 @@ const emptyForm: APIKeyForm = {
 
 const APIPlatform = () => {
   const { activeClinicId } = useClinic();
-<<<<<<< HEAD
-  const { user } = useAuth();
-=======
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
+
   const [apiKeys, setApiKeys] = useState<any[]>([]);
   const [requestLogs, setRequestLogs] = useState<any[]>([]);
   const [webhookSubscriptions, setWebhookSubscriptions] = useState<any[]>([]);
@@ -73,10 +53,8 @@ const APIPlatform = () => {
   }, [activeClinicId]);
 
   const loadData = async () => {
-<<<<<<< HEAD
-    if (!activeClinicId) return;
-=======
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
+
     try {
       setLoading(true);
       const [keys, subscriptions] = await Promise.all([
@@ -93,11 +71,9 @@ const APIPlatform = () => {
           apiPlatformService.getAPIRequestLogs(keys[0].id, 1, 50),
           apiPlatformService.getAPIUsageSummary(keys[0].id, 30),
         ]);
-<<<<<<< HEAD
-        setRequestLogs(logs.data ?? []);
-=======
+
         setRequestLogs(logs);
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
         setUsageSummary(usage);
       }
     } catch (error) {
@@ -111,20 +87,7 @@ const APIPlatform = () => {
   const handleCreateAPIKey = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-<<<<<<< HEAD
-      if (!activeClinicId || !user) {
-        toast.error("Aucune clinique active");
-        return;
-      }
-      const result = await apiPlatformService.generateAPIKey(
-        user.id,
-        activeClinicId,
-        form.name,
-        form.scopes
-      );
 
-      setNewKeySecret(result.apiKey);
-=======
       const result = await apiPlatformService.createAPIKey(activeClinicId, {
         name: form.name,
         scopes: form.scopes,
@@ -133,7 +96,7 @@ const APIPlatform = () => {
       });
 
       setNewKeySecret(result.secret);
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
       setCreateDialogOpen(false);
       setForm(emptyForm);
       loadData();
@@ -157,11 +120,9 @@ const APIPlatform = () => {
 
   const handleRevokeAPIKey = async (keyId: string) => {
     try {
-<<<<<<< HEAD
-      await apiPlatformService.toggleAPIKey(keyId, false);
-=======
+
       await apiPlatformService.revokeAPIKey(keyId);
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
       loadData();
       toast.success("Clé API révoquée");
     } catch (error) {

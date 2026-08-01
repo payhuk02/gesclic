@@ -1,27 +1,17 @@
-<<<<<<< HEAD
-import { useEffect, useState } from "react";
-import SuperAdminLayout from "@/components/layout/SuperAdminLayout";
-import { supabase } from "@/integrations/supabase/client";
-import {
-  Database,
-=======
+
 import { useState } from "react";
 import SuperAdminLayout from "@/components/layout/SuperAdminLayout";
 import {
   Database,
   Download,
   Upload,
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
   RefreshCw,
   Clock,
   HardDrive,
   CheckCircle,
   XCircle,
-<<<<<<< HEAD
-  Calendar,
-  Trash2,
-  MoreVertical,
-=======
+
   AlertTriangle,
   Calendar,
   FileText,
@@ -29,116 +19,12 @@ import {
   MoreVertical,
   Play,
   Pause,
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-<<<<<<< HEAD
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
-import { toast } from "sonner";
-import DeleteConfirmDialog from "@/components/dialogs/DeleteConfirmDialog";
 
-interface BackupRow {
-  id: string;
-  name: string;
-  backup_type: string;
-  status: string;
-  size_bytes: number;
-  location: string | null;
-  retention_days: number;
-  error_message: string | null;
-  completed_at: string | null;
-  created_at: string;
-}
-
-const typeConfig: Record<string, { label: string; color: string }> = {
-  full: { label: "Complète", color: "bg-blue-500/10 text-blue-600 border-blue-500/20" },
-  incremental: { label: "Incrémentale", color: "bg-purple-500/10 text-purple-600 border-purple-500/20" },
-  manual: { label: "Manuelle", color: "bg-green-500/10 text-green-600 border-green-500/20" },
-};
-
-const statusConfig: Record<string, { label: string; icon: typeof CheckCircle; color: string }> = {
-  completed: { label: "Complété", icon: CheckCircle, color: "bg-success/10 text-success border-success/20" },
-  in_progress: { label: "En cours", icon: RefreshCw, color: "bg-blue-500/10 text-blue-600 border-blue-500/20" },
-  failed: { label: "Échoué", icon: XCircle, color: "bg-destructive/10 text-destructive border-destructive/20" },
-  pending: { label: "En attente", icon: Clock, color: "bg-slate-500/10 text-slate-600 border-slate-500/20" },
-};
-
-const formatSize = (bytes: number) => {
-  if (!bytes) return "0 B";
-  const k = 1024;
-  const sizes = ["B", "KB", "MB", "GB", "TB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`;
-};
-
-const SuperAdminBackup = () => {
-  const [backups, setBackups] = useState<BackupRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [creating, setCreating] = useState(false);
-
-  const load = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("backups")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      setBackups((data ?? []) as BackupRow[]);
-    } catch (error) {
-      console.error("Error loading backups:", error);
-      toast.error("Erreur lors du chargement des sauvegardes");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    load();
-  }, []);
-
-  const handleCreateBackup = async () => {
-    setCreating(true);
-    try {
-      const { data: userData } = await supabase.auth.getUser();
-      const { error } = await supabase.from("backups").insert({
-        name: `backup_${new Date().toISOString().slice(0, 19).replace(/[:T]/g, "_")}`,
-        backup_type: "manual",
-        status: "pending",
-        created_by: userData.user?.id ?? null,
-      });
-      if (error) throw error;
-      toast.success("Sauvegarde enregistrée (en attente d'exécution)");
-      await load();
-    } catch (error) {
-      console.error("Error creating backup:", error);
-      toast.error("Erreur lors de la création de la sauvegarde");
-    } finally {
-      setCreating(false);
-    }
-  };
-
-  const handleDeleteBackup = async (id: string) => {
-    const { error } = await supabase.from("backups").delete().eq("id", id);
-    if (error) {
-      toast.error("Erreur lors de la suppression");
-      return;
-    }
-    toast.success("Sauvegarde supprimée");
-    load();
-  };
-
-  const completed = backups.filter((b) => b.status === "completed");
-  const failed = backups.filter((b) => b.status === "failed");
-  const totalSize = backups.reduce((s, b) => s + Number(b.size_bytes ?? 0), 0);
-  const last = backups[0];
-=======
 import { Progress } from "@/components/ui/progress";
 import {
   Dialog,
@@ -279,23 +165,14 @@ const SuperAdminBackup = () => {
     setBackups(backups.filter((backup) => backup.id !== backupId));
     toast.success("Backup supprimé");
   };
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
 
   return (
     <SuperAdminLayout>
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-<<<<<<< HEAD
-            <h1 className="text-2xl font-bold text-foreground">Backup &amp; Restore</h1>
-            <p className="text-muted-foreground">Registre des sauvegardes de la plateforme</p>
-          </div>
-          <Button onClick={handleCreateBackup} disabled={creating} className="gradient-hero border-0">
-            {creating ? (
-              <>
-                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                Enregistrement...
-=======
+
             <h1 className="text-2xl font-bold text-foreground">Backup & Restore</h1>
             <p className="text-muted-foreground">Gestion des sauvegardes et restaurations</p>
           </div>
@@ -304,7 +181,7 @@ const SuperAdminBackup = () => {
               <>
                 <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
                 Création en cours...
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
               </>
             ) : (
               <>
@@ -318,8 +195,7 @@ const SuperAdminBackup = () => {
         <div className="grid gap-4 md:grid-cols-4">
           <Card>
             <CardHeader className="pb-2">
-<<<<<<< HEAD
-=======
+
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <HardDrive className="w-4 h-4" />
                 Espace Disque
@@ -333,7 +209,7 @@ const SuperAdminBackup = () => {
           </Card>
           <Card>
             <CardHeader className="pb-2">
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Backups</CardTitle>
             </CardHeader>
             <CardContent>
@@ -342,31 +218,7 @@ const SuperAdminBackup = () => {
           </Card>
           <Card>
             <CardHeader className="pb-2">
-<<<<<<< HEAD
-              <CardTitle className="text-sm font-medium text-muted-foreground">Réussis / Échoués</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                <span className="text-success">{completed.length}</span>
-                <span className="text-muted-foreground"> / </span>
-                <span className="text-destructive">{failed.length}</span>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Dernier Backup</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {last ? new Date(last.created_at).toLocaleDateString() : "—"}
-              </div>
-              {last && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  {new Date(last.created_at).toLocaleTimeString()}
-                </p>
-              )}
-=======
+
               <CardTitle className="text-sm font-medium text-muted-foreground">Dernier Backup</CardTitle>
             </CardHeader>
             <CardContent>
@@ -376,44 +228,26 @@ const SuperAdminBackup = () => {
               <p className="text-xs text-muted-foreground mt-1">
                 {backups[0]?.createdAt ? new Date(backups[0].createdAt).toLocaleTimeString() : ""}
               </p>
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-2">
-<<<<<<< HEAD
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <HardDrive className="w-4 h-4" />
-                Taille Totale
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatSize(totalSize)}</div>
-=======
+
               <CardTitle className="text-sm font-medium text-muted-foreground">Taille Totale</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
                 {formatSize(backups.reduce((sum, b) => sum + b.size, 0))}
               </div>
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
             </CardContent>
           </Card>
         </div>
 
         <Card>
           <CardHeader>
-<<<<<<< HEAD
-            <CardTitle>Historique des Backups</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="text-center py-12 text-muted-foreground">Chargement...</div>
-            ) : backups.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
-                <Database className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>Aucune sauvegarde enregistrée</p>
-=======
+
             <CardTitle className="flex items-center gap-2">
               <Database className="w-5 h-5" />
               Configuration de Backup Automatique
@@ -464,18 +298,15 @@ const SuperAdminBackup = () => {
               <div className="text-center py-12 text-muted-foreground">
                 <Database className="w-12 h-12 mx-auto mb-4 opacity-50" />
                 <p>Aucun backup trouvé</p>
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
               </div>
             ) : (
               <div className="space-y-4">
                 {backups.map((backup) => {
-<<<<<<< HEAD
-                  const typeInfo = typeConfig[backup.backup_type] ?? typeConfig.full;
-                  const statusInfo = statusConfig[backup.status] ?? statusConfig.pending;
-=======
+
                   const typeInfo = typeConfig[backup.type];
                   const statusInfo = statusConfig[backup.status];
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
                   const StatusIcon = statusInfo.icon;
 
                   return (
@@ -496,22 +327,7 @@ const SuperAdminBackup = () => {
                               {statusInfo.label}
                             </Badge>
                           </div>
-<<<<<<< HEAD
-                          {backup.error_message && (
-                            <p className="text-sm text-destructive mb-1">{backup.error_message}</p>
-                          )}
-                          <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground flex-wrap">
-                            <span className="flex items-center gap-1">
-                              <HardDrive className="w-3 h-3" />
-                              {formatSize(Number(backup.size_bytes))}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Calendar className="w-3 h-3" />
-                              {new Date(backup.created_at).toLocaleString()}
-                            </span>
-                            <span>Rétention : {backup.retention_days} j</span>
-                            {backup.location && <span>Emplacement : {backup.location}</span>}
-=======
+
                           {backup.description && (
                             <p className="text-sm text-muted-foreground mb-1">{backup.description}</p>
                           )}
@@ -525,7 +341,7 @@ const SuperAdminBackup = () => {
                               {new Date(backup.createdAt).toLocaleString()}
                             </span>
                             <span>Par: {backup.createdBy}</span>
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
                           </div>
                         </div>
                       </div>
@@ -537,8 +353,7 @@ const SuperAdminBackup = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-<<<<<<< HEAD
-=======
+
                             <DropdownMenuItem
                               onClick={() => { setSelectedBackup(backup); setRestoreDialogOpen(true); }}
                               disabled={backup.status !== "completed"}
@@ -551,7 +366,7 @@ const SuperAdminBackup = () => {
                               Télécharger
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
                             <DeleteConfirmDialog
                               onConfirm={() => handleDeleteBackup(backup.id)}
                               trigger={
@@ -571,8 +386,7 @@ const SuperAdminBackup = () => {
             )}
           </CardContent>
         </Card>
-<<<<<<< HEAD
-=======
+
 
         <Dialog open={restoreDialogOpen} onOpenChange={setRestoreDialogOpen}>
           <DialogContent>
@@ -621,7 +435,7 @@ const SuperAdminBackup = () => {
             )}
           </DialogContent>
         </Dialog>
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
       </div>
     </SuperAdminLayout>
   );

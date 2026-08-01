@@ -1,27 +1,19 @@
-<<<<<<< HEAD
-import { useEffect, useState } from "react";
-import SuperAdminLayout from "@/components/layout/SuperAdminLayout";
-import { supabase } from "@/integrations/supabase/client";
-=======
+
 import { useState } from "react";
 import SuperAdminLayout from "@/components/layout/SuperAdminLayout";
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
 import {
   Mail,
   Search,
   Plus,
-<<<<<<< HEAD
-  Trash2,
-  Eye,
-  MoreVertical,
-=======
+
   Edit,
   Trash2,
   Send,
   Eye,
   MoreVertical,
   FileText,
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
   Clock,
   CheckCircle,
 } from "lucide-react";
@@ -50,10 +42,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-<<<<<<< HEAD
-  DropdownMenuSeparator,
-=======
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
+
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
@@ -64,71 +54,7 @@ interface EmailTemplate {
   key: string;
   name: string;
   subject: string;
-<<<<<<< HEAD
-  html_content: string;
-  text_content: string | null;
-  template_type: string;
-  category: string;
-  variables: unknown;
-  is_active: boolean;
-  sent_count: number;
-  updated_at: string;
-}
 
-const typeConfig: Record<string, { label: string; color: string }> = {
-  transactional: { label: "Transactionnel", color: "bg-blue-500/10 text-blue-600 border-blue-500/20" },
-  marketing: { label: "Marketing", color: "bg-purple-500/10 text-purple-600 border-purple-500/20" },
-  notification: { label: "Notification", color: "bg-green-500/10 text-green-600 border-green-500/20" },
-};
-
-const categoryConfig: Record<string, { label: string; color: string }> = {
-  auth: { label: "Authentification", color: "bg-orange-500/10 text-orange-600 border-orange-500/20" },
-  billing: { label: "Facturation", color: "bg-cyan-500/10 text-cyan-600 border-cyan-500/20" },
-  appointment: { label: "Rendez-vous", color: "bg-pink-500/10 text-pink-600 border-pink-500/20" },
-  system: { label: "Système", color: "bg-slate-500/10 text-slate-600 border-slate-500/20" },
-  custom: { label: "Personnalisé", color: "bg-indigo-500/10 text-indigo-600 border-indigo-500/20" },
-};
-
-const emptyForm = {
-  key: "",
-  name: "",
-  subject: "",
-  html_content: "",
-  category: "system",
-  template_type: "transactional",
-};
-
-const SuperAdminEmailTemplates = () => {
-  const [templates, setTemplates] = useState<EmailTemplate[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [typeFilter, setTypeFilter] = useState("all");
-  const [categoryFilter, setCategoryFilter] = useState("all");
-  const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
-  const [createOpen, setCreateOpen] = useState(false);
-  const [form, setForm] = useState(emptyForm);
-  const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null);
-
-  const load = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("email_templates")
-        .select("*")
-        .order("name");
-      if (error) throw error;
-      setTemplates((data ?? []) as EmailTemplate[]);
-    } catch (error) {
-      console.error("Error loading email templates:", error);
-      toast.error("Erreur lors du chargement des modèles");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    load();
-  }, []);
-=======
   type: "transactional" | "marketing" | "notification";
   category: "auth" | "billing" | "appointment" | "system" | "custom";
   lastModified: string;
@@ -215,73 +141,21 @@ const SuperAdminEmailTemplates = () => {
     system: { label: "Système", color: "bg-slate-500/10 text-slate-600 border-slate-500/20" },
     custom: { label: "Personnalisé", color: "bg-indigo-500/10 text-indigo-600 border-indigo-500/20" },
   };
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
 
   const filteredTemplates = templates.filter((template) => {
     const matchesSearch =
       template.name.toLowerCase().includes(search.toLowerCase()) ||
       template.key.toLowerCase().includes(search.toLowerCase()) ||
       template.subject.toLowerCase().includes(search.toLowerCase());
-<<<<<<< HEAD
-    const matchesType = typeFilter === "all" || template.template_type === typeFilter;
-=======
+
     const matchesType = typeFilter === "all" || template.type === typeFilter;
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
     const matchesCategory = categoryFilter === "all" || template.category === categoryFilter;
     return matchesSearch && matchesType && matchesCategory;
   });
 
-<<<<<<< HEAD
-  const handleToggleActive = async (template: EmailTemplate) => {
-    const { error } = await supabase
-      .from("email_templates")
-      .update({ is_active: !template.is_active })
-      .eq("id", template.id);
-    if (error) {
-      toast.error("Erreur lors de la mise à jour");
-      return;
-    }
-    toast.success("Modèle mis à jour");
-    load();
-  };
 
-  const handleDeleteTemplate = async (id: string) => {
-    const { error } = await supabase.from("email_templates").delete().eq("id", id);
-    if (error) {
-      toast.error("Erreur lors de la suppression");
-      return;
-    }
-    toast.success("Modèle supprimé");
-    load();
-  };
-
-  const handleCreate = async () => {
-    if (!form.key.trim() || !form.name.trim() || !form.subject.trim()) {
-      toast.error("Clé, nom et sujet sont requis");
-      return;
-    }
-    const { error } = await supabase.from("email_templates").insert({
-      key: form.key.trim(),
-      name: form.name.trim(),
-      subject: form.subject.trim(),
-      html_content: form.html_content,
-      category: form.category,
-      template_type: form.template_type,
-    });
-    if (error) {
-      toast.error("Erreur lors de la création du modèle");
-      return;
-    }
-    setForm(emptyForm);
-    setCreateOpen(false);
-    toast.success("Modèle créé");
-    load();
-  };
-
-  const templateVariables = (template: EmailTemplate): string[] =>
-    Array.isArray(template.variables) ? (template.variables as string[]) : [];
-
-=======
   const handleToggleActive = (templateId: string) => {
     setTemplates(
       templates.map((template) =>
@@ -300,111 +174,21 @@ const SuperAdminEmailTemplates = () => {
     toast.success("Email de test envoyé");
   };
 
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
   return (
     <SuperAdminLayout>
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Email Templates</h1>
-<<<<<<< HEAD
-            <p className="text-muted-foreground">Gestion des modèles d'e-mails</p>
-          </div>
-          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-            <DialogTrigger asChild>
-              <Button className="gradient-hero border-0">
-                <Plus className="w-4 h-4 mr-2" />
-                Nouveau Template
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-lg">
-              <DialogHeader>
-                <DialogTitle>Nouveau modèle d'e-mail</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 mt-4">
-                <div>
-                  <Label>Clé unique</Label>
-                  <Input
-                    value={form.key}
-                    onChange={(e) => setForm({ ...form, key: e.target.value })}
-                    placeholder="welcome_email"
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label>Nom</Label>
-                  <Input
-                    value={form.name}
-                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label>Sujet</Label>
-                  <Input
-                    value={form.subject}
-                    onChange={(e) => setForm({ ...form, subject: e.target.value })}
-                    className="mt-1"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>Type</Label>
-                    <Select
-                      value={form.template_type}
-                      onValueChange={(v) => setForm({ ...form, template_type: v })}
-                    >
-                      <SelectTrigger className="mt-1">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="transactional">Transactionnel</SelectItem>
-                        <SelectItem value="marketing">Marketing</SelectItem>
-                        <SelectItem value="notification">Notification</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Catégorie</Label>
-                    <Select
-                      value={form.category}
-                      onValueChange={(v) => setForm({ ...form, category: v })}
-                    >
-                      <SelectTrigger className="mt-1">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="auth">Authentification</SelectItem>
-                        <SelectItem value="billing">Facturation</SelectItem>
-                        <SelectItem value="appointment">Rendez-vous</SelectItem>
-                        <SelectItem value="system">Système</SelectItem>
-                        <SelectItem value="custom">Personnalisé</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div>
-                  <Label>Contenu HTML</Label>
-                  <Textarea
-                    value={form.html_content}
-                    onChange={(e) => setForm({ ...form, html_content: e.target.value })}
-                    className="mt-1 min-h-40 font-mono text-xs"
-                  />
-                </div>
-                <Button onClick={handleCreate} className="gradient-hero border-0 w-full">
-                  Créer
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-=======
+
             <p className="text-muted-foreground">Gestion des templates d'emails</p>
           </div>
           <Button className="gradient-hero border-0">
             <Plus className="w-4 h-4 mr-2" />
             Nouveau Template
           </Button>
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
         </div>
 
         <Card>
@@ -462,11 +246,9 @@ const SuperAdminEmailTemplates = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-success">
-<<<<<<< HEAD
-                {templates.filter((t) => t.is_active).length}
-=======
+
                 {templates.filter((t) => t.active).length}
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
               </div>
             </CardContent>
           </Card>
@@ -476,29 +258,21 @@ const SuperAdminEmailTemplates = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-muted-foreground">
-<<<<<<< HEAD
-                {templates.filter((t) => !t.is_active).length}
-=======
+
                 {templates.filter((t) => !t.active).length}
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
               </div>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-2">
-<<<<<<< HEAD
-              <CardTitle className="text-sm font-medium text-muted-foreground">E-mails envoyés</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">
-                {templates.reduce((s, t) => s + (t.sent_count ?? 0), 0)}
-=======
+
               <CardTitle className="text-sm font-medium text-muted-foreground">Transactionnels</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-blue-600">
                 {templates.filter((t) => t.type === "transactional").length}
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
               </div>
             </CardContent>
           </Card>
@@ -509,13 +283,9 @@ const SuperAdminEmailTemplates = () => {
             <CardTitle>Templates d'Emails</CardTitle>
           </CardHeader>
           <CardContent>
-<<<<<<< HEAD
-            {loading ? (
-              <div className="text-center py-12 text-muted-foreground">Chargement...</div>
-            ) : filteredTemplates.length === 0 ? (
-=======
+
             {filteredTemplates.length === 0 ? (
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
               <div className="text-center py-12 text-muted-foreground">
                 <Mail className="w-12 h-12 mx-auto mb-4 opacity-50" />
                 <p>Aucun template trouvé</p>
@@ -523,13 +293,10 @@ const SuperAdminEmailTemplates = () => {
             ) : (
               <div className="space-y-4">
                 {filteredTemplates.map((template) => {
-<<<<<<< HEAD
-                  const typeInfo = typeConfig[template.template_type] ?? typeConfig.transactional;
-                  const categoryInfo = categoryConfig[template.category] ?? categoryConfig.system;
-=======
+
                   const typeInfo = typeConfig[template.type];
                   const categoryInfo = categoryConfig[template.category];
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
 
                   return (
                     <div
@@ -545,11 +312,9 @@ const SuperAdminEmailTemplates = () => {
                             <h3 className="font-semibold text-foreground">{template.name}</h3>
                             <Badge className={typeInfo.color}>{typeInfo.label}</Badge>
                             <Badge className={categoryInfo.color}>{categoryInfo.label}</Badge>
-<<<<<<< HEAD
-                            {template.is_active && (
-=======
+
                             {template.active && (
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
                               <Badge className="bg-success/10 text-success border-success/20">
                                 <CheckCircle className="w-3 h-3 mr-1" />
                                 Actif
@@ -561,15 +326,11 @@ const SuperAdminEmailTemplates = () => {
                           <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                             <span className="flex items-center gap-1">
                               <Clock className="w-3 h-3" />
-<<<<<<< HEAD
-                              {new Date(template.updated_at).toLocaleString()}
-                            </span>
-                            <span>{template.sent_count ?? 0} envoi(s)</span>
-=======
+
                               {new Date(template.lastModified).toLocaleString()}
                             </span>
                             <span>Par: {template.modifiedBy}</span>
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
                           </div>
                         </div>
                       </div>
@@ -581,19 +342,7 @@ const SuperAdminEmailTemplates = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-<<<<<<< HEAD
-                            <DropdownMenuItem
-                              onClick={() => {
-                                setSelectedTemplate(template);
-                                setPreviewDialogOpen(true);
-                              }}
-                            >
-                              <Eye className="w-4 h-4 mr-2" />
-                              Prévisualiser
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleToggleActive(template)}>
-                              {template.is_active ? "Désactiver" : "Activer"}
-=======
+
                             <DropdownMenuItem onClick={() => { setSelectedTemplate(template); setPreviewDialogOpen(true); }}>
                               <Eye className="w-4 h-4 mr-2" />
                               Prévisualiser
@@ -608,7 +357,7 @@ const SuperAdminEmailTemplates = () => {
                             <DropdownMenuItem>
                               <Edit className="w-4 h-4 mr-2" />
                               Modifier
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DeleteConfirmDialog
@@ -651,11 +400,9 @@ const SuperAdminEmailTemplates = () => {
                     <div>
                       <Label>Contenu HTML</Label>
                       <Textarea
-<<<<<<< HEAD
-                        value={selectedTemplate.html_content || "(vide)"}
-=======
+
                         value={`<html>\n<body>\n  <h1>Bienvenue sur Gesclic</h1>\n  <p>Bonjour {{user_name}},</p>\n  <p>Nous sommes ravis de vous accueillir...</p>\n</body>\n</html>`}
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
                         disabled
                         className="mt-1 min-h-48 font-mono text-xs"
                       />
@@ -663,21 +410,7 @@ const SuperAdminEmailTemplates = () => {
                   </div>
                 </TabsContent>
                 <TabsContent value="variables">
-<<<<<<< HEAD
-                  {templateVariables(selectedTemplate).length === 0 ? (
-                    <p className="text-sm text-muted-foreground py-6 text-center">
-                      Aucune variable déclarée pour ce modèle.
-                    </p>
-                  ) : (
-                    <div className="space-y-2">
-                      {templateVariables(selectedTemplate).map((variable) => (
-                        <div key={variable} className="p-3 bg-muted rounded-lg">
-                          <p className="font-mono text-sm">{`{{${variable}}}`}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-=======
+
                   <div className="space-y-2">
                     <div className="p-3 bg-muted rounded-lg">
                       <p className="font-mono text-sm">{"{{user_name}}"}</p>
@@ -692,7 +425,7 @@ const SuperAdminEmailTemplates = () => {
                       <p className="text-xs text-muted-foreground">Lien de réinitialisation</p>
                     </div>
                   </div>
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
                 </TabsContent>
               </Tabs>
             )}

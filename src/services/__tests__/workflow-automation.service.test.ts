@@ -67,11 +67,9 @@ describe('WorkflowAutomationService', () => {
         })
       });
 
-<<<<<<< HEAD
-      await workflowService.updateWorkflow(workflowId, updates as any);
-=======
+
       await workflowService.updateWorkflow(workflowId, updates);
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
 
       expect(vi.mocked(require('@/integrations/supabase/client').supabase).from).toHaveBeenCalled();
     });

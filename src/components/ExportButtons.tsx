@@ -1,12 +1,7 @@
 import { Button } from "@/components/ui/button";
-<<<<<<< HEAD
-import {
-  FileSpreadsheet,
-  FileText,
-} from "lucide-react";
-=======
+
 import { Download, FileSpreadsheet, FileText } from "lucide-react";
->>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
+
 import { exportToExcel, exportToPDF } from "@/utils/exportUtils";
 
 interface ExportColumn {
