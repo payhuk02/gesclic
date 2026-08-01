@@ -72,12 +72,13 @@ async function sendToAnalytics(metric: Metric) {
     try {
       // Send to your analytics service
       // This could be Google Analytics, Vercel Analytics, or a custom endpoint
-      await fetch('/api/web-vitals', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-        keepalive: true, // Ensure request completes even if page unloads
-      });
+      // Note: API endpoint not yet implemented, disabling to avoid 405 errors
+      // await fetch('/api/web-vitals', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(payload),
+      //   keepalive: true, // Ensure request completes even if page unloads
+      // });
     } catch (error) {
       console.error('Failed to send web vitals:', error);
     }

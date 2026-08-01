@@ -46,8 +46,7 @@ export default defineConfig(({ mode }) => ({
           {
             src: '/apple-touch-icon.png',
             sizes: '180x180',
-            type: 'image/png',
-            purpose: 'apple touch icon'
+            type: 'image/png'
           }
         ],
         categories: ['medical', 'healthcare', 'productivity', 'business'],
