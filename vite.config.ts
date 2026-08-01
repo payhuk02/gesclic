@@ -163,9 +163,6 @@ export default defineConfig(({ mode }) => ({
         entryFileNames: 'assets/js/[name]-[hash].js',
         assetFileNames: 'assets/[ext]/[name]-[hash].[ext]',
       },
-      treeshake: {
-        moduleSideEffects: false,
-      },
     },
     cssCodeSplit: true,
     target: 'es2020',
