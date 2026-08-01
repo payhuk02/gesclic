@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
+import { visualizer } from "rollup-plugin-visualizer";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -16,6 +17,13 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     mode === "development" && componentTagger(),
+    // Bundle visualization for analysis (only in analyze mode)
+    mode === "analyze" && visualizer({
+      open: true,
+      gzipSize: true,
+      brotliSize: true,
+      filename: 'bundle-analysis.html',
+    }),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
@@ -161,14 +169,87 @@ export default defineConfig(({ mode }) => ({
     outDir: "dist",
     sourcemap: mode === "development",
     minify: "esbuild",
+    // Enterprise-grade build optimization
+    chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ["react", "react-dom", "react-router-dom"],
-          ui: ["@radix-ui/react-dialog", "@radix-ui/react-select", "@radix-ui/react-dropdown-menu"],
-          charts: ["recharts"],
+        // Optimized chunk splitting following Vercel/Stripe patterns
+        manualChunks: (id) => {
+          // Core React
+          if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+            return 'react-core';
+          }
+          
+          // UI components (Radix UI)
+          if (id.includes('@radix-ui')) {
+            return 'ui-components';
+          }
+          
+          // Charts and visualization
+          if (id.includes('recharts') || id.includes('d3')) {
+            return 'charts';
+          }
+          
+          // Supabase and database
+          if (id.includes('@supabase') || id.includes('dexie')) {
+            return 'database';
+          }
+          
+          // Form handling
+          if (id.includes('react-hook-form') || id.includes('zod') || id.includes('@hookform')) {
+            return 'forms';
+          }
+          
+          // Utilities
+          if (id.includes('date-fns') || id.includes('clsx') || id.includes('tailwind-merge')) {
+            return 'utils';
+          }
+          
+          // Animation
+          if (id.includes('framer-motion')) {
+            return 'animation';
+          }
+          
+          // PDF and export
+          if (id.includes('jspdf') || id.includes('exceljs')) {
+            return 'export';
+          }
+          
+          // Telemedicine
+          if (id.includes('daily-co')) {
+            return 'telemedicine';
+          }
+          
+          // Authentication and security
+          if (id.includes('otpauth') || id.includes('zxcvbn')) {
+            return 'security';
+          }
         },
+        // Optimize chunk names
+        chunkFileNames: 'assets/js/[name]-[hash].js',
+        entryFileNames: 'assets/js/[name]-[hash].js',
+        assetFileNames: 'assets/[ext]/[name]-[hash].[ext]',
+      },
+      // Additional optimization
+      treeshake: {
+        moduleSideEffects: false,
       },
     },
+    // CSS optimization
+    cssCodeSplit: true,
+    // Target modern browsers
+    target: 'es2020',
+  },
+  // Optimize dependencies
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      'react-router-dom',
+      '@tanstack/react-query',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-select',
+      'recharts',
+    ],
   },
 }));

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+<<<<<<< HEAD
 import {
   Plus,
   Search,
@@ -15,6 +16,9 @@ import {
   UserPlus,
   SearchX,
 } from "lucide-react";
+=======
+import { Star, Plus, Search, Phone, Mail, Stethoscope, Loader2, Pencil, UserPlus, SearchX } from "lucide-react";
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
 import { useState } from "react";
 import { useDoctors, type Doctor } from "@/hooks/useDoctors";
 import DeleteConfirmDialog from "@/components/dialogs/DeleteConfirmDialog";

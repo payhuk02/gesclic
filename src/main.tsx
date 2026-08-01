@@ -1,6 +1,10 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import { initWebVitalsMonitoring } from "./lib/monitoring/web-vitals";
+
+// Initialize Web Vitals monitoring
+initWebVitalsMonitoring();
 
 // PWA Service Worker Registration
 if ('serviceWorker' in navigator && import.meta.env.PROD) {

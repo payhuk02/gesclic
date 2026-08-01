@@ -1,7 +1,4 @@
-import {
-  db,
-  CACHE_TTL,
-} from './db';
+import { db, CACHE_TTL, CACHE_TAGS } from './db';
 
 interface CacheOptions {
   ttl?: number;

@@ -32,7 +32,11 @@ export class WorkflowAutomationService {
           name,
           description,
           category,
+<<<<<<< HEAD
           definition: definition as any,
+=======
+          definition,
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
           status: 'draft',
           version: 1
         })
@@ -40,7 +44,11 @@ export class WorkflowAutomationService {
         .single();
 
       if (error) throw error;
+<<<<<<< HEAD
       return data as any;
+=======
+      return data;
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     } catch (error) {
       console.error('Error creating workflow:', error);
       throw new Error('Failed to create workflow');
@@ -59,7 +67,11 @@ export class WorkflowAutomationService {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+<<<<<<< HEAD
       return (data || []) as any;
+=======
+      return data || [];
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     } catch (error) {
       console.error('Error getting workflows:', error);
       return [];
@@ -78,7 +90,11 @@ export class WorkflowAutomationService {
         .single();
 
       if (error) throw error;
+<<<<<<< HEAD
       return data as any;
+=======
+      return data;
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     } catch (error) {
       console.error('Error getting workflow:', error);
       return null;
@@ -96,7 +112,11 @@ export class WorkflowAutomationService {
       const { error } = await supabase
         .from('workflow_definitions')
         .update({
+<<<<<<< HEAD
           ...(updates as any),
+=======
+          ...updates,
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
           updated_at: new Date().toISOString()
         })
         .eq('id', workflowId);
@@ -218,6 +238,7 @@ export class WorkflowAutomationService {
 
       // Execute nodes in sequence
       while (currentNode) {
+<<<<<<< HEAD
         await this.logWorkflowEvent(executionId, 'info', `Executing node: ${currentNode.id}`, currentNode.id);
 
         // Execute node based on type
@@ -226,6 +247,16 @@ export class WorkflowAutomationService {
 
         // Find next node
         const edge = definition.edges.find(e => e.source === currentNode!.id);
+=======
+        await this.logWorkflowEvent(executionId, 'info', currentNode.id, `Executing node: ${currentNode.id}`);
+
+        // Execute node based on type
+        const result = await this.executeNode(currentNode, outputData);
+        outputData = { ...outputData, ...result };
+
+        // Find next node
+        const edge = definition.edges.find(e => e.source === currentNode.id);
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
         currentNode = edge ? definition.nodes.find(n => n.id === edge.target) : undefined;
       }
 
@@ -251,7 +282,11 @@ export class WorkflowAutomationService {
   /**
    * Execute a single workflow node
    */
+<<<<<<< HEAD
   private async executeNode(node: any, _inputData: Record<string, any>): Promise<Record<string, any>> {
+=======
+  private async executeNode(node: any, inputData: Record<string, any>): Promise<Record<string, any>> {
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     // Simplified node execution
     // In a real implementation, this would handle different node types (action, condition, loop, etc.)
     
@@ -289,7 +324,11 @@ export class WorkflowAutomationService {
       if (error) throw error;
 
       return {
+<<<<<<< HEAD
         data: (data || []) as any,
+=======
+        data: data || [],
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
         total: count || 0,
         page,
         per_page: perPage,
@@ -313,7 +352,11 @@ export class WorkflowAutomationService {
         .single();
 
       if (error) throw error;
+<<<<<<< HEAD
       return data as any;
+=======
+      return data;
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     } catch (error) {
       console.error('Error getting execution:', error);
       return null;
@@ -352,7 +395,11 @@ export class WorkflowAutomationService {
         .order('created_at', { ascending: true });
 
       if (error) throw error;
+<<<<<<< HEAD
       return (data || []) as any;
+=======
+      return data || [];
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     } catch (error) {
       console.error('Error getting execution logs:', error);
       return [];
@@ -365,8 +412,13 @@ export class WorkflowAutomationService {
   async logWorkflowEvent(
     executionId: string,
     level: 'info' | 'warning' | 'error' | 'debug',
+<<<<<<< HEAD
     message: string,
     nodeId?: string,
+=======
+    nodeId?: string,
+    message: string,
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     data?: Record<string, any>
   ): Promise<void> {
     try {
@@ -454,7 +506,11 @@ export class WorkflowAutomationService {
 
       const { data, error } = await query;
       if (error) throw error;
+<<<<<<< HEAD
       return (data || []) as any;
+=======
+      return data || [];
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     } catch (error) {
       console.error('Error getting templates:', error);
       return [];
@@ -473,7 +529,11 @@ export class WorkflowAutomationService {
         .single();
 
       if (error) throw error;
+<<<<<<< HEAD
       return data as any;
+=======
+      return data;
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     } catch (error) {
       console.error('Error getting template:', error);
       return null;
@@ -528,15 +588,24 @@ export class WorkflowAutomationService {
           name,
           description,
           category,
+<<<<<<< HEAD
           definition: definition as any,
           is_public: isPublic,
+=======
+          definition,
+          is_public,
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
           usage_count: 0
         })
         .select()
         .single();
 
       if (error) throw error;
+<<<<<<< HEAD
       return data as any;
+=======
+      return data;
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     } catch (error) {
       console.error('Error creating template:', error);
       throw new Error('Failed to create template');
@@ -643,8 +712,12 @@ export class WorkflowAutomationService {
   /**
    * Get current user ID
    */
+<<<<<<< HEAD
   // @ts-ignore unused helper kept for future use
   private async _getCurrentUserId(): Promise<string> {
+=======
+  private async getCurrentUserId(): Promise<string> {
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     const { data } = await supabase.auth.getUser();
     return data.user?.id || '';
   }
@@ -652,8 +725,12 @@ export class WorkflowAutomationService {
   /**
    * Get current clinic ID
    */
+<<<<<<< HEAD
   // @ts-ignore unused helper kept for future use
   private async _getCurrentClinicId(): Promise<string> {
+=======
+  private async getCurrentClinicId(): Promise<string> {
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     try {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) return '';

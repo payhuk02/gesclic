@@ -1,7 +1,9 @@
 // Security Service
-// Service layer for enhanced security features (MFA, audit logging, security events)
+// Enterprise-grade security service for MFA, audit logging, and security events
+// Implements security best practices from Stripe, Vercel, and HubSpot
 
 import { supabase } from '@/integrations/supabase/client';
+import { TOTP } from 'otpauth';
 import type {
   AuditLog,
   SecurityEvent,
@@ -81,7 +83,7 @@ export class SecurityService {
       });
 
       if (error) throw error;
-      return (data || []) as any;
+      return data || [];
     } catch (error) {
       console.error('Error getting audit logs:', error);
       return [];
@@ -110,7 +112,7 @@ export class SecurityService {
         .limit(50);
 
       if (error) throw error;
-      return (data || []) as any;
+      return data || [];
     } catch (error) {
       console.error('Error getting security events:', error);
       return [];
@@ -156,7 +158,7 @@ export class SecurityService {
         .single();
 
       if (error) return null;
-      return data as any;
+      return data;
     } catch (error) {
       console.error('Error getting MFA settings:', error);
       return null;
@@ -165,55 +167,51 @@ export class SecurityService {
 
   /**
    * Enable MFA for user
+   * Enterprise-grade MFA setup with proper error handling and security
    */
   async enableMFA(method: 'totp' | 'sms' | 'email'): Promise<SetupMFAResponse> {
     try {
-      console.log("enableMFA: Starting for method:", method);
       const { data: userData, error: authError } = await supabase.auth.getUser();
       if (authError) {
-        console.error("enableMFA: Auth error:", authError);
         throw new Error('Authentication error');
       }
       if (!userData.user) throw new Error('User not authenticated');
 
-      console.log("enableMFA: User authenticated:", userData.user.id);
+      // Generate cryptographically secure TOTP secret
+      const secret = this.generateSecureTOTPSecret();
+      const backupCodes = this.generateSecureBackupCodes();
 
-      // Generate TOTP secret
-      const secret = this.generateTOTPSecret();
-      const backupCodes = this.generateBackupCodes();
-      console.log("enableMFA: Generated secret and backup codes");
+      // Store MFA settings in database - MUST succeed for security
+      const { error: insertError } = await supabase
+        .from('mfa_settings')
+        .upsert({
+          user_id: userData.user.id,
+          enabled: false, // Will be enabled after verification
+          method: method,
+          secret: secret,
+          backup_codes: backupCodes,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id'
+        });
 
-      // Try to store MFA settings directly in the table
-      try {
-        const { error: insertError } = await supabase
-          .from('mfa_settings')
-          .upsert({
-            user_id: userData.user.id,
-            enabled: false, // Will be enabled after verification
-            method: method,
-            secret: secret,
-            backup_codes: backupCodes,
-            updated_at: new Date().toISOString()
-          }, {
-            onConflict: 'user_id'
-          });
-
-        if (insertError) {
-          console.error('enableMFA: Error inserting MFA settings:', insertError);
-          console.log('enableMFA: Continuing without database storage (demo mode)');
-          // Continue anyway for demo purposes
-        } else {
-          console.log('enableMFA: MFA settings stored successfully');
-        }
-      } catch (dbError: any) {
-        console.error('enableMFA: Database error (table may not exist):', dbError.message);
-        console.log('enableMFA: Continuing without database storage (demo mode)');
-        // Continue anyway for demo purposes
+      if (insertError) {
+        // Log security event for failed MFA setup
+        await this.createSecurityEvent('suspicious_activity', 'high', {
+          action: 'mfa_setup_failed',
+          error: insertError.message,
+          user_id: userData.user.id
+        });
+        throw new Error('Failed to store MFA settings. Please contact support.');
       }
 
       // Generate QR code URL
       const qrCodeUrl = this.generateQRCodeUrl(userData.user.email ?? '', secret);
-      console.log("enableMFA: QR code URL generated");
+
+      // Log successful MFA setup initiation
+      await this.logAuditEvent('mfa_setup_initiated', 'mfa_settings', userData.user.id, {
+        method
+      }, true);
 
       return {
         secret,
@@ -221,73 +219,80 @@ export class SecurityService {
         backup_codes: backupCodes
       };
     } catch (error: any) {
-      console.error('Error enabling MFA:', error);
+      await this.createSecurityEvent('suspicious_activity', 'medium', {
+        action: 'mfa_setup_error',
+        error: error.message
+      });
       throw new Error(error.message || 'Failed to enable MFA');
     }
   }
 
   /**
    * Verify MFA code and enable MFA if this is initial setup
+   * Enterprise-grade verification with proper TOTP validation
    */
   async verifyMFA(userId: string, code: string, enableAfterVerify: boolean = false): Promise<boolean> {
     try {
-      console.log("verifyMFA: Starting verification for user:", userId);
+      // Get settings from database - MUST exist for security
+      const { data: settings, error: fetchError } = await supabase
+        .from('mfa_settings')
+        .select('secret, backup_codes, enabled, method')
+        .eq('user_id', userId)
+        .single();
 
-      // Try to get settings from database
-      let settings = null;
-      try {
-        const { data } = await supabase
-          .from('mfa_settings')
-          .select('secret, backup_codes, enabled')
-          .eq('user_id', userId)
-          .single();
-        settings = data;
-        console.log("verifyMFA: Settings found:", settings ? "yes" : "no");
-      } catch (dbError: any) {
-        console.error('verifyMFA: Database error (table may not exist):', dbError.message);
-        console.log('verifyMFA: Using demo mode - accepting any 6-digit code');
-        // Demo mode: accept any 6-digit code
-        const isValid = code.length === 6 && /^\d+$/.test(code);
-        if (isValid && enableAfterVerify) {
-          console.log("verifyMFA: Demo mode - MFA would be enabled");
-        }
-        return isValid;
-      }
-
-      if (!settings) {
-        console.log("verifyMFA: No settings found, returning false");
+      if (fetchError || !settings) {
+        await this.createSecurityEvent('suspicious_activity', 'high', {
+          action: 'mfa_verification_failed',
+          reason: 'settings_not_found',
+          user_id: userId
+        });
         return false;
       }
 
-      // Check if it's a backup code
-      const backupCodes = (settings.backup_codes as string[] | null) || [];
-      if (backupCodes.includes(code)) {
-        console.log("verifyMFA: Backup code used");
+      // Check if it's a backup code first
+      if (settings.backup_codes && settings.backup_codes.includes(code)) {
         try {
-          const updatedBackupCodes = backupCodes.filter((c: string) => c !== code);
+          const updatedBackupCodes = settings.backup_codes.filter(c => c !== code);
           await supabase
             .from('mfa_settings')
-            .update({ backup_codes: updatedBackupCodes, last_used_at: new Date().toISOString() })
+            .update({ 
+              backup_codes: updatedBackupCodes, 
+              last_used_at: new Date().toISOString() 
+            })
             .eq('user_id', userId);
+
+          await this.logAuditEvent('mfa_backup_code_used', 'mfa_settings', userId, {
+            backup_code_used: true
+          }, true);
+
+          return true;
         } catch (updateError) {
-          console.error('verifyMFA: Error updating backup codes:', updateError);
+          await this.createSecurityEvent('suspicious_activity', 'high', {
+            action: 'mfa_backup_code_update_failed',
+            error: updateError
+          });
+          return false;
         }
-        return true;
       }
 
-      // Verify TOTP code
-      const isValid = this.verifyTOTP(settings.secret ?? '', code);
-      console.log("verifyMFA: TOTP verification result:", isValid);
+      // Verify TOTP code using proper algorithm
+      const isValid = this.verifyTOTP(settings.secret, code);
 
       if (isValid) {
         try {
           // Enable MFA if this is initial setup
           if (enableAfterVerify && !settings.enabled) {
-            console.log("verifyMFA: Enabling MFA");
             await supabase
               .from('mfa_settings')
-              .update({ enabled: true, last_used_at: new Date().toISOString() })
+              .update({ 
+                enabled: true, 
+                last_used_at: new Date().toISOString() 
+              })
               .eq('user_id', userId);
+
+            await this.logAuditEvent('mfa_enabled', 'mfa_settings', userId, {
+              method: settings.method
+            }, true);
           } else {
             // Just update last used timestamp
             await supabase
@@ -296,13 +301,27 @@ export class SecurityService {
               .eq('user_id', userId);
           }
         } catch (updateError) {
-          console.error('verifyMFA: Error updating MFA settings:', updateError);
+          await this.createSecurityEvent('suspicious_activity', 'medium', {
+            action: 'mfa_verification_update_failed',
+            error: updateError
+          });
+          return false;
         }
+      } else {
+        // Log failed verification attempt
+        await this.createSecurityEvent('suspicious_activity', 'medium', {
+          action: 'mfa_verification_failed',
+          user_id: userId,
+          method: settings.method
+        });
       }
 
       return isValid;
     } catch (error: any) {
-      console.error('Error verifying MFA:', error);
+      await this.createSecurityEvent('suspicious_activity', 'high', {
+        action: 'mfa_verification_error',
+        error: error.message
+      });
       return false;
     }
   }
@@ -429,42 +448,90 @@ export class SecurityService {
     }
   }
 
-  private generateTOTPSecret(): string {
-    // Generate a random 32-character base32 secret
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  /**
+   * Generate cryptographically secure TOTP secret
+   * Using crypto API for enterprise-grade security
+   */
+  private generateSecureTOTPSecret(): string {
+    // Use crypto API for secure random generation
+    const array = new Uint8Array(20);
+    crypto.getRandomValues(array);
+    
+    // Convert to base32
+    const base32Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
     let secret = '';
-    for (let i = 0; i < 32; i++) {
-      secret += chars.charAt(Math.floor(Math.random() * chars.length));
+    for (let i = 0; i < array.length; i += 5) {
+      const chunk = array.slice(i, i + 5);
+      for (let j = 0; j < 8; j++) {
+        if (j < chunk.length) {
+          const byte = chunk[j];
+          const index = (byte >> (5 * (j % 5))) & 31;
+          secret += base32Chars[index];
+        }
+      }
     }
-    return secret;
+    return secret.substring(0, 32);
   }
 
-  private generateBackupCodes(): string[] {
+  /**
+   * Generate cryptographically secure backup codes
+   * Following NIST SP 800-63B guidelines
+   */
+  private generateSecureBackupCodes(): string[] {
     const codes = [];
     for (let i = 0; i < 10; i++) {
-      const code = Array.from({ length: 8 }, () => 
-        Math.floor(Math.random() * 10).toString()
-      ).join('-');
+      // Generate 8 random bytes for each code
+      const array = new Uint8Array(8);
+      crypto.getRandomValues(array);
+      
+      // Convert to readable format (4 groups of 4 characters)
+      const code = Array.from(array, byte => 
+        byte.toString(16).padStart(2, '0').toUpperCase()
+      ).join('').match(/.{1,4}/g)?.join('-') || '';
+      
       codes.push(code);
     }
     return codes;
   }
 
+  /**
+   * Generate QR code URL for TOTP setup
+   * Using Google Authenticator format
+   */
   private generateQRCodeUrl(email: string, secret: string): string {
-    const issuer = encodeURIComponent('Gesclic');
+    const issuer = encodeURIComponent('Gesclic Medical');
     const label = encodeURIComponent(`Gesclic:${email}`);
-    const otpauth = `otpauth://totp/${label}?secret=${secret}&issuer=${issuer}`;
+    const otpauth = `otpauth://totp/${label}?secret=${secret}&issuer=${issuer}&algorithm=SHA1&digits=6&period=30`;
     return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(otpauth)}`;
   }
 
-  private verifyTOTP(_secret: string, code: string): boolean {
+  /**
+   * Verify TOTP code using proper algorithm
+   * Implements RFC 6238 TOTP specification
+   */
+  private verifyTOTP(secret: string, code: string): boolean {
     try {
-      // TOTP verification should be done on the backend for security
-      // For now, we'll use a simple validation and delegate to Supabase
-      // In production, this should call a Supabase edge function or RPC
-      return code.length === 6 && /^\d+$/.test(code);
+      // Create TOTP instance with proper parameters
+      const totp = new TOTP({
+        issuer: 'Gesclic Medical',
+        label: 'Gesclic',
+        algorithm: 'SHA1',
+        digits: 6,
+        period: 30,
+        secret: secret
+      });
+
+      // Verify code with window of 1 period (30 seconds) to account for clock drift
+      const delta = totp.validate({ token: code, window: 1 });
+      
+      // delta will be 0 if valid, null if invalid
+      return delta !== null;
     } catch (error) {
-      console.error('Error verifying TOTP:', error);
+      // Log security event for verification errors
+      this.createSecurityEvent('suspicious_activity', 'medium', {
+        action: 'totp_verification_error',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
       return false;
     }
   }

@@ -1,6 +1,11 @@
+<<<<<<< HEAD
 import { useEffect, useState } from "react";
 import SuperAdminLayout from "@/components/layout/SuperAdminLayout";
 import { supabase } from "@/integrations/supabase/client";
+=======
+import { useState } from "react";
+import SuperAdminLayout from "@/components/layout/SuperAdminLayout";
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
 import {
   Key,
   Search,
@@ -43,7 +48,10 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+<<<<<<< HEAD
   DropdownMenuSeparator,
+=======
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import DeleteConfirmDialog from "@/components/dialogs/DeleteConfirmDialog";
@@ -51,20 +59,75 @@ import DeleteConfirmDialog from "@/components/dialogs/DeleteConfirmDialog";
 interface APIKey {
   id: string;
   name: string;
+<<<<<<< HEAD
   key: string | null; // plaintext only right after creation
+=======
+  key: string;
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
   prefix: string;
   scopes: string[];
   rateLimit: number;
   status: "active" | "revoked" | "expired";
   createdAt: string;
+<<<<<<< HEAD
   lastUsed?: string | null;
   expiresAt?: string | null;
+=======
+  lastUsed?: string;
+  expiresAt?: string;
+  createdBy: string;
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
   requests: number;
 }
 
 const SuperAdminAPIManagement = () => {
+<<<<<<< HEAD
   const [apiKeys, setApiKeys] = useState<APIKey[]>([]);
   const [loading, setLoading] = useState(true);
+=======
+  const [apiKeys, setApiKeys] = useState<APIKey[]>([
+    {
+      id: "1",
+      name: "Production API Key",
+      key: "gesclic_prod_************************",
+      prefix: "gesclic_prod_",
+      scopes: ["read", "write", "admin"],
+      rateLimit: 1000,
+      status: "active",
+      createdAt: new Date(Date.now() - 86400000).toISOString(),
+      lastUsed: new Date(Date.now() - 3600000).toISOString(),
+      expiresAt: new Date(Date.now() + 31536000000).toISOString(),
+      createdBy: "super_admin@gesclic.com",
+      requests: 45230,
+    },
+    {
+      id: "2",
+      name: "Test API Key",
+      key: "gesclic_test_************************",
+      prefix: "gesclic_test_",
+      scopes: ["read"],
+      rateLimit: 100,
+      status: "active",
+      createdAt: new Date(Date.now() - 172800000).toISOString(),
+      lastUsed: new Date(Date.now() - 7200000).toISOString(),
+      createdBy: "super_admin@gesclic.com",
+      requests: 1234,
+    },
+    {
+      id: "3",
+      name: "Legacy API Key",
+      key: "gesclic_legacy_************************",
+      prefix: "gesclic_legacy_",
+      scopes: ["read", "write"],
+      rateLimit: 500,
+      status: "revoked",
+      createdAt: new Date(Date.now() - 259200000).toISOString(),
+      lastUsed: new Date(Date.now() - 86400000).toISOString(),
+      createdBy: "super_admin@gesclic.com",
+      requests: 89000,
+    },
+  ]);
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -77,6 +140,7 @@ const SuperAdminAPIManagement = () => {
     expiresIn: "never",
   });
 
+<<<<<<< HEAD
   const loadKeys = async () => {
     setLoading(true);
     try {
@@ -118,13 +182,19 @@ const SuperAdminAPIManagement = () => {
     loadKeys();
   }, []);
 
+=======
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
   const statusConfig = {
     active: { label: "Actif", icon: CheckCircle, color: "bg-success/10 text-success border-success/20" },
     revoked: { label: "Révoqué", icon: XCircle, color: "bg-destructive/10 text-destructive border-destructive/20" },
     expired: { label: "Expiré", icon: Clock, color: "bg-warning/10 text-warning border-warning/20" },
   };
 
+<<<<<<< HEAD
   const scopeConfig: Record<string, { label: string; color: string }> = {
+=======
+  const scopeConfig = {
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     read: { label: "Read", color: "bg-blue-500/10 text-blue-600 border-blue-500/20" },
     write: { label: "Write", color: "bg-orange-500/10 text-orange-600 border-orange-500/20" },
     admin: { label: "Admin", color: "bg-destructive/10 text-destructive border-destructive/20" },
@@ -133,7 +203,11 @@ const SuperAdminAPIManagement = () => {
   const filteredKeys = apiKeys.filter((key) => {
     const matchesSearch =
       key.name.toLowerCase().includes(search.toLowerCase()) ||
+<<<<<<< HEAD
       (key.prefix ?? "").toLowerCase().includes(search.toLowerCase());
+=======
+      key.prefix.toLowerCase().includes(search.toLowerCase());
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     const matchesStatus = statusFilter === "all" || key.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -147,6 +221,7 @@ const SuperAdminAPIManagement = () => {
     setShowKeys({ ...showKeys, [keyId]: !showKeys[keyId] });
   };
 
+<<<<<<< HEAD
   const handleRevokeKey = async (keyId: string) => {
     const { error } = await supabase.from("api_keys").update({ is_active: false }).eq("id", keyId);
     if (error) {
@@ -223,6 +298,42 @@ const SuperAdminAPIManagement = () => {
     } catch (error) {
       console.error("Error creating API key:", error);
       toast.error("Erreur lors de la création de la clé API");
+=======
+  const handleRevokeKey = (keyId: string) => {
+    setApiKeys(apiKeys.map((key) => (key.id === keyId ? { ...key, status: "revoked" } : key)));
+    toast.success("Clé API révoquée");
+  };
+
+  const handleDeleteKey = (keyId: string) => {
+    setApiKeys(apiKeys.filter((key) => key.id !== keyId));
+    toast.success("Clé API supprimée");
+  };
+
+  const handleCreateKey = () => {
+    const newAPIKey: APIKey = {
+      id: Date.now().toString(),
+      name: newKey.name,
+      key: `gesclic_${newKey.name.toLowerCase().replace(/\s+/g, "_")}_${Math.random().toString(36).substring(2, 15)}`,
+      prefix: `gesclic_${newKey.name.toLowerCase().replace(/\s+/g, "_")}_`,
+      scopes: newKey.scopes,
+      rateLimit: newKey.rateLimit,
+      status: "active",
+      createdAt: new Date().toISOString(),
+      createdBy: "super_admin@gesclic.com",
+      requests: 0,
+    };
+    setApiKeys([newAPIKey, ...apiKeys]);
+    setDialogOpen(false);
+    setNewKey({ name: "", scopes: [], rateLimit: 1000, expiresIn: "never" });
+    toast.success("Clé API créée");
+  };
+
+  const toggleScope = (scope: string) => {
+    if (newKey.scopes.includes(scope)) {
+      setNewKey({ ...newKey, scopes: newKey.scopes.filter((s) => s !== scope) });
+    } else {
+      setNewKey({ ...newKey, scopes: [...newKey.scopes, scope] });
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     }
   };
 
@@ -369,7 +480,11 @@ const SuperAdminAPIManagement = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
+<<<<<<< HEAD
                 {apiKeys.length ? Math.round(apiKeys.reduce((sum, k) => sum + k.rateLimit, 0) / apiKeys.length) : 0} req/min
+=======
+                {Math.round(apiKeys.reduce((sum, k) => sum + k.rateLimit, 0) / apiKeys.length)} req/min
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
               </div>
             </CardContent>
           </Card>
@@ -380,9 +495,13 @@ const SuperAdminAPIManagement = () => {
             <CardTitle>Clés API</CardTitle>
           </CardHeader>
           <CardContent>
+<<<<<<< HEAD
             {loading ? (
               <div className="text-center py-12 text-muted-foreground">Chargement...</div>
             ) : filteredKeys.length === 0 ? (
+=======
+            {filteredKeys.length === 0 ? (
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
               <div className="text-center py-12 text-muted-foreground">
                 <Key className="w-12 h-12 mx-auto mb-4 opacity-50" />
                 <p>Aucune clé API trouvée</p>
@@ -412,7 +531,11 @@ const SuperAdminAPIManagement = () => {
                           </div>
                           <div className="flex items-center gap-2 mb-1">
                             <code className="text-sm bg-muted px-2 py-1 rounded font-mono">
+<<<<<<< HEAD
                               {showKeys[apiKey.id] && apiKey.key ? apiKey.key : `${apiKey.prefix}${"•".repeat(12)}`}
+=======
+                              {showKeys[apiKey.id] ? apiKey.key : apiKey.key.replace(/\*/g, "•")}
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
                             </code>
                             <Button
                               variant="ghost"
@@ -426,7 +549,11 @@ const SuperAdminAPIManagement = () => {
                               variant="ghost"
                               size="icon"
                               className="h-6 w-6"
+<<<<<<< HEAD
                               onClick={() => handleCopyKey(apiKey.key ?? apiKey.prefix)}
+=======
+                              onClick={() => handleCopyKey(apiKey.key)}
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
                             >
                               <Copy className="w-3 h-3" />
                             </Button>

@@ -4,6 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Users,
   Search,
+<<<<<<< HEAD
+=======
+  Filter,
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
   MoreVertical,
   Shield,
   Ban,
@@ -62,14 +66,18 @@ const SuperAdminUsers = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedUser, setSelectedUser] = useState<PlatformUser | null>(null);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+<<<<<<< HEAD
   const [editUser, setEditUser] = useState<PlatformUser | null>(null);
   const [editRole, setEditRole] = useState<PlatformUser["role"]>("secretaire");
   const [savingRole, setSavingRole] = useState(false);
+=======
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
 
   useEffect(() => {
     loadUsers();
   }, []);
 
+<<<<<<< HEAD
   /** Appelle la fonction edge sécurisée `admin-users` (réservée aux super-admins). */
   const callAdmin = async (body: Record<string, unknown>) => {
     const { data, error } = await supabase.functions.invoke("admin-users", { body });
@@ -120,6 +128,30 @@ const SuperAdminUsers = () => {
           status: account?.suspended ? "suspended" : "active",
         };
       }) as PlatformUser[];
+=======
+  const loadUsers = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*, user_roles(role)")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      const enrichedUsers = (data || []).map((user: any) => ({
+        id: user.user_id,
+        email: user.email || "N/A",
+        full_name: user.first_name && user.last_name 
+          ? `${user.first_name} ${user.last_name}` 
+          : user.first_name || user.last_name || null,
+        role: user.user_roles?.[0]?.role || "secretaire",
+        clinic_name: user.clinic_name,
+        created_at: user.created_at,
+        last_sign_in: user.last_sign_in_at,
+        status: "active",
+      })) as PlatformUser[];
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
 
       setUsers(enrichedUsers);
     } catch (error) {
@@ -131,6 +163,7 @@ const SuperAdminUsers = () => {
   };
 
   const handleSuspendUser = async (userId: string) => {
+<<<<<<< HEAD
     try {
       await callAdmin({ action: "suspend", userId });
       toast.success("Utilisateur suspendu");
@@ -176,6 +209,20 @@ const SuperAdminUsers = () => {
   };
 
 
+=======
+    toast.success("Utilisateur suspendu");
+  };
+
+  const handleActivateUser = async (userId: string) => {
+    toast.success("Utilisateur activé");
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    toast.success("Utilisateur supprimé");
+    loadUsers();
+  };
+
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
       user.email.toLowerCase().includes(search.toLowerCase()) ||
@@ -362,11 +409,18 @@ const SuperAdminUsers = () => {
                               <Eye className="w-4 h-4 mr-2" />
                               Voir détails
                             </DropdownMenuItem>
+<<<<<<< HEAD
                             <DropdownMenuItem onClick={() => { setEditUser(user); setEditRole(user.role); }}>
                               <Edit className="w-4 h-4 mr-2" />
                               Modifier
                             </DropdownMenuItem>
 
+=======
+                            <DropdownMenuItem>
+                              <Edit className="w-4 h-4 mr-2" />
+                              Modifier
+                            </DropdownMenuItem>
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
                             <DropdownMenuSeparator />
                             {user.status === "active" ? (
                               <DropdownMenuItem onClick={() => handleSuspendUser(user.id)} className="text-destructive">
@@ -414,7 +468,11 @@ const SuperAdminUsers = () => {
                   <div>
                     <h3 className="text-lg font-semibold">{selectedUser.full_name || "Utilisateur"}</h3>
                     <p className="text-sm text-muted-foreground">{selectedUser.email}</p>
+<<<<<<< HEAD
                     <Badge className={`${roleConfig[selectedUser.role].color} mt-1`}>
+=======
+                    <Badge className={roleConfig[selectedUser.role].color} className="mt-1">
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
                       {roleConfig[selectedUser.role].label}
                     </Badge>
                   </div>
@@ -445,6 +503,7 @@ const SuperAdminUsers = () => {
             )}
           </DialogContent>
         </Dialog>
+<<<<<<< HEAD
 
         {/* Édition du rôle */}
         <Dialog open={!!editUser} onOpenChange={(o) => !o && setEditUser(null)}>
@@ -485,6 +544,8 @@ const SuperAdminUsers = () => {
           </DialogContent>
         </Dialog>
 
+=======
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
       </div>
     </SuperAdminLayout>
   );

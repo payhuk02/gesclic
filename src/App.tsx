@@ -139,10 +139,15 @@ const App = () => (
                   <Route path="/super-admin/announcements" element={<SuperAdminAnnouncements />} />
                   <Route path="/super-admin/backup" element={<SuperAdminBackup />} />
                   <Route path="/super-admin/api" element={<SuperAdminAPIManagement />} />
+<<<<<<< HEAD
                   <Route path="/super-admin/ai" element={<SuperAdminAI />} />
                   <Route path="/super-admin/settings" element={<SuperAdminSettings />} />
                   
                   
+=======
+                  <Route path="/super-admin/settings" element={<SuperAdminSettings />} />
+                  
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>

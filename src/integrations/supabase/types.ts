@@ -10,6 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
+<<<<<<< HEAD
     PostgrestVersion: "14.15"
   }
   public: {
@@ -352,6 +353,12 @@ export type Database = {
           },
         ]
       }
+=======
+    PostgrestVersion: "14.5"
+  }
+  public: {
+    Tables: {
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
       appointments: {
         Row: {
           clinic_id: string
@@ -359,7 +366,10 @@ export type Database = {
           date: string
           doctor_name: string
           id: string
+<<<<<<< HEAD
           patient_id: string | null
+=======
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
           patient_name: string
           status: string
           time: string
@@ -373,7 +383,10 @@ export type Database = {
           date: string
           doctor_name: string
           id?: string
+<<<<<<< HEAD
           patient_id?: string | null
+=======
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
           patient_name: string
           status?: string
           time: string
@@ -387,7 +400,10 @@ export type Database = {
           date?: string
           doctor_name?: string
           id?: string
+<<<<<<< HEAD
           patient_id?: string | null
+=======
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
           patient_name?: string
           status?: string
           time?: string
@@ -403,6 +419,7 @@ export type Database = {
             referencedRelation: "clinics"
             referencedColumns: ["id"]
           },
+<<<<<<< HEAD
           {
             foreignKeyName: "appointments_patient_id_fkey"
             columns: ["patient_id"]
@@ -513,6 +530,10 @@ export type Database = {
         }
         Relationships: []
       }
+=======
+        ]
+      }
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
       clinic_invitations: {
         Row: {
           accepted_at: string | null
@@ -610,6 +631,7 @@ export type Database = {
           },
         ]
       }
+<<<<<<< HEAD
       clinical_decisions: {
         Row: {
           actual_diagnosis: string | null
@@ -718,6 +740,8 @@ export type Database = {
           },
         ]
       }
+=======
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
       clinics: {
         Row: {
           created_at: string
@@ -804,6 +828,7 @@ export type Database = {
           },
         ]
       }
+<<<<<<< HEAD
       email_templates: {
         Row: {
           category: string
@@ -1098,6 +1123,8 @@ export type Database = {
           },
         ]
       }
+=======
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
       lab_results: {
         Row: {
           analysis_type: string
@@ -1145,6 +1172,7 @@ export type Database = {
           },
         ]
       }
+<<<<<<< HEAD
       medical_knowledge: {
         Row: {
           category: string
@@ -1181,6 +1209,8 @@ export type Database = {
         }
         Relationships: []
       }
+=======
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
       medical_records: {
         Row: {
           clinic_id: string
@@ -1189,7 +1219,10 @@ export type Database = {
           diagnosis: string
           id: string
           notes: string
+<<<<<<< HEAD
           patient_id: string | null
+=======
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
           patient_name: string
           treatment: string
           updated_at: string
@@ -1202,7 +1235,10 @@ export type Database = {
           diagnosis?: string
           id?: string
           notes?: string
+<<<<<<< HEAD
           patient_id?: string | null
+=======
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
           patient_name: string
           treatment?: string
           updated_at?: string
@@ -1215,7 +1251,10 @@ export type Database = {
           diagnosis?: string
           id?: string
           notes?: string
+<<<<<<< HEAD
           patient_id?: string | null
+=======
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
           patient_name?: string
           treatment?: string
           updated_at?: string
@@ -1229,6 +1268,7 @@ export type Database = {
             referencedRelation: "clinics"
             referencedColumns: ["id"]
           },
+<<<<<<< HEAD
           {
             foreignKeyName: "medical_records_patient_id_fkey"
             columns: ["patient_id"]
@@ -1289,6 +1329,8 @@ export type Database = {
             referencedRelation: "clinics"
             referencedColumns: ["id"]
           },
+=======
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
         ]
       }
       notifications: {
@@ -1344,6 +1386,7 @@ export type Database = {
           },
         ]
       }
+<<<<<<< HEAD
       oauth_tokens: {
         Row: {
           access_token: string
@@ -1636,6 +1679,8 @@ export type Database = {
           },
         ]
       }
+=======
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
       patients: {
         Row: {
           allergies: string
@@ -1702,7 +1747,10 @@ export type Database = {
           description: string
           id: string
           method: string
+<<<<<<< HEAD
           patient_id: string | null
+=======
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
           patient_name: string
           status: string
           updated_at: string
@@ -1717,7 +1765,10 @@ export type Database = {
           description?: string
           id?: string
           method?: string
+<<<<<<< HEAD
           patient_id?: string | null
+=======
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
           patient_name: string
           status?: string
           updated_at?: string
@@ -1732,7 +1783,10 @@ export type Database = {
           description?: string
           id?: string
           method?: string
+<<<<<<< HEAD
           patient_id?: string | null
+=======
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
           patient_name?: string
           status?: string
           updated_at?: string
@@ -1746,6 +1800,7 @@ export type Database = {
             referencedRelation: "clinics"
             referencedColumns: ["id"]
           },
+<<<<<<< HEAD
           {
             foreignKeyName: "payments_patient_id_fkey"
             columns: ["patient_id"]
@@ -1753,6 +1808,8 @@ export type Database = {
             referencedRelation: "patients"
             referencedColumns: ["id"]
           },
+=======
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
         ]
       }
       pharmacy_stock: {
@@ -1802,6 +1859,7 @@ export type Database = {
           },
         ]
       }
+<<<<<<< HEAD
       platform_announcements: {
         Row: {
           content: string
@@ -1874,6 +1932,8 @@ export type Database = {
         }
         Relationships: []
       }
+=======
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
       prescriptions: {
         Row: {
           clinic_id: string
@@ -1883,7 +1943,10 @@ export type Database = {
           id: string
           medications: string
           notes: string
+<<<<<<< HEAD
           patient_id: string | null
+=======
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
           patient_name: string
           status: string
           updated_at: string
@@ -1897,7 +1960,10 @@ export type Database = {
           id?: string
           medications?: string
           notes?: string
+<<<<<<< HEAD
           patient_id?: string | null
+=======
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
           patient_name: string
           status?: string
           updated_at?: string
@@ -1911,7 +1977,10 @@ export type Database = {
           id?: string
           medications?: string
           notes?: string
+<<<<<<< HEAD
           patient_id?: string | null
+=======
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
           patient_name?: string
           status?: string
           updated_at?: string
@@ -1925,6 +1994,7 @@ export type Database = {
             referencedRelation: "clinics"
             referencedColumns: ["id"]
           },
+<<<<<<< HEAD
           {
             foreignKeyName: "prescriptions_patient_id_fkey"
             columns: ["patient_id"]
@@ -1932,6 +2002,8 @@ export type Database = {
             referencedRelation: "patients"
             referencedColumns: ["id"]
           },
+=======
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
         ]
       }
       profiles: {
@@ -1970,6 +2042,7 @@ export type Database = {
         }
         Relationships: []
       }
+<<<<<<< HEAD
       rate_limit_tracking: {
         Row: {
           api_key_id: string | null
@@ -2452,6 +2525,8 @@ export type Database = {
           },
         ]
       }
+=======
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
       user_roles: {
         Row: {
           id: string
@@ -2470,6 +2545,7 @@ export type Database = {
         }
         Relationships: []
       }
+<<<<<<< HEAD
       webhook_events: {
         Row: {
           created_at: string | null
@@ -3124,6 +3200,15 @@ export type Database = {
           user_type: string
         }[]
       }
+=======
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      accept_clinic_invitation: { Args: { _token: string }; Returns: Json }
+      generate_appointment_reminders: { Args: never; Returns: number }
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
       get_invitation_by_token: {
         Args: { _token: string }
         Returns: {
@@ -3137,6 +3222,7 @@ export type Database = {
           status: string
         }[]
       }
+<<<<<<< HEAD
       get_patient_message_threads: {
         Args: { p_patient_id: string }
         Returns: {
@@ -3160,6 +3246,8 @@ export type Database = {
           total_executions: number
         }[]
       }
+=======
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
       has_clinic_role: {
         Args: {
           _clinic_id: string
@@ -3175,6 +3263,7 @@ export type Database = {
         }
         Returns: boolean
       }
+<<<<<<< HEAD
       hash_api_key: { Args: { api_key: string }; Returns: string }
       increment_install_count: {
         Args: { integration_id_param: string }
@@ -3184,10 +3273,13 @@ export type Database = {
         Args: { template_id_param: string }
         Returns: undefined
       }
+=======
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
       is_clinic_member: {
         Args: { _clinic_id: string; _user_id: string }
         Returns: boolean
       }
+<<<<<<< HEAD
       log_api_request: {
         Args: {
           p_api_key_id: string
@@ -3294,6 +3386,13 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "medecin" | "secretaire" | "infirmier" | "super_admin"
+=======
+      revoke_clinic_invitation: { Args: { _id: string }; Returns: Json }
+      user_clinic_ids: { Args: { _user_id: string }; Returns: string[] }
+    }
+    Enums: {
+      app_role: "super_admin" | "admin" | "medecin" | "secretaire" | "infirmier"
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3421,7 +3520,11 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+<<<<<<< HEAD
       app_role: ["admin", "medecin", "secretaire", "infirmier", "super_admin"],
+=======
+      app_role: ["super_admin", "admin", "medecin", "secretaire", "infirmier"],
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     },
   },
 } as const

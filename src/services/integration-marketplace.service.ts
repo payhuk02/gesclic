@@ -52,14 +52,22 @@ export class IntegrationMarketplaceService {
       const to = from + perPage - 1;
 
       const { data, error, count } = await query
+<<<<<<< HEAD
         .order('average_rating', { ascending: false, nullsFirst: false })
+=======
+        .order('average_rating', { ascending: false, nullsWith: 0 })
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
         .order('total_installs', { ascending: false })
         .range(from, to);
 
       if (error) throw error;
 
       return {
+<<<<<<< HEAD
         data: (data || []) as any,
+=======
+        data: data || [],
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
         total: count || 0,
         page,
         per_page: perPage,
@@ -83,7 +91,11 @@ export class IntegrationMarketplaceService {
         .single();
 
       if (error) throw error;
+<<<<<<< HEAD
       return data as any;
+=======
+      return data;
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     } catch (error) {
       console.error('Error getting integration:', error);
       return null;
@@ -111,7 +123,11 @@ export class IntegrationMarketplaceService {
         .limit(10);
 
       if (error) throw error;
+<<<<<<< HEAD
       return (data || []) as any;
+=======
+      return data || [];
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     } catch (error) {
       console.error('Error getting featured integrations:', error);
       return [];
@@ -131,7 +147,11 @@ export class IntegrationMarketplaceService {
         .order('average_rating', { ascending: false });
 
       if (error) throw error;
+<<<<<<< HEAD
       return (data || []) as any;
+=======
+      return data || [];
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     } catch (error) {
       console.error('Error getting integrations by category:', error);
       return [];
@@ -166,8 +186,13 @@ export class IntegrationMarketplaceService {
       const { data, error } = await supabase
         .from('integration_instances')
         .insert({
+<<<<<<< HEAD
           clinic_id: clinicId,
           integration_id: integrationId,
+=======
+          clinic_id,
+          integration_id,
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
           config,
           enabled: true,
           sync_frequency: 'realtime',
@@ -181,10 +206,17 @@ export class IntegrationMarketplaceService {
       // Log installation event
       await this.logAuditEvent('integration_installed', 'integration_instance', data.id, {
         integration_id: integrationId,
+<<<<<<< HEAD
         clinic_id: clinicId
       });
 
       return data as any;
+=======
+        clinic_id
+      });
+
+      return data;
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     } catch (error) {
       console.error('Error installing integration:', error);
       throw new Error('Failed to install integration');
@@ -277,7 +309,11 @@ export class IntegrationMarketplaceService {
         .order('installed_at', { ascending: false });
 
       if (error) throw error;
+<<<<<<< HEAD
       return (data || []) as any;
+=======
+      return data || [];
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     } catch (error) {
       console.error('Error getting installed integrations:', error);
       return [];
@@ -296,7 +332,11 @@ export class IntegrationMarketplaceService {
         .single();
 
       if (error) throw error;
+<<<<<<< HEAD
       return data as any;
+=======
+      return data;
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     } catch (error) {
       console.error('Error getting instance:', error);
       return null;
@@ -326,7 +366,11 @@ export class IntegrationMarketplaceService {
       if (error) throw error;
 
       return {
+<<<<<<< HEAD
         data: (data || []) as any,
+=======
+        data: data || [],
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
         total: count || 0,
         page,
         per_page: perPage,
@@ -351,7 +395,11 @@ export class IntegrationMarketplaceService {
         .from('integration_instances')
         .select('*')
         .eq('integration_id', review.integration_id)
+<<<<<<< HEAD
         .eq('clinic_id', review.clinic_id!)
+=======
+        .eq('clinic_id', review.clinic_id)
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
         .single();
 
       const verifiedPurchase = !!instance;
@@ -361,7 +409,11 @@ export class IntegrationMarketplaceService {
         .insert({
           ...review,
           user_id: userData.user.id,
+<<<<<<< HEAD
           verified_purchase: verifiedPurchase,
+=======
+          verified_purchase,
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
           helpful_count: 0,
           status: 'published'
         })
@@ -370,7 +422,11 @@ export class IntegrationMarketplaceService {
 
       if (error) throw error;
 
+<<<<<<< HEAD
       return data as any;
+=======
+      return data;
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     } catch (error) {
       console.error('Error submitting review:', error);
       throw new Error('Failed to submit review');
@@ -382,7 +438,11 @@ export class IntegrationMarketplaceService {
    */
   async markReviewHelpful(reviewId: string): Promise<void> {
     try {
+<<<<<<< HEAD
       const { error } = await (supabase.rpc as any)('increment', {
+=======
+      const { error } = await supabase.rpc('increment', {
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
         table_name: 'integration_reviews',
         column_name: 'helpful_count',
         row_id: reviewId
@@ -496,7 +556,11 @@ export class IntegrationMarketplaceService {
         .limit(limit);
 
       if (error) throw error;
+<<<<<<< HEAD
       return (data || []) as any;
+=======
+      return data || [];
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     } catch (error) {
       console.error('Error getting webhook events:', error);
       return [];
@@ -579,7 +643,11 @@ export class IntegrationMarketplaceService {
 
       // Exchange code for access token
       // In a real implementation, call the OAuth provider's token endpoint
+<<<<<<< HEAD
       await this.exchangeCodeForToken(code);
+=======
+      const accessToken = await this.exchangeCodeForToken(code);
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
 
       // Store the token securely
       // In a real implementation, encrypt and store in oauth_tokens table
@@ -592,7 +660,11 @@ export class IntegrationMarketplaceService {
   /**
    * Refresh OAuth token
    */
+<<<<<<< HEAD
   async refreshOAuthToken(_instanceId: string): Promise<void> {
+=======
+  async refreshOAuthToken(instanceId: string): Promise<void> {
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     try {
       // Get the refresh token from oauth_tokens table
       // Call the OAuth provider's refresh endpoint
@@ -622,7 +694,11 @@ export class IntegrationMarketplaceService {
   /**
    * Exchange authorization code for access token
    */
+<<<<<<< HEAD
   private async exchangeCodeForToken(_code: string): Promise<string> {
+=======
+  private async exchangeCodeForToken(code: string): Promise<string> {
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     // In a real implementation, call the OAuth provider's token endpoint
     return 'mock_access_token';
   }

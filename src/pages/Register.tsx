@@ -7,6 +7,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import logo from "@/assets/Logo_Gesclic.png";
+import registerImage from "@/assets/auth-register-doctor.jpg";
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -44,16 +45,8 @@ const Register = () => {
 
   return (
     <div className="min-h-screen bg-background flex">
-      <div className="hidden lg:flex flex-1 gradient-hero items-center justify-center p-12">
-        <div className="text-center max-w-md">
-          <Heart className="w-16 h-16 text-primary-foreground/90 mx-auto mb-6 fill-primary-foreground/20" />
-          <h3 className="text-3xl font-bold text-primary-foreground mb-4">
-            Rejoignez +500 cliniques
-          </h3>
-          <p className="text-primary-foreground/80 text-lg">
-            Commencez gratuitement et modernisez votre pratique médicale.
-          </p>
-        </div>
+      <div className="hidden lg:flex flex-1 items-center justify-center p-12">
+        <img src={registerImage} alt="Doctor register" className="w-full h-full object-cover rounded-2xl" />
       </div>
 
       <div className="flex-1 flex items-center justify-center p-6">

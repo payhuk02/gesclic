@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
+<<<<<<< HEAD
   LayoutDashboard,
   Calendar,
   Users,
@@ -25,13 +26,22 @@ import {
   Workflow,
   Globe,
   BarChart3 as AnalyticsIcon,
+=======
+  LayoutDashboard, Calendar, Users, FileText, CreditCard,
+  Pill, FlaskConical, UserCog, Settings, Heart, ChevronLeft,
+  ChevronRight, FileEdit, LogOut, Crown, Menu, X, BarChart3, Puzzle,
+  Video, Shield, Key, Workflow, Globe, BarChart3 as AnalyticsIcon,
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useAuth } from "@/contexts/AuthContext";
+<<<<<<< HEAD
 import { useSuperAdmin } from "@/contexts/SuperAdminContext";
+=======
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
 import logo from "@/assets/Logo_Gesclic.png";
 
 type AppRole = "admin" | "medecin" | "secretaire" | "infirmier";
@@ -76,8 +86,11 @@ const SidebarNav = ({ onNavigate }: { onNavigate?: () => void }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut, roles } = useAuth();
+<<<<<<< HEAD
   const { isSuperAdmin } = useSuperAdmin();
 
+=======
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
 
   const handleLogout = async () => {
     await signOut();
@@ -113,6 +126,7 @@ const SidebarNav = ({ onNavigate }: { onNavigate?: () => void }) => {
             </Link>
           );
         })}
+<<<<<<< HEAD
 
         {isSuperAdmin && (
           <Link
@@ -132,6 +146,10 @@ const SidebarNav = ({ onNavigate }: { onNavigate?: () => void }) => {
       </nav>
 
 
+=======
+      </nav>
+
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
       <div className="p-2 border-t border-sidebar-border">
         <button
           onClick={handleLogout}
@@ -171,7 +189,10 @@ const AppSidebar = () => {
   const isMobile = useIsMobile();
   const location = useLocation();
   const { roles } = useAuth();
+<<<<<<< HEAD
   const { isSuperAdmin } = useSuperAdmin();
+=======
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -263,6 +284,7 @@ const AppSidebar = () => {
             </Link>
           );
         })}
+<<<<<<< HEAD
 
         {isSuperAdmin && (
           <Link
@@ -282,6 +304,10 @@ const AppSidebar = () => {
       </nav>
 
 
+=======
+      </nav>
+
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
       <DesktopLogout collapsed={collapsed} />
     </aside>
   );

@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { useEffect, useState } from "react";
+=======
+import { useState } from "react";
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
 import SuperAdminLayout from "@/components/layout/SuperAdminLayout";
 import {
   Shield,
@@ -12,6 +16,10 @@ import {
   Clock,
   Globe,
   Smartphone,
+<<<<<<< HEAD
+=======
+  RefreshCw,
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
   Ban,
   MoreVertical,
   Download,
@@ -37,6 +45,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+<<<<<<< HEAD
 import { supabase } from "@/integrations/supabase/client";
 import { usePlatformSettings } from "@/hooks/usePlatformSettings";
 
@@ -68,6 +77,11 @@ const SuperAdminSecurity = () => {
     saving: savingSettings,
     save: saveSecuritySettings,
   } = usePlatformSettings("security", {
+=======
+
+const SuperAdminSecurity = () => {
+  const [securitySettings, setSecuritySettings] = useState({
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     enforce2FA: true,
     sessionTimeout: 30,
     maxLoginAttempts: 5,
@@ -77,6 +91,7 @@ const SuperAdminSecurity = () => {
     ipBlacklist: "",
   });
 
+<<<<<<< HEAD
   const [sessions, setSessions] = useState<SessionRow[]>([]);
   const [securityEvents, setSecurityEvents] = useState<SecurityEventRow[]>([]);
   const [mfaStats, setMfaStats] = useState({ total: 0, enabled: 0 });
@@ -186,6 +201,80 @@ const SuperAdminSecurity = () => {
   };
 
 
+=======
+  const sessions = [
+    {
+      id: "1",
+      user: "super_admin@gesclic.com",
+      device: "Chrome on Windows",
+      ip: "192.168.1.1",
+      location: "Abidjan, Côte d'Ivoire",
+      lastActivity: new Date(),
+      status: "active",
+    },
+    {
+      id: "2",
+      user: "admin@santeplus.com",
+      device: "Safari on iPhone",
+      ip: "192.168.1.2",
+      location: "Dakar, Sénégal",
+      lastActivity: new Date(Date.now() - 3600000),
+      status: "active",
+    },
+    {
+      id: "3",
+      user: "unknown@malicious.com",
+      device: "Unknown",
+      ip: "45.33.32.156",
+      location: "Unknown",
+      lastActivity: new Date(Date.now() - 7200000),
+      status: "suspicious",
+    },
+  ];
+
+  const securityEvents = [
+    {
+      id: "1",
+      type: "brute_force",
+      severity: "critical",
+      user: "unknown@malicious.com",
+      ip: "45.33.32.156",
+      description: "Multiple failed login attempts",
+      timestamp: new Date(Date.now() - 1800000),
+    },
+    {
+      id: "2",
+      type: "suspicious_location",
+      severity: "warning",
+      user: "admin@santeplus.com",
+      ip: "45.33.32.156",
+      description: "Login from unusual location",
+      timestamp: new Date(Date.now() - 3600000),
+    },
+    {
+      id: "3",
+      type: "2fa_disabled",
+      severity: "info",
+      user: "user@clinic.com",
+      ip: "192.168.1.3",
+      description: "2FA disabled by user",
+      timestamp: new Date(Date.now() - 86400000),
+    },
+  ];
+
+  const handleSaveSettings = () => {
+    toast.success("Paramètres de sécurité sauvegardés");
+  };
+
+  const handleRevokeSession = (sessionId: string) => {
+    toast.success("Session révoquée");
+  };
+
+  const handleBlockIP = (ip: string) => {
+    toast.success(`IP ${ip} bloquée`);
+  };
+
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
   const severityConfig = {
     critical: { label: "Critique", color: "bg-destructive/10 text-destructive border-destructive/20" },
     warning: { label: "Avertissement", color: "bg-warning/10 text-warning border-warning/20" },
@@ -315,10 +404,16 @@ const SuperAdminSecurity = () => {
               </Card>
             </div>
 
+<<<<<<< HEAD
             <Button onClick={handleSaveSettings} disabled={savingSettings} className="gradient-hero border-0 mt-4">
               {savingSettings ? "Sauvegarde…" : "Sauvegarder les Paramètres"}
             </Button>
 
+=======
+            <Button onClick={handleSaveSettings} className="gradient-hero border-0 mt-4">
+              Sauvegarder les Paramètres
+            </Button>
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
           </TabsContent>
 
           <TabsContent value="sessions">
@@ -357,6 +452,7 @@ const SuperAdminSecurity = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
+<<<<<<< HEAD
                   {!loading && sessions.length === 0 && (
                     <p className="text-sm text-muted-foreground text-center py-6">
                       Aucune connexion enregistrée dans les journaux d'audit.
@@ -364,6 +460,10 @@ const SuperAdminSecurity = () => {
                   )}
                   {sessions.map((session) => {
                     const statusInfo = (statusConfig as Record<string, any>)[session.status];
+=======
+                  {sessions.map((session) => {
+                    const statusInfo = statusConfig[session.status];
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
                     const StatusIcon = statusInfo.icon;
 
                     return (
@@ -408,7 +508,11 @@ const SuperAdminSecurity = () => {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
+<<<<<<< HEAD
                               <DropdownMenuItem onClick={() => handleRevokeSession(session.user)}>
+=======
+                              <DropdownMenuItem onClick={() => handleRevokeSession(session.id)}>
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
                                 <Ban className="w-4 h-4 mr-2" />
                                 Révoquer Session
                               </DropdownMenuItem>
@@ -467,6 +571,7 @@ const SuperAdminSecurity = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
+<<<<<<< HEAD
                   {!loading && securityEvents.length === 0 && (
                     <p className="text-sm text-muted-foreground text-center py-6">
                       Aucun événement de sécurité enregistré.
@@ -474,6 +579,10 @@ const SuperAdminSecurity = () => {
                   )}
                   {securityEvents.map((event) => {
                     const severityInfo = (severityConfig as Record<string, any>)[event.severity];
+=======
+                  {securityEvents.map((event) => {
+                    const severityInfo = severityConfig[event.severity];
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
 
                     return (
                       <div
@@ -523,6 +632,7 @@ const SuperAdminSecurity = () => {
                 <CardContent className="space-y-4">
                   <div className="p-4">
                     <p className="text-sm text-muted-foreground mb-1">Utilisateurs avec 2FA activé</p>
+<<<<<<< HEAD
                     <p className="text-2xl font-bold text-success">{mfaStats.total ? Math.round((mfaStats.enabled / mfaStats.total) * 100) : 0}%</p>
                   </div>
                   <div className="p-4">
@@ -532,6 +642,17 @@ const SuperAdminSecurity = () => {
                   <div className="p-4">
                     <p className="text-sm text-muted-foreground mb-1">Utilisateurs suivis</p>
                     <p className="text-2xl font-bold">{mfaStats.total}</p>
+=======
+                    <p className="text-2xl font-bold text-success">78%</p>
+                  </div>
+                  <div className="p-4">
+                    <p className="text-sm text-muted-foreground mb-1">Utilisateurs sans 2FA</p>
+                    <p className="text-2xl font-bold text-warning">22%</p>
+                  </div>
+                  <div className="p-4">
+                    <p className="text-sm text-muted-foreground mb-1">Super Admins avec 2FA</p>
+                    <p className="text-2xl font-bold">100%</p>
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
                   </div>
                 </CardContent>
               </Card>

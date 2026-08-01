@@ -24,6 +24,7 @@ interface DbPrescription {
   status: string;
 }
 
+<<<<<<< HEAD
 const parseMeds = (raw: unknown): string[] => {
   if (raw == null) return [];
   if (Array.isArray(raw)) return raw.map(medToString).filter(Boolean);
@@ -59,6 +60,11 @@ const medToString = (m: unknown): string => {
     if (parts.length) return parts.join(" — ");
   }
   return "";
+=======
+const parseMeds = (raw: string): string[] => {
+  if (!raw) return [];
+  try { const v = JSON.parse(raw); return Array.isArray(v) ? v : [raw]; } catch { return raw.split(",").map((s) => s.trim()).filter(Boolean); }
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
 };
 
 export const usePrescriptions = () => {

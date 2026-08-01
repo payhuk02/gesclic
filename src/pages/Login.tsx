@@ -7,6 +7,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import logo from "@/assets/Logo_Gesclic.png";
+import loginImage from "@/assets/auth-login-doctor.jpg";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -77,16 +78,8 @@ const Login = () => {
         </div>
       </div>
 
-      <div className="hidden lg:flex flex-1 gradient-hero items-center justify-center p-12">
-        <div className="text-center max-w-md">
-          <Heart className="w-16 h-16 text-primary-foreground/90 mx-auto mb-6 fill-primary-foreground/20" />
-          <h3 className="text-3xl font-bold text-primary-foreground mb-4">
-            Gérez votre clinique en toute sérénité
-          </h3>
-          <p className="text-primary-foreground/80 text-lg">
-            Rendez-vous, patients, paiements, tout au même endroit.
-          </p>
-        </div>
+      <div className="hidden lg:flex flex-1 items-center justify-center p-12">
+        <img src={loginImage} alt="Doctor login" className="w-full h-full object-cover rounded-2xl" />
       </div>
     </div>
   );

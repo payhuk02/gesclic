@@ -1,18 +1,31 @@
+<<<<<<< HEAD
 import { useEffect, useState } from "react";
 import SuperAdminLayout from "@/components/layout/SuperAdminLayout";
 import { supabase } from "@/integrations/supabase/client";
+=======
+import { useState } from "react";
+import SuperAdminLayout from "@/components/layout/SuperAdminLayout";
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
 import {
   Flag,
   Search,
   Plus,
   ToggleRight,
   ToggleLeft,
+<<<<<<< HEAD
+=======
+  Edit,
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
   Trash2,
   MoreVertical,
   Zap,
   Rocket,
   Shield,
   Globe,
+<<<<<<< HEAD
+=======
+  Smartphone,
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -47,6 +60,7 @@ interface FeatureFlag {
   id: string;
   key: string;
   name: string;
+<<<<<<< HEAD
   description: string | null;
   enabled: boolean;
   rollout_percentage: number;
@@ -61,10 +75,78 @@ const SuperAdminFeatureFlags = () => {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
+=======
+  description: string;
+  enabled: boolean;
+  type: "boolean" | "percentage" | "user_list";
+  value: boolean | number | string[];
+  category: "core" | "beta" | "experimental" | "deprecated";
+  lastModified: string;
+  modifiedBy: string;
+}
+
+const SuperAdminFeatureFlags = () => {
+  const [flags, setFlags] = useState<FeatureFlag[]>([
+    {
+      id: "1",
+      key: "telemedicine_enabled",
+      name: "Téléconsultation",
+      description: "Active la fonctionnalité de téléconsultation",
+      enabled: true,
+      type: "boolean",
+      value: true,
+      category: "core",
+      lastModified: new Date().toISOString(),
+      modifiedBy: "super_admin@gesclic.com",
+    },
+    {
+      id: "2",
+      key: "ai_assistant_beta",
+      name: "Assistant IA Beta",
+      description: "Assistant IA en phase bêta",
+      enabled: true,
+      type: "percentage",
+      value: 50,
+      category: "beta",
+      lastModified: new Date(Date.now() - 86400000).toISOString(),
+      modifiedBy: "super_admin@gesclic.com",
+    },
+    {
+      id: "3",
+      key: "new_dashboard_v2",
+      name: "Dashboard V2",
+      description: "Nouvelle version du dashboard",
+      enabled: false,
+      type: "user_list",
+      value: ["admin@santeplus.com", "admin@central.com"],
+      category: "experimental",
+      lastModified: new Date(Date.now() - 172800000).toISOString(),
+      modifiedBy: "super_admin@gesclic.com",
+    },
+    {
+      id: "4",
+      key: "legacy_api",
+      name: "API Legacy",
+      description: "Support de l'ancienne API",
+      enabled: true,
+      type: "boolean",
+      value: true,
+      category: "deprecated",
+      lastModified: new Date(Date.now() - 259200000).toISOString(),
+      modifiedBy: "super_admin@gesclic.com",
+    },
+  ]);
+
+  const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingFlag, setEditingFlag] = useState<FeatureFlag | null>(null);
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
   const [newFlag, setNewFlag] = useState({
     key: "",
     name: "",
     description: "",
+<<<<<<< HEAD
     environment: "production",
     category: "experimental",
   });
@@ -87,22 +169,37 @@ const SuperAdminFeatureFlags = () => {
   }, []);
 
   const categoryConfig: Record<string, { label: string; icon: typeof Rocket; color: string }> = {
+=======
+    type: "boolean" as const,
+    category: "experimental" as const,
+  });
+
+  const categoryConfig = {
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     core: { label: "Core", icon: Rocket, color: "bg-blue-500/10 text-blue-600 border-blue-500/20" },
     beta: { label: "Beta", icon: Zap, color: "bg-purple-500/10 text-purple-600 border-purple-500/20" },
     experimental: { label: "Expérimental", icon: Globe, color: "bg-orange-500/10 text-orange-600 border-orange-500/20" },
     deprecated: { label: "Déprécié", icon: Shield, color: "bg-slate-500/10 text-slate-600 border-slate-500/20" },
+<<<<<<< HEAD
     general: { label: "Général", icon: Flag, color: "bg-slate-500/10 text-slate-600 border-slate-500/20" },
+=======
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
   };
 
   const filteredFlags = flags.filter((flag) => {
     const matchesSearch =
       flag.name.toLowerCase().includes(search.toLowerCase()) ||
       flag.key.toLowerCase().includes(search.toLowerCase()) ||
+<<<<<<< HEAD
       (flag.description ?? "").toLowerCase().includes(search.toLowerCase());
+=======
+      flag.description.toLowerCase().includes(search.toLowerCase());
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     const matchesCategory = categoryFilter === "all" || flag.category === categoryFilter;
     return matchesSearch && matchesCategory;
   });
 
+<<<<<<< HEAD
   const handleToggleFlag = async (flag: FeatureFlag) => {
     const { error } = await supabase
       .from("feature_flags")
@@ -146,6 +243,39 @@ const SuperAdminFeatureFlags = () => {
     }
     toast.success("Feature flag supprimé");
     load();
+=======
+  const handleToggleFlag = (flagId: string) => {
+    setFlags(
+      flags.map((flag) =>
+        flag.id === flagId ? { ...flag, enabled: !flag.enabled, lastModified: new Date().toISOString() } : flag
+      )
+    );
+    toast.success("Feature flag mis à jour");
+  };
+
+  const handleCreateFlag = () => {
+    const flag: FeatureFlag = {
+      id: Date.now().toString(),
+      key: newFlag.key,
+      name: newFlag.name,
+      description: newFlag.description,
+      enabled: false,
+      type: newFlag.type,
+      value: newFlag.type === "boolean" ? false : newFlag.type === "percentage" ? 0 : [],
+      category: newFlag.category,
+      lastModified: new Date().toISOString(),
+      modifiedBy: "super_admin@gesclic.com",
+    };
+    setFlags([...flags, flag]);
+    setDialogOpen(false);
+    setNewFlag({ key: "", name: "", description: "", type: "boolean", category: "experimental" });
+    toast.success("Feature flag créé");
+  };
+
+  const handleDeleteFlag = (flagId: string) => {
+    setFlags(flags.filter((flag) => flag.id !== flagId));
+    toast.success("Feature flag supprimé");
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
   };
 
   return (
@@ -196,21 +326,36 @@ const SuperAdminFeatureFlags = () => {
                   />
                 </div>
                 <div>
+<<<<<<< HEAD
                   <Label>Environnement</Label>
                   <Select value={newFlag.environment} onValueChange={(value) => setNewFlag({ ...newFlag, environment: value })}>
+=======
+                  <Label>Type</Label>
+                  <Select value={newFlag.type} onValueChange={(value: any) => setNewFlag({ ...newFlag, type: value })}>
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
                     <SelectTrigger className="mt-1">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
+<<<<<<< HEAD
                       <SelectItem value="production">Production</SelectItem>
                       <SelectItem value="staging">Staging</SelectItem>
                       <SelectItem value="development">Développement</SelectItem>
+=======
+                      <SelectItem value="boolean">Booléen</SelectItem>
+                      <SelectItem value="percentage">Pourcentage</SelectItem>
+                      <SelectItem value="user_list">Liste d'utilisateurs</SelectItem>
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
                   <Label>Catégorie</Label>
+<<<<<<< HEAD
                   <Select value={newFlag.category} onValueChange={(value) => setNewFlag({ ...newFlag, category: value })}>
+=======
+                  <Select value={newFlag.category} onValueChange={(value: any) => setNewFlag({ ...newFlag, category: value })}>
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
                     <SelectTrigger className="mt-1">
                       <SelectValue />
                     </SelectTrigger>
@@ -304,9 +449,13 @@ const SuperAdminFeatureFlags = () => {
             <CardTitle>Feature Flags</CardTitle>
           </CardHeader>
           <CardContent>
+<<<<<<< HEAD
             {loading ? (
               <div className="text-center py-12 text-muted-foreground">Chargement...</div>
             ) : filteredFlags.length === 0 ? (
+=======
+            {filteredFlags.length === 0 ? (
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
               <div className="text-center py-12 text-muted-foreground">
                 <Flag className="w-12 h-12 mx-auto mb-4 opacity-50" />
                 <p>Aucun feature flag trouvé</p>
@@ -314,7 +463,11 @@ const SuperAdminFeatureFlags = () => {
             ) : (
               <div className="space-y-4">
                 {filteredFlags.map((flag) => {
+<<<<<<< HEAD
                   const categoryInfo = categoryConfig[flag.category] ?? categoryConfig.general;
+=======
+                  const categoryInfo = categoryConfig[flag.category];
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
                   const CategoryIcon = categoryInfo.icon;
 
                   return (
@@ -333,19 +486,32 @@ const SuperAdminFeatureFlags = () => {
                               <CategoryIcon className="w-3 h-3 mr-1" />
                               {categoryInfo.label}
                             </Badge>
+<<<<<<< HEAD
                             <Badge variant="outline">{flag.environment}</Badge>
+=======
+                            <Badge variant="outline">{flag.type}</Badge>
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
                           </div>
                           <p className="text-sm text-muted-foreground mb-1">{flag.key}</p>
                           <p className="text-sm text-muted-foreground">{flag.description}</p>
                           <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+<<<<<<< HEAD
                             <span>Modifié: {new Date(flag.updated_at).toLocaleString()}</span>
                             <span>Déploiement: {flag.rollout_percentage}%</span>
+=======
+                            <span>Modifié: {new Date(flag.lastModified).toLocaleString()}</span>
+                            <span>Par: {flag.modifiedBy}</span>
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
                           </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <button
+<<<<<<< HEAD
                           onClick={() => handleToggleFlag(flag)}
+=======
+                          onClick={() => handleToggleFlag(flag.id)}
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
                           className="text-primary"
                         >
                           {flag.enabled ? <ToggleRight className="w-8 h-8" /> : <ToggleLeft className="w-8 h-8 text-muted-foreground" />}
@@ -357,6 +523,13 @@ const SuperAdminFeatureFlags = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+<<<<<<< HEAD
+=======
+                            <DropdownMenuItem>
+                              <Edit className="w-4 h-4 mr-2" />
+                              Modifier
+                            </DropdownMenuItem>
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
                             <DeleteConfirmDialog
                               onConfirm={() => handleDeleteFlag(flag.id)}
                               trigger={

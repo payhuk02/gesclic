@@ -4,9 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+<<<<<<< HEAD
 import {
   Plus,
 } from "lucide-react";
+=======
+import { Plus, Pencil } from "lucide-react";
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
 
 export interface PatientForm {
   name: string;

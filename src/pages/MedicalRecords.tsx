@@ -1,6 +1,7 @@
 import AppLayout from "@/components/layout/AppLayout";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+<<<<<<< HEAD
 import {
   Search,
   Stethoscope,
@@ -11,6 +12,9 @@ import {
   SearchX,
   ClipboardList,
 } from "lucide-react";
+=======
+import { Search, FileText, Stethoscope, ChevronDown, ChevronUp, Loader2, Pencil, SearchX, ClipboardList } from "lucide-react";
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
 import { useState } from "react";
 import { useMedicalRecords } from "@/hooks/useMedicalRecords";
 import { usePatients } from "@/hooks/usePatients";

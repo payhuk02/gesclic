@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 import { reportError } from "@/lib/monitoring";
 
+=======
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
 type LogLevel = "debug" | "info" | "warn" | "error";
 
 interface LogEntry {
@@ -57,10 +60,17 @@ class Logger {
       }
     }
 
+<<<<<<< HEAD
     // Reporting vers le service de monitoring en production
     if (!this.isDevelopment && (entry.level === "error" || entry.level === "warn")) {
       reportError(entry.message, entry.error, entry.context, entry.level);
     }
+=======
+    // TODO: Send to monitoring service in production (e.g., Sentry, LogRocket)
+    // if (!this.isDevelopment && entry.level === "error") {
+    //   sendToMonitoringService(entry);
+    // }
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
   }
 
   debug(message: string, context?: Record<string, unknown>): void {

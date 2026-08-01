@@ -1,6 +1,10 @@
 import { useCallback, useEffect } from 'react';
+<<<<<<< HEAD
 import { cacheService } from './cache-service';
 import { CACHE_TTL, CACHE_TAGS } from './db';
+=======
+import { cacheService, CACHE_TTL, CACHE_TAGS } from './cache-service';
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
 import { useAuth } from '@/contexts/AuthContext';
 import { useClinic } from '@/contexts/ClinicContext';
 
@@ -23,7 +27,11 @@ export class CacheWarmingService {
           const { data } = await supabase
             .from('profiles')
             .select('*')
+<<<<<<< HEAD
             .eq('user_id', userId)
+=======
+            .eq('id', userId)
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
             .single();
           return data;
         },
@@ -47,7 +55,11 @@ export class CacheWarmingService {
         fetcher: async () => {
           const { supabase } = await import('@/integrations/supabase/client');
           const { data } = await supabase
+<<<<<<< HEAD
             .from('doctors')
+=======
+            .from('staff')
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
             .select('*')
             .eq('clinic_id', clinicId);
           return data;
@@ -73,8 +85,13 @@ export class CacheWarmingService {
             .from('appointments')
             .select('*')
             .eq('clinic_id', clinicId)
+<<<<<<< HEAD
             .gte('date', new Date().toISOString().slice(0, 10))
             .order('date', { ascending: true })
+=======
+            .gte('scheduled_date', new Date().toISOString())
+            .order('scheduled_date', { ascending: true })
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
             .limit(10);
           return data;
         },
@@ -99,7 +116,11 @@ export class CacheWarmingService {
         fetcher: async () => {
           const { supabase } = await import('@/integrations/supabase/client');
           const { data } = await supabase
+<<<<<<< HEAD
             .from('v_daily_appointments')
+=======
+            .from('mv_daily_appointments')
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
             .select('*')
             .eq('clinic_id', clinicId)
             .order('date', { ascending: false })
@@ -117,7 +138,11 @@ export class CacheWarmingService {
   /**
    * Warm cache for patient detail view
    */
+<<<<<<< HEAD
   async warmPatientData(patientId: string, patientName?: string): Promise<void> {
+=======
+  async warmPatientData(patientId: string): Promise<void> {
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     const warmupKeys = [
       {
         key: `patient:${patientId}`,
@@ -139,7 +164,11 @@ export class CacheWarmingService {
           const { data } = await supabase
             .from('medical_records')
             .select('*')
+<<<<<<< HEAD
             .eq('patient_name', patientName ?? '')
+=======
+            .eq('patient_id', patientId)
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
             .order('created_at', { ascending: false });
           return data;
         },
@@ -152,7 +181,11 @@ export class CacheWarmingService {
           const { data } = await supabase
             .from('prescriptions')
             .select('*')
+<<<<<<< HEAD
             .eq('patient_name', patientName ?? '')
+=======
+            .eq('patient_id', patientId)
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
             .order('created_at', { ascending: false });
           return data;
         },
@@ -165,8 +198,13 @@ export class CacheWarmingService {
           const { data } = await supabase
             .from('appointments')
             .select('*')
+<<<<<<< HEAD
             .eq('patient_name', patientName ?? '')
             .order('date', { ascending: true });
+=======
+            .eq('patient_id', patientId)
+            .order('scheduled_date', { ascending: true });
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
           return data;
         },
         options: { ttl: CACHE_TTL.SHORT, tags: [CACHE_TAGS.APPOINTMENTS] }
@@ -222,8 +260,13 @@ export function useCacheWarming() {
     }
   }, [activeClinicId]);
 
+<<<<<<< HEAD
   const warmPatient = useCallback((patientId: string, patientName?: string) => {
     cacheWarmingService.warmPatientData(patientId, patientName);
+=======
+  const warmPatient = useCallback((patientId: string) => {
+    cacheWarmingService.warmPatientData(patientId);
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
   }, []);
 
   return {

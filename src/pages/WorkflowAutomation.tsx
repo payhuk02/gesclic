@@ -1,5 +1,6 @@
 import AppLayout from "@/components/layout/AppLayout";
 import { useState, useEffect } from "react";
+<<<<<<< HEAD
 import {
   Workflow,
   Play,
@@ -16,6 +17,9 @@ import {
   FileText,
   Copy,
 } from "lucide-react";
+=======
+import { Workflow, Play, Pause, Archive, Plus, Trash2, Edit, Clock, CheckCircle, AlertCircle, Loader2, Settings, Zap, FileText, Copy } from "lucide-react";
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -52,6 +56,10 @@ const WorkflowAutomation = () => {
   const [loading, setLoading] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [form, setForm] = useState<WorkflowForm>(emptyForm);
+<<<<<<< HEAD
+=======
+  const [selectedWorkflow, setSelectedWorkflow] = useState<any>(null);
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
 
   useEffect(() => {
     if (activeClinicId) {
@@ -63,7 +71,11 @@ const WorkflowAutomation = () => {
     try {
       setLoading(true);
       const [wfs, temps] = await Promise.all([
+<<<<<<< HEAD
         workflowAutomationService.getWorkflows(activeClinicId!),
+=======
+        workflowAutomationService.getWorkflows(activeClinicId),
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
         workflowAutomationService.getTemplates(),
       ]);
 
@@ -89,7 +101,11 @@ const WorkflowAutomation = () => {
       if (!user) return;
 
       await workflowAutomationService.createWorkflow(
+<<<<<<< HEAD
         activeClinicId!,
+=======
+        activeClinicId,
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
         user.id,
         form.name,
         form.description,
@@ -110,7 +126,11 @@ const WorkflowAutomation = () => {
   const handleExecuteWorkflow = async (workflowId: string) => {
     try {
       if (!user) return;
+<<<<<<< HEAD
       await workflowAutomationService.executeWorkflow(workflowId, user.id);
+=======
+      const executionId = await workflowAutomationService.executeWorkflow(workflowId, user.id);
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
       toast.success("Workflow exécuté avec succès");
       loadData();
     } catch (error) {
@@ -166,7 +186,11 @@ const WorkflowAutomation = () => {
   const handleCreateFromTemplate = async (templateId: string) => {
     try {
       if (!user) return;
+<<<<<<< HEAD
       await workflowAutomationService.createFromTemplate(templateId, activeClinicId!, user.id, "Workflow from Template");
+=======
+      await workflowAutomationService.createFromTemplate(templateId, activeClinicId, user.id, "Workflow from Template");
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
       loadData();
       toast.success("Workflow créé depuis le template");
     } catch (error) {

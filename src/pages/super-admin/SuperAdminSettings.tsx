@@ -1,19 +1,34 @@
+<<<<<<< HEAD
 import SuperAdminLayout from "@/components/layout/SuperAdminLayout";
 import {
+=======
+import { useState } from "react";
+import SuperAdminLayout from "@/components/layout/SuperAdminLayout";
+import {
+  Settings,
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
   Globe,
   Shield,
   Bell,
   CreditCard,
+<<<<<<< HEAD
   Save,
   ToggleRight,
   ToggleLeft,
   Loader2,
+=======
+  Mail,
+  Save,
+  ToggleRight,
+  ToggleLeft,
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+<<<<<<< HEAD
 import { usePlatformSettings } from "@/hooks/usePlatformSettings";
 
 const SuperAdminSettings = () => {
@@ -24,6 +39,13 @@ const SuperAdminSettings = () => {
     saving,
     save,
   } = usePlatformSettings("general", {
+=======
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
+
+const SuperAdminSettings = () => {
+  const [settings, setSettings] = useState({
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     platformName: "Gesclic",
     platformUrl: "https://gesclic.com",
     supportEmail: "support@gesclic.com",
@@ -32,11 +54,16 @@ const SuperAdminSettings = () => {
       standard: 3,
       pro: 10,
       enterprise: -1,
+<<<<<<< HEAD
     } as Record<string, number>,
+=======
+    },
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     maintenanceMode: false,
     registrationEnabled: true,
     requireEmailVerification: true,
     defaultPlan: "free",
+<<<<<<< HEAD
     billingProvider: "Orange Money",
   });
 
@@ -46,6 +73,11 @@ const SuperAdminSettings = () => {
     saving: savingNotifications,
     save: saveNotifications,
   } = usePlatformSettings("notifications", {
+=======
+  });
+
+  const [notifications, setNotifications] = useState({
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     emailAlerts: true,
     securityAlerts: true,
     billingAlerts: true,
@@ -53,18 +85,27 @@ const SuperAdminSettings = () => {
   });
 
   const handleSave = () => {
+<<<<<<< HEAD
     void save();
+=======
+    toast.success("Paramètres sauvegardés");
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
   };
 
   const Toggle = ({ checked, onChange, label }: { checked: boolean; onChange: () => void; label: string }) => (
     <div className="flex items-center justify-between py-3 border-b border-border last:border-0">
       <span className="text-sm text-foreground">{label}</span>
+<<<<<<< HEAD
       <button onClick={onChange} className="text-primary" aria-label={label} aria-pressed={checked}>
+=======
+      <button onClick={onChange} className="text-primary">
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
         {checked ? <ToggleRight className="w-8 h-8" /> : <ToggleLeft className="w-8 h-8 text-muted-foreground" />}
       </button>
     </div>
   );
 
+<<<<<<< HEAD
   if (loading) {
     return (
       <SuperAdminLayout>
@@ -76,6 +117,8 @@ const SuperAdminSettings = () => {
   }
 
 
+=======
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
   return (
     <SuperAdminLayout>
       <div className="space-y-6">
@@ -153,12 +196,16 @@ const SuperAdminSettings = () => {
                     />
                   </div>
                 ))}
+<<<<<<< HEAD
                 <Button onClick={handleSave} disabled={saving} className="gradient-hero border-0">
                   {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                   Sauvegarder
                 </Button>
               </CardContent>
 
+=======
+              </CardContent>
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
             </Card>
           </TabsContent>
 
@@ -229,11 +276,18 @@ const SuperAdminSettings = () => {
                   onChange={() => setNotifications({ ...notifications, systemAlerts: !notifications.systemAlerts })}
                   label="Alertes système"
                 />
+<<<<<<< HEAD
                 <Button onClick={() => void saveNotifications()} disabled={savingNotifications} className="gradient-hero border-0 mt-4">
                   {savingNotifications ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                   Sauvegarder
                 </Button>
 
+=======
+                <Button onClick={handleSave} className="gradient-hero border-0 mt-4">
+                  <Save className="w-4 h-4 mr-2" />
+                  Sauvegarder
+                </Button>
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
               </CardContent>
             </Card>
           </TabsContent>
@@ -250,22 +304,33 @@ const SuperAdminSettings = () => {
                 </div>
                 <div>
                   <Label>Intégration de paiement</Label>
+<<<<<<< HEAD
                   <select
                     value={settings.billingProvider}
                     onChange={(e) => setSettings({ ...settings, billingProvider: e.target.value })}
                     className="mt-1 w-full p-2 border border-border rounded-lg bg-background"
                   >
+=======
+                  <select className="mt-1 w-full p-2 border border-border rounded-lg bg-background">
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
                     <option>Orange Money</option>
                     <option>MTN Mobile Money</option>
                     <option>Wave</option>
                     <option>Carte bancaire</option>
                   </select>
                 </div>
+<<<<<<< HEAD
                 <Button onClick={handleSave} disabled={saving} className="gradient-hero border-0">
                   {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                   Sauvegarder
                 </Button>
 
+=======
+                <Button onClick={handleSave} className="gradient-hero border-0">
+                  <Save className="w-4 h-4 mr-2" />
+                  Sauvegarder
+                </Button>
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
               </CardContent>
             </Card>
           </TabsContent>

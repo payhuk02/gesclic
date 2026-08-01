@@ -28,7 +28,11 @@ export class PatientPortalService {
         return this.getDefaultSettings(patientId, clinicId);
       }
 
+<<<<<<< HEAD
       return data as any;
+=======
+      return data;
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     } catch (error) {
       console.error('Error getting patient portal settings:', error);
       return this.getDefaultSettings(patientId, clinicId);
@@ -89,7 +93,11 @@ export class PatientPortalService {
         .order('created_at', { ascending: true });
 
       if (error) throw error;
+<<<<<<< HEAD
       return (data || []) as any;
+=======
+      return data || [];
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     } catch (error) {
       console.error('Error getting thread messages:', error);
       return [];
@@ -124,7 +132,11 @@ export class PatientPortalService {
         .single();
 
       if (error) throw error;
+<<<<<<< HEAD
       return data as any;
+=======
+      return data;
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     } catch (error) {
       console.error('Error sending message:', error);
       throw new Error('Failed to send message');
@@ -142,7 +154,11 @@ export class PatientPortalService {
     try {
       const { data: thread } = await supabase
         .from('patient_messages')
+<<<<<<< HEAD
         .select('patient_id, clinic_id, subject, message_type, thread_id')
+=======
+        .select('patient_id, clinic_id, subject, message_type')
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
         .eq('thread_id', threadId)
         .single();
 
@@ -157,7 +173,11 @@ export class PatientPortalService {
           body,
           message_type: thread.message_type,
           attachments,
+<<<<<<< HEAD
           thread_id: thread.thread_id ?? threadId,
+=======
+          thread_id,
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
           status: ' replied',
           priority: 'normal'
         })
@@ -165,7 +185,11 @@ export class PatientPortalService {
         .single();
 
       if (error) throw error;
+<<<<<<< HEAD
       return data as any;
+=======
+      return data;
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
     } catch (error) {
       console.error('Error replying to message:', error);
       throw new Error('Failed to reply to message');
@@ -363,7 +387,11 @@ export class PatientPortalService {
 
       // Send a message requesting refill
       await this.sendMessage(
+<<<<<<< HEAD
         prescription.patient_id!,
+=======
+        prescription.patient_id,
+>>>>>>> 784c55442546a8380c5505831e1170f57cc29dfe
         prescription.clinic_id,
         `Demande de renouvellement - Ordonnance #${prescriptionId}`,
         `Je souhaite renouveler mon ordonnance prescrite par le Dr. ${prescription.doctor_name}.`,
