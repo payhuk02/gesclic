@@ -361,7 +361,7 @@ const SuperAdminUsers = () => {
                     <h3 className="text-lg font-semibold">{selectedUser.full_name || "Utilisateur"}</h3>
                     <p className="text-sm text-muted-foreground">{selectedUser.email}</p>
 
-                    <Badge className={roleConfig[selectedUser.role].color} className="mt-1">
+                    <Badge className={`${roleConfig[selectedUser.role].color} mt-1`}>
 
                       {roleConfig[selectedUser.role].label}
                     </Badge>

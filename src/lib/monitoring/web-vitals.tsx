@@ -2,7 +2,7 @@
 // Enterprise-grade performance monitoring following Vercel/Stripe patterns
 // Tracks Core Web Vitals and sends to analytics for monitoring
 
-import { Metric, onCLS, onFID, onFCP, onLCP, onTTFB, onINP } from 'web-vitals';
+import { Metric, onCLS, onFCP, onLCP, onTTFB, onINP } from 'web-vitals';
 
 // Web Vitals thresholds (following Google standards)
 const VITAL_THRESHOLDS = {
@@ -111,7 +111,6 @@ export function initWebVitalsMonitoring() {
 
   // Core Web Vitals
   onCLS(reportWebVitals);
-  onFID(reportWebVitals);
   onFCP(reportWebVitals);
   onLCP(reportWebVitals);
   onTTFB(reportWebVitals);

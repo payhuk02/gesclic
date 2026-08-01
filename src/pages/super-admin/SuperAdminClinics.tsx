@@ -437,7 +437,7 @@ const SuperAdminClinics = () => {
                         <h3 className="text-lg font-semibold">{selectedClinic.name}</h3>
 
                         <p className="text-sm text-muted-foreground">{selectedClinic.email}</p>
-                        <Badge className={planConfig[selectedClinic.plan].color} className="mt-1">
+                        <Badge className={`${planConfig[selectedClinic.plan].color} mt-1`}>
 
                           {planConfig[selectedClinic.plan].label}
                         </Badge>
