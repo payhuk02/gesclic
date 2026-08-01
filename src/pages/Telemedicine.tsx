@@ -5,7 +5,7 @@ import { Video, Calendar, Users, Clock, Play, Settings, Loader2, Plus, Search, F
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -217,6 +217,9 @@ const Telemedicine = () => {
               <DialogContent className="sm:max-w-lg">
                 <DialogHeader>
                   <DialogTitle>Créer une Session Vidéo</DialogTitle>
+                  <DialogDescription>
+                    Planifiez une téléconsultation entre un patient et un médecin.
+                  </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleCreateSession} className="space-y-4">
                   <div className="space-y-2">

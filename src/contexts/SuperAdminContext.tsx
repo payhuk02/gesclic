@@ -54,27 +54,21 @@ export const SuperAdminProvider = ({ children }: SuperAdminProviderProps) => {
         return false;
       }
 
-      const { data: profileData, error: profileError } = await supabase
+      const { data: profileData } = await supabase
         .from("profiles")
         .select("user_id, first_name, last_name, avatar_url")
         .eq("user_id", user.id)
-        .single();
-
-      if (profileError || !profileData) {
-        setIsSuperAdmin(false);
-        setProfile(null);
-        return false;
-      }
+        .maybeSingle();
 
       const superAdminProfile: SuperAdminProfile = {
-        user_id: profileData.user_id,
+        user_id: user.id,
         email: user.email || "",
-        full_name: profileData.first_name && profileData.last_name 
-          ? `${profileData.first_name} ${profileData.last_name}` 
-          : profileData.first_name || profileData.last_name || null,
-        first_name: profileData.first_name,
-        last_name: profileData.last_name,
-        avatar_url: profileData.avatar_url,
+        full_name: profileData?.first_name && profileData?.last_name
+          ? `${profileData.first_name} ${profileData.last_name}`
+          : profileData?.first_name || profileData?.last_name || user.email?.split("@")[0] || "Super Admin",
+        first_name: profileData?.first_name ?? null,
+        last_name: profileData?.last_name ?? null,
+        avatar_url: profileData?.avatar_url ?? null,
       };
 
       setIsSuperAdmin(true);
