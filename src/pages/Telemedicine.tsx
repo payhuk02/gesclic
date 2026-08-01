@@ -66,8 +66,8 @@ const Telemedicine = () => {
 
   const loadSessions = async () => {
     try {
-      if (!user) return;
-      const data = await telemedicineService.getUpcomingSessions(user.id);
+      if (!activeClinicId) return;
+      const data = await telemedicineService.getClinicSessions(activeClinicId);
       setSessions(data);
 
     } catch (error) {
@@ -100,6 +100,11 @@ const Telemedicine = () => {
         return;
       }
 
+      if (!activeClinicId) {
+        toast.error("Aucune clinique sélectionnée");
+        return;
+      }
+
       await telemedicineService.createSession({
         patient_id: form.patientId,
         patient_name: patient.name,
@@ -109,7 +114,7 @@ const Telemedicine = () => {
         scheduled_time: form.scheduledTime,
         duration: form.duration,
         reason: form.reason,
-      });
+      }, activeClinicId);
 
       toast.success("Session créée avec succès");
 
@@ -126,10 +131,11 @@ const Telemedicine = () => {
   const handleJoinSession = async (sessionId: string) => {
     setJoiningSession(sessionId);
     try {
-      const token = await telemedicineService.joinSession(sessionId);
-      // In a real implementation, this would redirect to the video room
-      toast.success("Rejoindre la session vidéo...");
-      // window.location.href = `/telemedicine/room/${sessionId}?token=${token}`;
+      const joinData = await telemedicineService.joinSession(sessionId);
+      const roomUrl = `${joinData.room_url}${joinData.room_url.includes('?') ? '&' : '?'}t=${joinData.token}`;
+      window.open(roomUrl, '_blank', 'noopener,noreferrer');
+      toast.success("Ouverture de la session vidéo...");
+      loadSessions();
     } catch (error) {
       console.error("Error joining session:", error);
       toast.error("Erreur lors de la connexion à la session");

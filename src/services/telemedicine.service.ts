@@ -1,199 +1,150 @@
 // Telemedicine Service
-
 // Service layer for video consultation management
 
 import { supabase } from '@/integrations/supabase/client';
-import type { 
-  TelemedicineSession,
+import type {
   TelemedicineSettings,
   JoinToken,
-  SessionSummary
 } from '@/types/phase1';
 
+export interface CreateSessionInput {
+  patient_id: string;
+  patient_name: string;
+  doctor_id: string;
+  doctor_name: string;
+  scheduled_date: string;
+  scheduled_time: string;
+  duration: number;
+  reason: string;
+}
+
+export interface TelemedicineSessionListItem {
+  id: string;
+  patient_name: string;
+  doctor_name: string;
+  scheduled_date: string;
+  scheduled_time: string;
+  status: string;
+  reason?: string | null;
+  recording_url?: string | null;
+}
+
 export class TelemedicineService {
-  private readonly DAILY_API_KEY = import.meta.env.VITE_DAILY_API_KEY;
-  private readonly DAILY_API_URL = 'https://api.daily.co/v1';
+  private generateRoomName(): string {
+    return `gesclic-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+  }
+
+  private buildScheduledTimes(input: CreateSessionInput) {
+    const scheduledStart = new Date(`${input.scheduled_date}T${input.scheduled_time}`);
+    const scheduledEnd = new Date(scheduledStart.getTime() + input.duration * 60 * 1000);
+    return { scheduledStart, scheduledEnd };
+  }
 
   /**
-   * Create a new telemedicine session
+   * Create a telemedicine session from the clinic UI form
    */
-  async createSession(appointmentId: string): Promise<TelemedicineSession> {
-    try {
-      // Get appointment details
-      const { data: appointment, error: apptError } = await supabase
-        .from('appointments')
-        .select('*, patients(*), doctors(*)')
-        .eq('id', appointmentId)
-        .single();
+  async createSession(input: CreateSessionInput, clinicId: string): Promise<void> {
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData.user) {
+      throw new Error('Utilisateur non authentifié');
+    }
 
-      if (apptError || !appointment) {
-        throw new Error('Appointment not found');
-      }
+    const { data: doctor, error: doctorError } = await supabase
+      .from('doctors')
+      .select('user_id')
+      .eq('id', input.doctor_id)
+      .eq('clinic_id', clinicId)
+      .single();
 
-      // Get clinic settings
-      const { data: settings } = await supabase
-        .from('telemedicine_settings')
-        .select('*')
-        .eq('clinic_id', appointment.clinic_id)
-        .single();
+    if (doctorError || !doctor) {
+      throw new Error('Médecin introuvable');
+    }
 
-      // Create Daily.co room
-      const room = await this.createDailyRoom(settings);
+    const { scheduledStart, scheduledEnd } = this.buildScheduledTimes(input);
 
-      // Create telemedicine session in database
-      const { data: userData } = await supabase.auth.getUser();
-      const { data: session, error: sessionError } = await supabase
-        .from('telemedicine_sessions')
-        .insert({
-          appointment_id: appointmentId,
-          patient_id: appointment.patient_id,
-          provider_id: appointment.user_id,
-          clinic_id: appointment.clinic_id,
-          daily_room_name: room.name,
-          daily_room_url: room.url,
-          scheduled_start: appointment.appointment_date || new Date().toISOString(),
-          scheduled_end: new Date(Date.now() + 30 * 60 * 1000).toISOString(), // Default 30 min
-          status: 'scheduled',
-          consent_recording: settings?.enable_recording || false,
-        })
-        .select()
-        .single();
+    const { data: appointment, error: appointmentError } = await supabase
+      .from('appointments')
+      .insert({
+        clinic_id: clinicId,
+        user_id: userData.user.id,
+        patient_id: input.patient_id,
+        patient_name: input.patient_name,
+        doctor_name: input.doctor_name,
+        date: input.scheduled_date,
+        time: input.scheduled_time,
+        type: 'telemedicine',
+        status: 'scheduled',
+      })
+      .select('id')
+      .single();
 
-      if (sessionError) throw sessionError;
+    if (appointmentError || !appointment) {
+      throw appointmentError ?? new Error('Impossible de créer le rendez-vous');
+    }
 
-      return session;
-    } catch (error) {
-      console.error('Error creating telemedicine session:', error);
-      throw new Error('Failed to create telemedicine session');
+    const { error: sessionError } = await supabase
+      .from('telemedicine_sessions')
+      .insert({
+        appointment_id: appointment.id,
+        patient_id: input.patient_id,
+        provider_id: doctor.user_id ?? userData.user.id,
+        doctor_id: input.doctor_id,
+        clinic_id: clinicId,
+        daily_room_name: this.generateRoomName(),
+        scheduled_start: scheduledStart.toISOString(),
+        scheduled_end: scheduledEnd.toISOString(),
+        reason: input.reason || null,
+        status: 'scheduled',
+        consent_recording: false,
+      });
+
+    if (sessionError) {
+      throw sessionError;
     }
   }
 
   /**
-   * Join a telemedicine session
+   * Join a telemedicine session via the secure edge function
    */
-  async joinSession(sessionId: string, role: 'provider' | 'patient'): Promise<JoinToken> {
-    try {
-      // Get session details
-      const { data: session, error } = await supabase
-        .from('telemedicine_sessions')
-        .select('*, telemedicine_settings(*)')
-        .eq('id', sessionId)
-        .single();
+  async joinSession(sessionId: string): Promise<JoinToken> {
+    const { data, error } = await supabase.functions.invoke('telemedicine-room', {
+      body: { sessionId, action: 'join' },
+    });
 
-      if (error || !session) {
-        throw new Error('Session not found');
-      }
-
-      // Create Daily.co token
-      const token = await this.createDailyToken(session.daily_room_name, role, session.telemedicine_settings);
-
-      // Update session status if starting
-      if (session.status === 'scheduled') {
-        await supabase
-          .from('telemedicine_sessions')
-          .update({ 
-            status: 'in_progress',
-            actual_start: new Date().toISOString()
-          })
-          .eq('id', sessionId);
-      }
-
-      return {
-        token: token,
-        room_url: session.daily_room_url,
-        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        permissions: {
-          can_record: session.telemedicine_settings?.enable_recording || false,
-          can_screen_share: session.telemedicine_settings?.enable_screen_sharing || true,
-          can_chat: session.telemedicine_settings?.enable_chat || true,
-        }
-      };
-    } catch (error) {
-      console.error('Error joining session:', error);
-      throw new Error('Failed to join telemedicine session');
+    if (error) {
+      throw error;
     }
+
+    if (data?.error) {
+      throw new Error(data.message ?? data.error);
+    }
+
+    return {
+      token: data.token,
+      room_url: data.room_url,
+      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      permissions: data.permissions ?? {
+        can_record: false,
+        can_screen_share: true,
+        can_chat: true,
+      },
+    };
   }
 
   /**
-   * End a telemedicine session
+   * End a telemedicine session via the secure edge function
    */
-  async endSession(sessionId: string, summary: SessionSummary): Promise<void> {
-    try {
-      const { error } = await supabase
-        .from('telemedicine_sessions')
-        .update({
-          status: 'completed',
-          actual_end: new Date().toISOString(),
-          clinical_notes: summary.clinical_notes,
-          diagnosis: summary.diagnosis,
-          treatment_plan: summary.treatment_plan,
-          follow_up_actions: summary.follow_up_actions,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', sessionId);
+  async endSession(sessionId: string): Promise<void> {
+    const { data, error } = await supabase.functions.invoke('telemedicine-room', {
+      body: { sessionId, action: 'end' },
+    });
 
-      if (error) throw error;
-
-      // Delete Daily.co room
-      await this.deleteDailyRoom(sessionId);
-    } catch (error) {
-      console.error('Error ending session:', error);
-      throw new Error('Failed to end telemedicine session');
+    if (error) {
+      throw error;
     }
-  }
 
-  /**
-   * Get session recording
-   */
-  async getRecording(sessionId: string): Promise<any> {
-    try {
-      const { data: session, error } = await supabase
-        .from('telemedicine_sessions')
-        .select('recording_url, recording_status')
-        .eq('id', sessionId)
-        .single();
-
-      if (error || !session) {
-        throw new Error('Session not found');
-      }
-
-      return {
-        url: session.recording_url,
-        status: session.recording_status
-      };
-    } catch (error) {
-      console.error('Error getting recording:', error);
-      throw new Error('Failed to get session recording');
-    }
-  }
-
-  /**
-   * Check session status
-   */
-  async getSessionStatus(sessionId: string): Promise<any> {
-    try {
-      const { data: session, error } = await supabase
-        .from('telemedicine_sessions')
-        .select('*')
-        .eq('id', sessionId)
-        .single();
-
-      if (error || !session) {
-        throw new Error('Session not found');
-      }
-
-      return {
-        status: session.status,
-        scheduled_start: session.scheduled_start,
-        scheduled_end: session.scheduled_end,
-        actual_start: session.actual_start,
-        actual_end: session.actual_end,
-        duration_seconds: session.duration_seconds,
-        connection_quality: session.connection_quality
-      };
-    } catch (error) {
-      console.error('Error getting session status:', error);
-      throw new Error('Failed to get session status');
+    if (data?.error) {
+      throw new Error(data.message ?? data.error);
     }
   }
 
@@ -209,7 +160,6 @@ export class TelemedicineService {
         .single();
 
       if (error) {
-        // Return default settings if none exist
         return this.getDefaultSettings();
       }
 
@@ -224,168 +174,78 @@ export class TelemedicineService {
    * Update telemedicine settings
    */
   async updateClinicSettings(clinicId: string, settings: Partial<TelemedicineSettings>): Promise<void> {
-    try {
-      const { error } = await supabase
-        .from('telemedicine_settings')
-        .upsert({
-          clinic_id,
-          ...settings,
-          updated_at: new Date().toISOString()
-        });
-
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error updating clinic settings:', error);
-      throw new Error('Failed to update telemedicine settings');
-    }
-  }
-
-  /**
-   * Get upcoming sessions for provider
-   */
-  async getUpcomingSessions(providerId: string): Promise<TelemedicineSession[]> {
-    try {
-      const { data, error } = await supabase
-        .from('telemedicine_sessions')
-        .select('*, patients(*), appointments(*)')
-        .eq('provider_id', providerId)
-        .in('status', ['scheduled', 'waiting'])
-        .gte('scheduled_start', new Date().toISOString())
-        .order('scheduled_start', { ascending: true })
-        .limit(10);
-
-      if (error) throw error;
-      return data || [];
-    } catch (error) {
-      console.error('Error getting upcoming sessions:', error);
-      return [];
-    }
-  }
-
-  /**
-   * Get session history for patient
-   */
-  async getPatientSessions(patientId: string): Promise<TelemedicineSession[]> {
-    try {
-      const { data, error } = await supabase
-        .from('telemedicine_sessions')
-        .select('*, doctors(*)')
-        .eq('patient_id', patientId)
-        .in('status', ['completed', 'cancelled'])
-        .order('scheduled_start', { ascending: false })
-        .limit(20);
-
-      if (error) throw error;
-      return data || [];
-    } catch (error) {
-      console.error('Error getting patient sessions:', error);
-      return [];
-    }
-  }
-
-  /**
-   * Create Daily.co room
-   */
-  private async createDailyRoom(settings?: TelemedicineSettings): Promise<{ name: string; url: string }> {
-    try {
-      const roomName = `gesclic-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-      const response = await fetch(`${this.DAILY_API_URL}/rooms`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.DAILY_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: roomName,
-          privacy: 'private',
-          properties: {
-            enable_chat: settings?.enable_chat ?? true,
-            enable_screen_sharing: settings?.enable_screen_sharing ?? true,
-            enable_recording: settings?.enable_recording ?? false,
-            max_participants: 4,
-            exp: Math.floor(Date.now() / 1000) + 24 * 60 * 60, // 24 hours
-            eject_at_room_exp: true,
-          },
-        }),
+    const { error } = await supabase
+      .from('telemedicine_settings')
+      .upsert({
+        clinic_id: clinicId,
+        ...settings,
+        updated_at: new Date().toISOString(),
       });
 
-      if (!response.ok) {
-        throw new Error(`Daily.co API error: ${response.status}`);
-      }
+    if (error) {
+      throw error;
+    }
+  }
 
-      const data = await response.json();
+  /**
+   * List telemedicine sessions for a clinic
+   */
+  async getClinicSessions(clinicId: string): Promise<TelemedicineSessionListItem[]> {
+    const { data, error } = await supabase
+      .from('telemedicine_sessions')
+      .select(`
+        id,
+        status,
+        reason,
+        recording_url,
+        scheduled_start,
+        appointments (
+          patient_name,
+          doctor_name,
+          date,
+          time
+        )
+      `)
+      .eq('clinic_id', clinicId)
+      .order('scheduled_start', { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
+    return (data ?? []).map((session) => {
+      const appointment = Array.isArray(session.appointments)
+        ? session.appointments[0]
+        : session.appointments;
+
+      const scheduledStart = session.scheduled_start
+        ? new Date(session.scheduled_start)
+        : null;
+
       return {
-        name: roomName,
-        url: data.url
+        id: session.id,
+        status: session.status,
+        reason: session.reason,
+        recording_url: session.recording_url,
+        patient_name: appointment?.patient_name ?? '',
+        doctor_name: appointment?.doctor_name ?? '',
+        scheduled_date:
+          appointment?.date ??
+          (scheduledStart ? scheduledStart.toISOString().split('T')[0] : ''),
+        scheduled_time:
+          appointment?.time ??
+          (scheduledStart
+            ? scheduledStart.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+            : ''),
       };
-    } catch (error) {
-      console.error('Error creating Daily.co room:', error);
-      throw new Error('Failed to create video room');
-    }
+    });
   }
 
-  /**
-   * Create Daily.co token for room access
-   */
-  private async createDailyToken(roomName: string, role: string, settings?: TelemedicineSettings): Promise<string> {
-    try {
-      const response = await fetch(`${this.DAILY_API_URL}/meeting-tokens`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.DAILY_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          properties: {
-            room_name: roomName,
-            exp: Math.floor(Date.now() / 1000) + 24 * 60 * 60, // 24 hours
-            is_owner: role === 'provider',
-            user_name: role === 'provider' ? 'Provider' : 'Patient',
-          },
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Daily.co API error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data.token;
-    } catch (error) {
-      console.error('Error creating Daily.co token:', error);
-      throw new Error('Failed to create access token');
-    }
+  /** @deprecated Use getClinicSessions */
+  async getUpcomingSessions(clinicId: string): Promise<TelemedicineSessionListItem[]> {
+    return this.getClinicSessions(clinicId);
   }
 
-  /**
-   * Delete Daily.co room
-   */
-  private async deleteDailyRoom(sessionId: string): Promise<void> {
-    try {
-      const { data: session } = await supabase
-        .from('telemedicine_sessions')
-        .select('daily_room_name')
-        .eq('id', sessionId)
-        .single();
-
-      if (!session) return;
-
-      await fetch(`${this.DAILY_API_URL}/rooms/${session.daily_room_name}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${this.DAILY_API_KEY}`,
-        },
-      });
-    } catch (error) {
-      console.error('Error deleting Daily.co room:', error);
-      // Don't throw - this is cleanup
-    }
-  }
-
-  /**
-   * Get default telemedicine settings
-   */
   private getDefaultSettings(): TelemedicineSettings {
     return {
       id: '',
@@ -405,7 +265,5 @@ export class TelemedicineService {
     };
   }
 }
-
-// Export singleton instance
 
 export const telemedicineService = new TelemedicineService();
