@@ -17,13 +17,6 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     mode === "development" && componentTagger(),
-    // Bundle visualization for analysis (only in analyze mode)
-    mode === "analyze" && visualizer({
-      open: true,
-      gzipSize: true,
-      brotliSize: true,
-      filename: 'bundle-analysis.html',
-    }),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
@@ -85,7 +78,6 @@ export default defineConfig(({ mode }) => ({
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,woff}'],
         runtimeCaching: [
-          // Supabase API - NetworkFirst avec stale-while-revalidate
           {
             urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
             handler: 'NetworkFirst',
@@ -93,7 +85,7 @@ export default defineConfig(({ mode }) => ({
               cacheName: 'supabase-api-cache',
               expiration: {
                 maxEntries: 100,
-                maxAgeSeconds: 60 * 5 // 5 minutes pour les données API
+                maxAgeSeconds: 60 * 5
               },
               cacheableResponse: {
                 statuses: [0, 200]
@@ -101,7 +93,6 @@ export default defineConfig(({ mode }) => ({
               networkTimeoutSeconds: 10
             }
           },
-          // Static assets - CacheFirst
           {
             urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/i,
             handler: 'CacheFirst',
@@ -109,11 +100,10 @@ export default defineConfig(({ mode }) => ({
               cacheName: 'static-images-cache',
               expiration: {
                 maxEntries: 200,
-                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
+                maxAgeSeconds: 60 * 60 * 24 * 30
               }
             }
           },
-          // Fonts - CacheFirst avec longue durée
           {
             urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,
             handler: 'CacheFirst',
@@ -121,11 +111,10 @@ export default defineConfig(({ mode }) => ({
               cacheName: 'google-fonts-cache',
               expiration: {
                 maxEntries: 20,
-                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
+                maxAgeSeconds: 60 * 60 * 24 * 365
               }
             }
           },
-          // JavaScript/CSS - StaleWhileRevalidate
           {
             urlPattern: /\.(?:js|css)$/i,
             handler: 'StaleWhileRevalidate',
@@ -133,11 +122,10 @@ export default defineConfig(({ mode }) => ({
               cacheName: 'static-resources-cache',
               expiration: {
                 maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 7 // 7 days
+                maxAgeSeconds: 60 * 60 * 24 * 7
               }
             }
           },
-          // Daily.co API - NetworkFirst
           {
             urlPattern: /^https:\/\/api\.daily\.co\/.*/i,
             handler: 'NetworkFirst',
@@ -145,7 +133,7 @@ export default defineConfig(({ mode }) => ({
               cacheName: 'daily-api-cache',
               expiration: {
                 maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24 // 24 hours
+                maxAgeSeconds: 60 * 60 * 24
               },
               cacheableResponse: {
                 statuses: [0, 200]
@@ -153,7 +141,6 @@ export default defineConfig(({ mode }) => ({
             }
           }
         ],
-        // Skip waiting pour les mises à jour immédiates
         skipWaiting: true,
         clientsClaim: true
       }
@@ -169,75 +156,18 @@ export default defineConfig(({ mode }) => ({
     outDir: "dist",
     sourcemap: mode === "development",
     minify: "esbuild",
-    // Enterprise-grade build optimization
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
-        // Optimized chunk splitting following Vercel/Stripe patterns
-        manualChunks: (id) => {
-          // Core React
-          if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
-            return 'react-core';
-          }
-          
-          // UI components (Radix UI)
-          if (id.includes('@radix-ui')) {
-            return 'ui-components';
-          }
-          
-          // Charts and visualization
-          if (id.includes('recharts') || id.includes('d3')) {
-            return 'charts';
-          }
-          
-          // Supabase and database
-          if (id.includes('@supabase') || id.includes('dexie')) {
-            return 'database';
-          }
-          
-          // Form handling
-          if (id.includes('react-hook-form') || id.includes('zod') || id.includes('@hookform')) {
-            return 'forms';
-          }
-          
-          // Utilities
-          if (id.includes('date-fns') || id.includes('clsx') || id.includes('tailwind-merge')) {
-            return 'utils';
-          }
-          
-          // Animation
-          if (id.includes('framer-motion')) {
-            return 'animation';
-          }
-          
-          // PDF and export
-          if (id.includes('jspdf') || id.includes('exceljs')) {
-            return 'export';
-          }
-          
-          // Telemedicine
-          if (id.includes('daily-co')) {
-            return 'telemedicine';
-          }
-          
-          // Authentication and security
-          if (id.includes('otpauth') || id.includes('zxcvbn')) {
-            return 'security';
-          }
-        },
-        // Optimize chunk names
         chunkFileNames: 'assets/js/[name]-[hash].js',
         entryFileNames: 'assets/js/[name]-[hash].js',
         assetFileNames: 'assets/[ext]/[name]-[hash].[ext]',
       },
-      // Additional optimization
       treeshake: {
         moduleSideEffects: false,
       },
     },
-    // CSS optimization
     cssCodeSplit: true,
-    // Target modern browsers
     target: 'es2020',
   },
   // Optimize dependencies
