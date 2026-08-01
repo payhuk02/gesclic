@@ -138,7 +138,7 @@ const Telemedicine = () => {
       loadSessions();
     } catch (error) {
       console.error("Error joining session:", error);
-      toast.error("Erreur lors de la connexion à la session");
+      toast.error(error instanceof Error ? error.message : "Erreur lors de la connexion à la session");
 
     } finally {
       setJoiningSession(null);

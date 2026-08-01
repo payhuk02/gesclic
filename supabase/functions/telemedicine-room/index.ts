@@ -58,12 +58,22 @@ Deno.serve(async (req) => {
     if (sessionError) return json({ error: sessionError.message }, 500);
     if (!session) return json({ error: "Session introuvable" }, 404);
 
-    // ---- Access control: ONLY the assigned provider or the session's patient ----
-    const isProvider =
-      session.provider_id === userId || session.doctor_id === userId;
+    // Resolve assigned doctor auth user (doctor_id references doctors.id, not auth.users)
+    let doctorUserId: string | null = null;
+    if (session.doctor_id) {
+      const { data: doctor } = await admin
+        .from("doctors")
+        .select("user_id")
+        .eq("id", session.doctor_id)
+        .maybeSingle();
+      doctorUserId = doctor?.user_id ?? null;
+    }
+
+    const isAssignedProvider =
+      session.provider_id === userId || doctorUserId === userId;
 
     let isPatient = false;
-    if (!isProvider && session.patient_id) {
+    if (!isAssignedProvider && session.patient_id) {
       const { data: patient } = await admin
         .from("patients")
         .select("id")
@@ -72,6 +82,31 @@ Deno.serve(async (req) => {
         .maybeSingle();
       isPatient = !!patient;
     }
+
+    let isClinicProvider = false;
+    if (!isAssignedProvider && !isPatient) {
+      const { data: membership } = await admin
+        .from("clinic_members")
+        .select("role")
+        .eq("clinic_id", session.clinic_id)
+        .eq("user_id", userId)
+        .eq("is_active", true)
+        .maybeSingle();
+      isClinicProvider = !!membership && ["admin", "medecin"].includes(membership.role);
+    }
+
+    let isSuperAdmin = false;
+    if (!isAssignedProvider && !isPatient && !isClinicProvider) {
+      const { data: superRole } = await admin
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .eq("role", "super_admin")
+        .maybeSingle();
+      isSuperAdmin = !!superRole;
+    }
+
+    const isProvider = isAssignedProvider || isClinicProvider || isSuperAdmin;
 
     const baseEvent = {
       session_id: session.id,

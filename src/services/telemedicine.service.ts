@@ -2,6 +2,7 @@
 // Service layer for video consultation management
 
 import { supabase } from '@/integrations/supabase/client';
+import { FunctionsHttpError } from '@supabase/supabase-js';
 import type {
   TelemedicineSettings,
   JoinToken,
@@ -30,6 +31,24 @@ export interface TelemedicineSessionListItem {
 }
 
 export class TelemedicineService {
+  private async parseFunctionError(error: unknown, fallback: string): Promise<string> {
+    if (error instanceof FunctionsHttpError) {
+      try {
+        const body = await error.context.json();
+        if (typeof body?.message === 'string') return body.message;
+        if (typeof body?.error === 'string') return body.error;
+      } catch {
+        // ignore JSON parse errors
+      }
+    }
+
+    if (error instanceof Error && error.message) {
+      return error.message;
+    }
+
+    return fallback;
+  }
+
   private generateRoomName(): string {
     return `gesclic-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
   }
@@ -112,7 +131,7 @@ export class TelemedicineService {
     });
 
     if (error) {
-      throw error;
+      throw new Error(await this.parseFunctionError(error, 'Impossible de rejoindre la session'));
     }
 
     if (data?.error) {
@@ -140,7 +159,7 @@ export class TelemedicineService {
     });
 
     if (error) {
-      throw error;
+      throw new Error(await this.parseFunctionError(error, 'Impossible de terminer la session'));
     }
 
     if (data?.error) {
