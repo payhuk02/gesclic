@@ -69,7 +69,17 @@ Deno.serve(async (req) => {
     if (userError || !userData?.user) return json({ error: "unauthorized" }, 401);
     const userId = userData.user.id;
 
-    let body: { sessionId?: string; action?: string };
+    let body: {
+      sessionId?: string;
+      action?: string;
+      summary?: {
+        clinical_notes?: string;
+        diagnosis?: string;
+        treatment_plan?: string;
+      };
+      rating?: number;
+      feedback?: string;
+    };
     try {
       body = await req.json();
     } catch {
@@ -77,7 +87,14 @@ Deno.serve(async (req) => {
     }
 
     const sessionId = typeof body.sessionId === "string" ? body.sessionId : "";
-    const action = body.action === "end" ? "end" : "join";
+    const action =
+      body.action === "end"
+        ? "end"
+        : body.action === "cancel"
+          ? "cancel"
+          : body.action === "feedback"
+            ? "feedback"
+            : "join";
     if (!/^[0-9a-f-]{36}$/i.test(sessionId)) return json({ error: "sessionId invalide" }, 400);
 
     const admin = createClient(supabaseUrl, serviceKey);
@@ -211,9 +228,17 @@ Deno.serve(async (req) => {
         headers: dailyHeaders,
       }).catch(() => undefined);
       const endedAt = new Date().toISOString();
+      const summary = body.summary ?? {};
       await admin
         .from("telemedicine_sessions")
-        .update({ status: "completed", actual_end: endedAt, updated_at: endedAt })
+        .update({
+          status: "completed",
+          actual_end: endedAt,
+          updated_at: endedAt,
+          clinical_notes: summary.clinical_notes ?? null,
+          diagnosis: summary.diagnosis ?? null,
+          treatment_plan: summary.treatment_plan ?? null,
+        })
         .eq("id", sessionId);
       await logRoomEvent({
         ...baseEvent,
@@ -221,6 +246,73 @@ Deno.serve(async (req) => {
         reason: "ended_by_provider",
         actor_role: actorRole,
         actual_end: endedAt,
+      });
+      return json({ ok: true });
+    }
+
+    if (action === "cancel") {
+      if (!isProvider) {
+        await logRoomEvent({
+          ...baseEvent,
+          event_type: "access_denied",
+          reason: "cancel_requires_provider",
+          actor_role: actorRole,
+        });
+        return json({ error: "forbidden", message: "Seul le médecin peut annuler cette session." }, 403);
+      }
+      if (!["scheduled", "waiting", "in_progress"].includes(String(session.status))) {
+        return json({ error: "session_closed", message: "Cette session ne peut plus être annulée." }, 409);
+      }
+      await fetch(`${DAILY_API_URL}/rooms/${encodedRoomName}`, {
+        method: "DELETE",
+        headers: dailyHeaders,
+      }).catch(() => undefined);
+      const cancelledAt = new Date().toISOString();
+      await admin
+        .from("telemedicine_sessions")
+        .update({
+          status: "cancelled",
+          actual_end: cancelledAt,
+          updated_at: cancelledAt,
+        })
+        .eq("id", sessionId);
+      await logRoomEvent({
+        ...baseEvent,
+        event_type: "room_closed",
+        reason: "cancelled_by_provider",
+        actor_role: actorRole,
+        actual_end: cancelledAt,
+      });
+      return json({ ok: true });
+    }
+
+    if (action === "feedback") {
+      if (!isPatient) {
+        return json({ error: "forbidden", message: "Seul le patient peut laisser un avis." }, 403);
+      }
+      if (!["completed", "no_show"].includes(String(session.status))) {
+        return json({ error: "session_open", message: "L'avis est disponible après la consultation." }, 409);
+      }
+      const rating = typeof body.rating === "number" ? Math.round(body.rating) : 0;
+      if (rating < 1 || rating > 5) {
+        return json({ error: "invalid_rating", message: "Note entre 1 et 5 requise." }, 400);
+      }
+      const feedbackText =
+        typeof body.feedback === "string" ? body.feedback.trim().slice(0, 2000) : null;
+      await admin
+        .from("telemedicine_sessions")
+        .update({
+          patient_rating: rating,
+          patient_feedback: feedbackText || null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", sessionId);
+      await logRoomEvent({
+        ...baseEvent,
+        event_type: "patient_feedback",
+        reason: "feedback_submitted",
+        actor_role: actorRole,
+        details: { rating },
       });
       return json({ ok: true });
     }

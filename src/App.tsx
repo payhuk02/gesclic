@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ClinicProvider } from "@/contexts/ClinicContext";
 import { SuperAdminProvider } from "@/contexts/SuperAdminContext";
+import { FeatureFlagsProvider } from "@/contexts/FeatureFlagsContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { Loader2 } from "lucide-react";
@@ -39,6 +40,7 @@ const OAuthCallback = lazy(() => import("./pages/OAuthCallback"));
 
 // Phase 1 Features
 const Telemedicine = lazy(() => import("./pages/Telemedicine"));
+const TelemedicineJoin = lazy(() => import("./pages/TelemedicineJoin"));
 const Security = lazy(() => import("./pages/Security"));
 const AdvancedAnalytics = lazy(() => import("./pages/AdvancedAnalytics"));
 
@@ -86,6 +88,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
+            <FeatureFlagsProvider>
             <ClinicProvider>
               <SuperAdminProvider>
                 <Suspense fallback={<LoadingFallback />}>
@@ -115,6 +118,7 @@ const App = () => (
                   
                   {/* Phase 1 Features */}
                   <Route path="/telemedicine" element={<ProtectedPages><Telemedicine /></ProtectedPages>} />
+                  <Route path="/telemedicine/join/:sessionId" element={<ProtectedPages><TelemedicineJoin /></ProtectedPages>} />
                   <Route path="/security" element={<ProtectedPages><Security /></ProtectedPages>} />
                   <Route path="/advanced-analytics" element={<ProtectedPages><AdvancedAnalytics /></ProtectedPages>} />
                   
@@ -146,6 +150,7 @@ const App = () => (
               </Suspense>
               </SuperAdminProvider>
             </ClinicProvider>
+            </FeatureFlagsProvider>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>

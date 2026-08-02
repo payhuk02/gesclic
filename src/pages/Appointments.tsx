@@ -8,13 +8,18 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Search, Calendar as CalIcon, Clock, Users, AlertTriangle,
-  ChevronLeft, ChevronRight, List, LayoutGrid, Plus, Pencil, Loader2,
+  ChevronLeft, ChevronRight, List, LayoutGrid, Plus, Pencil, Loader2, Video,
 } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import AddAppointmentDialog from "@/components/dialogs/AddAppointmentDialog";
 import DeleteConfirmDialog from "@/components/dialogs/DeleteConfirmDialog";
 import type { AppointmentForm } from "@/components/dialogs/AddAppointmentDialog";
 import EmptyState from "@/components/EmptyState";
+import { useClinic } from "@/contexts/ClinicContext";
+import { useFeatureFlags } from "@/contexts/FeatureFlagsContext";
+import { telemedicineService } from "@/services/telemedicine.service";
+import { toast } from "sonner";
+import { Link, useNavigate } from "react-router-dom";
 
 
 
@@ -28,6 +33,11 @@ const statusConfig: Record<AppointmentStatus, { label: string; className: string
 const HOURS = Array.from({ length: 11 }, (_, i) => i + 7);
 const DAYS_OF_WEEK = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
 
+const isTelemedicineType = (type: string) => {
+  const normalized = type.toLowerCase();
+  return normalized === "telemedicine" || normalized === "téléconsultation";
+};
+
 const Appointments = () => {
   const [search, setSearch] = useState("");
   const [view, setView] = useState<"list" | "day" | "week">("list");
@@ -35,6 +45,42 @@ const Appointments = () => {
   const { appointments, loading, addAppointment, updateAppointment, deleteAppointment } = useAppointments();
   const { patients } = usePatients();
   const { doctors } = useDoctors();
+  const { activeClinicId } = useClinic();
+  const { isEnabled } = useFeatureFlags();
+  const navigate = useNavigate();
+  const telemedicineEnabled = isEnabled("telemedicine_enabled");
+  const [sessionAppointmentIds, setSessionAppointmentIds] = useState<Set<string>>(new Set());
+  const [creatingVideoFor, setCreatingVideoFor] = useState<string | null>(null);
+
+  const loadVideoSessions = useCallback(async () => {
+    if (!activeClinicId) return;
+    const ids = await telemedicineService.getSessionAppointmentIds(activeClinicId);
+    setSessionAppointmentIds(ids);
+  }, [activeClinicId]);
+
+  useEffect(() => {
+    if (telemedicineEnabled) {
+      loadVideoSessions();
+    }
+  }, [telemedicineEnabled, loadVideoSessions]);
+
+  const handleCreateVideoSession = async (appointmentId: string) => {
+    if (!activeClinicId) return;
+    setCreatingVideoFor(appointmentId);
+    try {
+      const sessionId = await telemedicineService.createSessionFromAppointment(
+        appointmentId,
+        activeClinicId,
+      );
+      toast.success("Session vidéo créée");
+      await loadVideoSessions();
+      navigate(`/telemedicine/join/${sessionId}`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Erreur création session vidéo");
+    } finally {
+      setCreatingVideoFor(null);
+    }
+  };
 
   const filtered = appointments.filter(
     (a) =>
@@ -158,6 +204,30 @@ const Appointments = () => {
                               <td className="px-4 py-3"><Badge variant="outline" className={sc.className}>{sc.label}</Badge></td>
                               <td className="px-4 py-3">
                                 <div className="flex gap-1">
+                                  {telemedicineEnabled &&
+                                    !["cancelled", "completed"].includes(a.status) &&
+                                    (isTelemedicineType(a.type) || a.type === "Consultation") && (
+                                    sessionAppointmentIds.has(a.id) ? (
+                                      <Button variant="ghost" size="sm" className="h-8 text-xs" asChild>
+                                        <Link to="/telemedicine">Session créée</Link>
+                                      </Button>
+                                    ) : (
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8 text-primary"
+                                        title="Créer session vidéo"
+                                        disabled={creatingVideoFor === a.id}
+                                        onClick={() => handleCreateVideoSession(a.id)}
+                                      >
+                                        {creatingVideoFor === a.id ? (
+                                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                        ) : (
+                                          <Video className="w-3.5 h-3.5" />
+                                        )}
+                                      </Button>
+                                    )
+                                  )}
                                   <AddAppointmentDialog
                                     editData={{ patientName: a.patient_name, doctorName: a.doctor_name, date: a.date, time: a.time, type: a.type }}
                                     onEdit={(form) => handleEdit(a.id, form)}

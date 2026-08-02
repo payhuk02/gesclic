@@ -1,1 +1,7 @@
 project_id = "agjxgomgkzwdmkjapzhs"
+
+[functions.telemedicine-autoclose]
+verify_jwt = false
+
+[functions.daily-webhook]
+verify_jwt = false

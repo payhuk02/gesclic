@@ -15,7 +15,7 @@ export interface AppointmentForm {
 }
 
 
-const types = ["Consultation", "Suivi", "Suivi cardiaque", "Échographie", "Soin dentaire", "ECG", "Vaccination", "Détartrage", "Pédiatrie", "Bilan"];
+const types = ["Consultation", "Suivi", "Téléconsultation", "Suivi cardiaque", "Échographie", "Soin dentaire", "ECG", "Vaccination", "Détartrage", "Pédiatrie", "Bilan"];
 
 const emptyForm: AppointmentForm = { patientName: "", doctorName: "", date: "", time: "", type: "Consultation" };
 

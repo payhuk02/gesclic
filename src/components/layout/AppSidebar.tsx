@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useAuth } from "@/contexts/AuthContext";
+import { useFeatureFlags } from "@/contexts/FeatureFlagsContext";
 
 
 import logo from "@/assets/Logo_Gesclic.png";
@@ -23,6 +24,7 @@ interface NavItem {
   label: string;
   path: string;
   roles?: AppRole[];
+  featureFlag?: string;
 }
 
 const navItems: NavItem[] = [
@@ -38,7 +40,7 @@ const navItems: NavItem[] = [
   { icon: BarChart3, label: "Rapports", path: "/reports", roles: ["admin", "medecin"] },
   
   // Phase 1 Features
-  { icon: Video, label: "Télémédecine", path: "/telemedicine", roles: ["admin", "medecin"] },
+  { icon: Video, label: "Télémédecine", path: "/telemedicine", roles: ["admin", "medecin"], featureFlag: "telemedicine_enabled" },
   { icon: Shield, label: "Sécurité", path: "/security" },
   { icon: AnalyticsIcon, label: "Analytics Avancés", path: "/advanced-analytics", roles: ["admin", "medecin"] },
   
@@ -58,6 +60,7 @@ const SidebarNav = ({ onNavigate }: { onNavigate?: () => void }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut, roles } = useAuth();
+  const { isEnabled } = useFeatureFlags();
 
 
 
@@ -70,6 +73,7 @@ const SidebarNav = ({ onNavigate }: { onNavigate?: () => void }) => {
   const isSuperAdmin = roles.includes("super_admin");
 
   const visibleItems = navItems.filter((item) => {
+    if (item.featureFlag && !isEnabled(item.featureFlag)) return false;
     if (!item.roles) return true;
     if (roles.length === 0) return true; // no roles = show all (demo)
     return item.roles.some((r) => roles.includes(r));

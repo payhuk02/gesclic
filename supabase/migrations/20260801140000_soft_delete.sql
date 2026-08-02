@@ -182,5 +182,4 @@ GRANT SELECT ON ALL TABLES IN SCHEMA public TO authenticated, anon;
 GRANT EXECUTE ON FUNCTION public.soft_delete TO authenticated;
 GRANT EXECUTE ON FUNCTION public.restore_record TO authenticated;
 
--- Comment on migration
-COMMENT ON MIGRATION IS 'Implement soft delete pattern for data recovery and audit trail';
+-- Soft delete pattern for data recovery and audit trail

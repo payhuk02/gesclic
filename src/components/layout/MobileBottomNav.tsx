@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useFeatureFlags } from "@/contexts/FeatureFlagsContext";
 import { useNavigate } from "react-router-dom";
 import MedicalAIAssistant from "@/components/MedicalAIAssistant";
 
@@ -15,13 +16,14 @@ interface NavItem {
   icon: any;
   label: string;
   path: string;
+  featureFlag?: string;
 }
 
 const mobileNavItems: NavItem[] = [
   { icon: LayoutDashboard, label: "Accueil", path: "/dashboard" },
   { icon: Calendar, label: "RDV", path: "/appointments" },
   { icon: Users, label: "Patients", path: "/patients" },
-  { icon: Video, label: "Télé", path: "/telemedicine" },
+  { icon: Video, label: "Télé", path: "/telemedicine", featureFlag: "telemedicine_enabled" },
 ];
 
 const allNavItems: NavItem[] = [
@@ -34,7 +36,7 @@ const allNavItems: NavItem[] = [
   { icon: FlaskConical, label: "Laboratoire", path: "/laboratory" },
   { icon: Pill, label: "Pharmacie", path: "/pharmacy" },
   { icon: BarChart3, label: "Rapports", path: "/reports" },
-  { icon: Video, label: "Télémédecine", path: "/telemedicine" },
+  { icon: Video, label: "Télémédecine", path: "/telemedicine", featureFlag: "telemedicine_enabled" },
   { icon: Shield, label: "Sécurité", path: "/security" },
   { icon: BarChart3, label: "Analytics Avancés", path: "/advanced-analytics" },
   { icon: Puzzle, label: "Intégrations", path: "/integrations" },
@@ -52,9 +54,17 @@ const MobileBottomNav = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showAI, setShowAI] = useState(false);
   const { signOut } = useAuth();
+  const { isEnabled } = useFeatureFlags();
   const navigate = useNavigate();
 
   if (!isMobile) return null;
+
+  const visibleMobileItems = mobileNavItems.filter(
+    (item) => !item.featureFlag || isEnabled(item.featureFlag),
+  );
+  const visibleAllItems = allNavItems.filter(
+    (item) => !item.featureFlag || isEnabled(item.featureFlag),
+  );
 
   const handleLogout = async () => {
     await signOut();
@@ -67,7 +77,7 @@ const MobileBottomNav = () => {
       {/* Bottom Navigation Bar */}
       <nav className="fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-md border-t border-border/50 px-2 py-2 pb-safe safe-area-inset-bottom">
         <div className="flex items-center justify-around max-w-lg mx-auto">
-          {mobileNavItems.map((item) => {
+          {visibleMobileItems.map((item) => {
             const active = location.pathname === item.path || location.pathname.startsWith(item.path + "/");
             return (
               <Link
@@ -149,7 +159,7 @@ const MobileBottomNav = () => {
           {/* Scrollable Content */}
           <div className="flex-1 overflow-y-auto py-4">
             <nav className="space-y-1 px-2">
-              {allNavItems.map((item) => {
+              {visibleAllItems.map((item) => {
                 const active = location.pathname === item.path || location.pathname.startsWith(item.path + "/");
                 return (
                   <Link

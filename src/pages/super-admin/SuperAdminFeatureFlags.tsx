@@ -1,6 +1,7 @@
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import SuperAdminLayout from "@/components/layout/SuperAdminLayout";
+import { featureFlagsService, type FeatureFlagRow } from "@/services/featureFlags.service";
 
 import {
   Flag,
@@ -50,71 +51,34 @@ import {
 import { toast } from "sonner";
 import DeleteConfirmDialog from "@/components/dialogs/DeleteConfirmDialog";
 
-interface FeatureFlag {
-  id: string;
-  key: string;
-  name: string;
-
-  description: string;
-  enabled: boolean;
+interface FeatureFlag extends FeatureFlagRow {
   type: "boolean" | "percentage" | "user_list";
-  value: boolean | number | string[];
-  category: "core" | "beta" | "experimental" | "deprecated";
-  lastModified: string;
-  modifiedBy: string;
 }
 
+const mapRow = (row: FeatureFlagRow): FeatureFlag => ({
+  ...row,
+  type: row.rollout_percentage > 0 && row.rollout_percentage < 100 ? "percentage" : "boolean",
+});
+
 const SuperAdminFeatureFlags = () => {
-  const [flags, setFlags] = useState<FeatureFlag[]>([
-    {
-      id: "1",
-      key: "telemedicine_enabled",
-      name: "Téléconsultation",
-      description: "Active la fonctionnalité de téléconsultation",
-      enabled: true,
-      type: "boolean",
-      value: true,
-      category: "core",
-      lastModified: new Date().toISOString(),
-      modifiedBy: "super_admin@gesclic.com",
-    },
-    {
-      id: "2",
-      key: "ai_assistant_beta",
-      name: "Assistant IA Beta",
-      description: "Assistant IA en phase bêta",
-      enabled: true,
-      type: "percentage",
-      value: 50,
-      category: "beta",
-      lastModified: new Date(Date.now() - 86400000).toISOString(),
-      modifiedBy: "super_admin@gesclic.com",
-    },
-    {
-      id: "3",
-      key: "new_dashboard_v2",
-      name: "Dashboard V2",
-      description: "Nouvelle version du dashboard",
-      enabled: false,
-      type: "user_list",
-      value: ["admin@santeplus.com", "admin@central.com"],
-      category: "experimental",
-      lastModified: new Date(Date.now() - 172800000).toISOString(),
-      modifiedBy: "super_admin@gesclic.com",
-    },
-    {
-      id: "4",
-      key: "legacy_api",
-      name: "API Legacy",
-      description: "Support de l'ancienne API",
-      enabled: true,
-      type: "boolean",
-      value: true,
-      category: "deprecated",
-      lastModified: new Date(Date.now() - 259200000).toISOString(),
-      modifiedBy: "super_admin@gesclic.com",
-    },
-  ]);
+  const [flags, setFlags] = useState<FeatureFlag[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadFlags = useCallback(async () => {
+    setLoading(true);
+    try {
+      const rows = await featureFlagsService.getAll();
+      setFlags(rows.map(mapRow));
+    } catch {
+      toast.error("Erreur chargement des feature flags");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadFlags();
+  }, [loadFlags]);
 
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -130,14 +94,12 @@ const SuperAdminFeatureFlags = () => {
     category: "experimental" as const,
   });
 
-  const categoryConfig = {
-
+  const categoryConfig: Record<string, { label: string; icon: typeof Rocket; color: string }> = {
     core: { label: "Core", icon: Rocket, color: "bg-blue-500/10 text-blue-600 border-blue-500/20" },
+    general: { label: "Général", icon: Rocket, color: "bg-blue-500/10 text-blue-600 border-blue-500/20" },
     beta: { label: "Beta", icon: Zap, color: "bg-purple-500/10 text-purple-600 border-purple-500/20" },
     experimental: { label: "Expérimental", icon: Globe, color: "bg-orange-500/10 text-orange-600 border-orange-500/20" },
     deprecated: { label: "Déprécié", icon: Shield, color: "bg-slate-500/10 text-slate-600 border-slate-500/20" },
-
-
   };
 
   const filteredFlags = flags.filter((flag) => {
@@ -152,38 +114,49 @@ const SuperAdminFeatureFlags = () => {
   });
 
 
-  const handleToggleFlag = (flagId: string) => {
-    setFlags(
-      flags.map((flag) =>
-        flag.id === flagId ? { ...flag, enabled: !flag.enabled, lastModified: new Date().toISOString() } : flag
-      )
-    );
-    toast.success("Feature flag mis à jour");
+  const handleToggleFlag = async (flagId: string) => {
+    const flag = flags.find((f) => f.id === flagId);
+    if (!flag) return;
+    try {
+      await featureFlagsService.setEnabled(flagId, !flag.enabled);
+      setFlags((prev) =>
+        prev.map((f) => (f.id === flagId ? { ...f, enabled: !f.enabled, updated_at: new Date().toISOString() } : f)),
+      );
+      toast.success(`« ${flag.name} » ${flag.enabled ? "désactivé" : "activé"}`);
+    } catch {
+      toast.error("Erreur lors de la mise à jour");
+    }
   };
 
-  const handleCreateFlag = () => {
-    const flag: FeatureFlag = {
-      id: Date.now().toString(),
-      key: newFlag.key,
-      name: newFlag.name,
-      description: newFlag.description,
-      enabled: false,
-      type: newFlag.type,
-      value: newFlag.type === "boolean" ? false : newFlag.type === "percentage" ? 0 : [],
-      category: newFlag.category,
-      lastModified: new Date().toISOString(),
-      modifiedBy: "super_admin@gesclic.com",
-    };
-    setFlags([...flags, flag]);
-    setDialogOpen(false);
-    setNewFlag({ key: "", name: "", description: "", type: "boolean", category: "experimental" });
-    toast.success("Feature flag créé");
+  const handleCreateFlag = async () => {
+    if (!newFlag.key || !newFlag.name) {
+      toast.error("Clé et nom requis");
+      return;
+    }
+    try {
+      await featureFlagsService.create({
+        key: newFlag.key,
+        name: newFlag.name,
+        description: newFlag.description,
+        category: newFlag.category,
+      });
+      setDialogOpen(false);
+      setNewFlag({ key: "", name: "", description: "", type: "boolean", category: "experimental" });
+      toast.success("Feature flag créé");
+      loadFlags();
+    } catch {
+      toast.error("Erreur lors de la création");
+    }
   };
 
-  const handleDeleteFlag = (flagId: string) => {
-    setFlags(flags.filter((flag) => flag.id !== flagId));
-    toast.success("Feature flag supprimé");
-
+  const handleDeleteFlag = async (flagId: string) => {
+    try {
+      await featureFlagsService.delete(flagId);
+      setFlags((prev) => prev.filter((f) => f.id !== flagId));
+      toast.success("Feature flag supprimé");
+    } catch {
+      toast.error("Erreur lors de la suppression");
+    }
   };
 
   return (
@@ -349,7 +322,9 @@ const SuperAdminFeatureFlags = () => {
           </CardHeader>
           <CardContent>
 
-            {filteredFlags.length === 0 ? (
+            {loading ? (
+              <div className="text-center py-12 text-muted-foreground">Chargement...</div>
+            ) : filteredFlags.length === 0 ? (
 
               <div className="text-center py-12 text-muted-foreground">
                 <Flag className="w-12 h-12 mx-auto mb-4 opacity-50" />
@@ -359,7 +334,7 @@ const SuperAdminFeatureFlags = () => {
               <div className="space-y-4">
                 {filteredFlags.map((flag) => {
 
-                  const categoryInfo = categoryConfig[flag.category];
+                  const categoryInfo = categoryConfig[flag.category] ?? categoryConfig.experimental;
 
                   const CategoryIcon = categoryInfo.icon;
 
@@ -386,10 +361,10 @@ const SuperAdminFeatureFlags = () => {
                           <p className="text-sm text-muted-foreground mb-1">{flag.key}</p>
                           <p className="text-sm text-muted-foreground">{flag.description}</p>
                           <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-
-                            <span>Modifié: {new Date(flag.lastModified).toLocaleString()}</span>
-                            <span>Par: {flag.modifiedBy}</span>
-
+                            <span>Modifié: {new Date(flag.updated_at).toLocaleString()}</span>
+                            {flag.rollout_percentage > 0 && flag.rollout_percentage < 100 && (
+                              <span>Rollout: {flag.rollout_percentage}%</span>
+                            )}
                           </div>
                         </div>
                       </div>

@@ -6,6 +6,7 @@ import { FunctionsHttpError } from '@supabase/supabase-js';
 import type {
   TelemedicineSettings,
   JoinToken,
+  SessionSummary,
 } from '@/types/phase1';
 
 export interface CreateSessionInput {
@@ -28,6 +29,12 @@ export interface TelemedicineSessionListItem {
   status: string;
   reason?: string | null;
   recording_url?: string | null;
+  clinical_notes?: string | null;
+  diagnosis?: string | null;
+  treatment_plan?: string | null;
+  actual_start?: string | null;
+  patient_rating?: number | null;
+  patient_feedback?: string | null;
 }
 
 export class TelemedicineService {
@@ -99,7 +106,8 @@ export class TelemedicineService {
       .single();
 
     if (appointmentError || !appointment) {
-      throw appointmentError ?? new Error('Impossible de créer le rendez-vous');
+      const message = appointmentError?.message ?? 'Impossible de créer le rendez-vous';
+      throw new Error(message);
     }
 
     const { error: sessionError } = await supabase
@@ -119,8 +127,141 @@ export class TelemedicineService {
       });
 
     if (sessionError) {
-      throw sessionError;
+      const message = sessionError.message?.includes('duplicate')
+        ? 'Une session existe déjà pour ce créneau.'
+        : sessionError.message;
+      throw new Error(message);
     }
+  }
+
+  /**
+   * Create a telemedicine session from an existing appointment
+   */
+  async createSessionFromAppointment(
+    appointmentId: string,
+    clinicId: string,
+    options?: { duration?: number; reason?: string },
+  ): Promise<string> {
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData.user) {
+      throw new Error('Utilisateur non authentifié');
+    }
+
+    const { data: appointment, error: apptError } = await supabase
+      .from('appointments')
+      .select('id, patient_id, patient_name, doctor_name, date, time, type, clinic_id')
+      .eq('id', appointmentId)
+      .eq('clinic_id', clinicId)
+      .single();
+
+    if (apptError || !appointment) {
+      throw new Error('Rendez-vous introuvable');
+    }
+
+    const { data: existing } = await supabase
+      .from('telemedicine_sessions')
+      .select('id')
+      .eq('appointment_id', appointmentId)
+      .maybeSingle();
+
+    if (existing) {
+      throw new Error('Une session vidéo existe déjà pour ce rendez-vous');
+    }
+
+    let patientId = appointment.patient_id;
+    if (!patientId) {
+      const { data: patient } = await supabase
+        .from('patients')
+        .select('id')
+        .eq('clinic_id', clinicId)
+        .eq('name', appointment.patient_name)
+        .maybeSingle();
+      patientId = patient?.id ?? null;
+    }
+
+    if (!patientId) {
+      throw new Error('Patient introuvable pour ce rendez-vous');
+    }
+
+    const { data: doctor } = await supabase
+      .from('doctors')
+      .select('id, user_id')
+      .eq('clinic_id', clinicId)
+      .eq('name', appointment.doctor_name)
+      .maybeSingle();
+
+    if (!doctor) {
+      throw new Error('Médecin introuvable pour ce rendez-vous');
+    }
+
+    const duration = options?.duration ?? 30;
+    const scheduledStart = new Date(`${appointment.date}T${appointment.time}`);
+    const scheduledEnd = new Date(scheduledStart.getTime() + duration * 60 * 1000);
+
+    const { data: session, error: sessionError } = await supabase
+      .from('telemedicine_sessions')
+      .insert({
+        appointment_id: appointment.id,
+        patient_id: patientId,
+        provider_id: doctor.user_id ?? userData.user.id,
+        doctor_id: doctor.id,
+        clinic_id: clinicId,
+        daily_room_name: this.generateRoomName(),
+        scheduled_start: scheduledStart.toISOString(),
+        scheduled_end: scheduledEnd.toISOString(),
+        reason: options?.reason ?? null,
+        status: 'scheduled',
+        consent_recording: false,
+      })
+      .select('id')
+      .single();
+
+    if (sessionError || !session) {
+      throw new Error(sessionError?.message ?? 'Impossible de créer la session vidéo');
+    }
+
+    const teleType = appointment.type?.toLowerCase();
+    if (teleType !== 'telemedicine' && teleType !== 'téléconsultation') {
+      await supabase
+        .from('appointments')
+        .update({ type: 'telemedicine' })
+        .eq('id', appointmentId);
+    }
+
+    return session.id;
+  }
+
+  /**
+   * Submit patient feedback after a completed session
+   */
+  async submitPatientFeedback(
+    sessionId: string,
+    rating: number,
+    feedback?: string,
+  ): Promise<void> {
+    const { data, error } = await supabase.functions.invoke('telemedicine-room', {
+      body: { sessionId, action: 'feedback', rating, feedback },
+    });
+
+    if (error) {
+      throw new Error(await this.parseFunctionError(error, 'Impossible d\'envoyer votre avis'));
+    }
+
+    if (data?.error) {
+      throw new Error(data.message ?? data.error);
+    }
+  }
+
+  /**
+   * Check whether an appointment already has a telemedicine session
+   */
+  async hasSessionForAppointment(appointmentId: string): Promise<boolean> {
+    const { data } = await supabase
+      .from('telemedicine_sessions')
+      .select('id')
+      .eq('appointment_id', appointmentId)
+      .maybeSingle();
+    return !!data;
   }
 
   /**
@@ -152,11 +293,28 @@ export class TelemedicineService {
   }
 
   /**
+   * Cancel a telemedicine session via the secure edge function
+   */
+  async cancelSession(sessionId: string): Promise<void> {
+    const { data, error } = await supabase.functions.invoke('telemedicine-room', {
+      body: { sessionId, action: 'cancel' },
+    });
+
+    if (error) {
+      throw new Error(await this.parseFunctionError(error, 'Impossible d\'annuler la session'));
+    }
+
+    if (data?.error) {
+      throw new Error(data.message ?? data.error);
+    }
+  }
+
+  /**
    * End a telemedicine session via the secure edge function
    */
-  async endSession(sessionId: string): Promise<void> {
+  async endSession(sessionId: string, summary?: Partial<SessionSummary>): Promise<void> {
     const { data, error } = await supabase.functions.invoke('telemedicine-room', {
-      body: { sessionId, action: 'end' },
+      body: { sessionId, action: 'end', summary },
     });
 
     if (error) {
@@ -180,13 +338,13 @@ export class TelemedicineService {
         .single();
 
       if (error) {
-        return this.getDefaultSettings();
+        return { ...this.getDefaultSettings(), clinic_id: clinicId };
       }
 
-      return data;
+      return { ...data, clinic_id: clinicId };
     } catch (error) {
       console.error('Error getting clinic settings:', error);
-      return this.getDefaultSettings();
+      return { ...this.getDefaultSettings(), clinic_id: clinicId };
     }
   }
 
@@ -207,6 +365,68 @@ export class TelemedicineService {
     }
   }
 
+  async getSessionAppointmentIds(clinicId: string): Promise<Set<string>> {
+    const { data } = await supabase
+      .from('telemedicine_sessions')
+      .select('appointment_id')
+      .eq('clinic_id', clinicId);
+
+    return new Set(
+      (data ?? [])
+        .map((row) => row.appointment_id)
+        .filter((id): id is string => typeof id === 'string'),
+    );
+  }
+
+  private mapSessionRow(
+    session: {
+      id: string;
+      status: string;
+      reason?: string | null;
+      recording_url?: string | null;
+      scheduled_start?: string | null;
+      clinical_notes?: string | null;
+      diagnosis?: string | null;
+      treatment_plan?: string | null;
+      actual_start?: string | null;
+      actual_end?: string | null;
+      patient_rating?: number | null;
+      patient_feedback?: string | null;
+      appointments?: { patient_name?: string; doctor_name?: string; date?: string; time?: string } | { patient_name?: string; doctor_name?: string; date?: string; time?: string }[] | null;
+    },
+  ): TelemedicineSessionListItem {
+    const appointment = Array.isArray(session.appointments)
+      ? session.appointments[0]
+      : session.appointments;
+    const scheduledStart = session.scheduled_start
+      ? new Date(session.scheduled_start)
+      : null;
+
+    return {
+      id: session.id,
+      status: session.status,
+      reason: session.reason,
+      recording_url: session.recording_url,
+      clinical_notes: session.clinical_notes,
+      diagnosis: session.diagnosis,
+      treatment_plan: session.treatment_plan,
+      actual_start: session.actual_start,
+      actual_end: session.actual_end,
+      patient_rating: session.patient_rating,
+      patient_feedback: session.patient_feedback,
+      patient_name: appointment?.patient_name ?? '',
+      doctor_name: appointment?.doctor_name ?? '',
+      scheduled_date:
+        appointment?.date ??
+        (scheduledStart ? scheduledStart.toISOString().split('T')[0] : ''),
+      scheduled_time:
+        appointment?.time ??
+        (scheduledStart
+          ? scheduledStart.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+          : ''),
+    };
+  }
+
   /**
    * List telemedicine sessions for a clinic
    */
@@ -219,6 +439,13 @@ export class TelemedicineService {
         reason,
         recording_url,
         scheduled_start,
+        clinical_notes,
+        diagnosis,
+        treatment_plan,
+        actual_start,
+        actual_end,
+        patient_rating,
+        patient_feedback,
         appointments (
           patient_name,
           doctor_name,
@@ -233,37 +460,60 @@ export class TelemedicineService {
       throw error;
     }
 
-    return (data ?? []).map((session) => {
-      const appointment = Array.isArray(session.appointments)
-        ? session.appointments[0]
-        : session.appointments;
-
-      const scheduledStart = session.scheduled_start
-        ? new Date(session.scheduled_start)
-        : null;
-
-      return {
-        id: session.id,
-        status: session.status,
-        reason: session.reason,
-        recording_url: session.recording_url,
-        patient_name: appointment?.patient_name ?? '',
-        doctor_name: appointment?.doctor_name ?? '',
-        scheduled_date:
-          appointment?.date ??
-          (scheduledStart ? scheduledStart.toISOString().split('T')[0] : ''),
-        scheduled_time:
-          appointment?.time ??
-          (scheduledStart
-            ? scheduledStart.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
-            : ''),
-      };
-    });
+    return (data ?? []).map((session) => this.mapSessionRow(session));
   }
 
   /** @deprecated Use getClinicSessions */
   async getUpcomingSessions(clinicId: string): Promise<TelemedicineSessionListItem[]> {
     return this.getClinicSessions(clinicId);
+  }
+
+  /**
+   * Get a single session for join page
+   */
+  async getSession(sessionId: string): Promise<TelemedicineSessionListItem | null> {
+    const { data, error } = await supabase
+      .from('telemedicine_sessions')
+      .select(`
+        id,
+        status,
+        reason,
+        recording_url,
+        scheduled_start,
+        clinical_notes,
+        diagnosis,
+        treatment_plan,
+        actual_start,
+        actual_end,
+        patient_rating,
+        patient_feedback,
+        appointments (
+          patient_name,
+          doctor_name,
+          date,
+          time
+        )
+      `)
+      .eq('id', sessionId)
+      .maybeSingle();
+
+    if (error || !data) {
+      return null;
+    }
+
+    return this.mapSessionRow(data);
+  }
+
+  /**
+   * Open Daily.co room in a new tab
+   */
+  openVideoRoom(joinData: JoinToken): void {
+    const roomUrl = `${joinData.room_url}${joinData.room_url.includes('?') ? '&' : '?'}t=${joinData.token}`;
+    window.open(roomUrl, '_blank', 'noopener,noreferrer');
+  }
+
+  getPatientJoinUrl(sessionId: string): string {
+    return `${window.location.origin}/telemedicine/join/${sessionId}`;
   }
 
   private getDefaultSettings(): TelemedicineSettings {
