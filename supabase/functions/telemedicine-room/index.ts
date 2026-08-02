@@ -9,6 +9,46 @@ const json = (body: unknown, status = 200) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
+function encodeRoomName(name: string): string {
+  return encodeURIComponent(name);
+}
+
+function parseDailyErrorBody(raw: string): string {
+  try {
+    const parsed = JSON.parse(raw) as { info?: string; error?: string };
+    return parsed.info ?? parsed.error ?? raw;
+  } catch {
+    return raw;
+  }
+}
+
+function buildRoomProperties(
+  settings: Record<string, unknown> | null,
+  nbf: number,
+  exp: number,
+  nowSec: number,
+) {
+  const safeExp = Math.max(exp, nowSec + 1800);
+  const properties: Record<string, unknown> = {
+    max_participants: 2,
+    exp: safeExp,
+    eject_at_room_exp: true,
+    enable_chat: settings?.enable_chat ?? true,
+    enable_screenshare: settings?.enable_screen_sharing ?? true,
+    enable_knocking: settings?.enable_waiting_room ?? true,
+  };
+
+  if (nbf > nowSec) {
+    properties.nbf = nbf;
+  }
+
+  if (settings?.enable_recording) {
+    properties.enable_recording = "cloud";
+  }
+
+  return { properties, safeExp };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -141,7 +181,7 @@ Deno.serve(async (req) => {
       return json({ error: "session_closed", status: session.status }, 409);
     }
 
-    const dailyKey = Deno.env.get("DAILY_API_KEY");
+    const dailyKey = Deno.env.get("DAILY_API_KEY")?.trim();
     if (!dailyKey) {
       return json(
         { error: "DAILY_API_KEY_MISSING", message: "La clé API Daily.co n'est pas configurée." },
@@ -152,6 +192,7 @@ Deno.serve(async (req) => {
       Authorization: `Bearer ${dailyKey}`,
       "Content-Type": "application/json",
     };
+    const encodedRoomName = encodeRoomName(session.daily_room_name);
 
     if (action === "end") {
       if (!isProvider) {
@@ -163,7 +204,7 @@ Deno.serve(async (req) => {
         });
         return json({ error: "forbidden" }, 403);
       }
-      await fetch(`${DAILY_API_URL}/rooms/${session.daily_room_name}`, {
+      await fetch(`${DAILY_API_URL}/rooms/${encodedRoomName}`, {
         method: "DELETE",
         headers: dailyHeaders,
       }).catch(() => undefined);
@@ -234,23 +275,27 @@ Deno.serve(async (req) => {
     }
 
 
+    const { properties: roomProperties, safeExp } = buildRoomProperties(
+      settings,
+      nbf,
+      exp,
+      nowSec,
+    );
+
     // Ensure the Daily room exists
     let roomUrl = session.daily_room_url as string | null;
-    const roomRes = await fetch(`${DAILY_API_URL}/rooms/${session.daily_room_name}`, {
+    const roomRes = await fetch(`${DAILY_API_URL}/rooms/${encodedRoomName}`, {
       headers: dailyHeaders,
     });
 
     if (roomRes.ok) {
       const room = await roomRes.json();
       roomUrl = room.url;
-      // Re-assert the lifetime on an existing room so it always closes with the slot
-      if (room?.config?.exp !== exp || room?.config?.eject_at_room_exp !== true) {
-        const patchRes = await fetch(`${DAILY_API_URL}/rooms/${session.daily_room_name}`, {
+      if (room?.config?.exp !== safeExp || room?.config?.eject_at_room_exp !== true) {
+        const patchRes = await fetch(`${DAILY_API_URL}/rooms/${encodedRoomName}`, {
           method: "POST",
           headers: dailyHeaders,
-          body: JSON.stringify({
-            properties: { nbf, exp, eject_at_room_exp: true, max_participants: 2 },
-          }),
+          body: JSON.stringify({ properties: roomProperties }),
         });
         if (!patchRes.ok) {
           console.error("Daily room exp update failed", await patchRes.text());
@@ -266,7 +311,6 @@ Deno.serve(async (req) => {
         }
       }
     } else {
-
       await roomRes.text();
       const createRes = await fetch(`${DAILY_API_URL}/rooms`, {
         method: "POST",
@@ -274,29 +318,25 @@ Deno.serve(async (req) => {
         body: JSON.stringify({
           name: session.daily_room_name,
           privacy: "private",
-          properties: {
-            enable_chat: settings?.enable_chat ?? true,
-            enable_screenshare: settings?.enable_screen_sharing ?? true,
-            enable_recording: settings?.enable_recording ? "cloud" : false,
-            enable_knocking: settings?.enable_waiting_room ?? true,
-            max_participants: 2,
-            nbf,
-            exp,
-            eject_at_room_exp: true,
-          },
+          properties: roomProperties,
         }),
       });
       if (!createRes.ok) {
         const detail = await createRes.text();
+        const dailyMessage = parseDailyErrorBody(detail);
         console.error("Daily room creation failed", createRes.status, detail);
         await logRoomEvent({
           ...baseEvent,
           event_type: "room_creation_failed",
           reason: "daily_api_error",
           actor_role: actorRole,
-          details: { status: createRes.status },
+          details: { status: createRes.status, dailyMessage },
         });
-        return json({ error: "Création de la salle vidéo impossible", detail }, 502);
+        return json({
+          error: "room_creation_failed",
+          message: `Création de la salle vidéo impossible : ${dailyMessage}`,
+          detail,
+        }, 502);
       }
       const room = await createRes.json();
       roomUrl = room.url;
@@ -310,27 +350,35 @@ Deno.serve(async (req) => {
       });
     }
 
+    const tokenProperties: Record<string, unknown> = {
+      room_name: session.daily_room_name,
+      exp: safeExp,
+      eject_at_token_exp: true,
+      is_owner: isProvider,
+      user_id: userId,
+    };
+    if (nbf > nowSec) {
+      tokenProperties.nbf = nbf;
+    }
+    if (isProvider && settings?.enable_recording) {
+      tokenProperties.enable_recording = "cloud";
+    }
 
     const tokenRes = await fetch(`${DAILY_API_URL}/meeting-tokens`, {
       method: "POST",
       headers: dailyHeaders,
-      body: JSON.stringify({
-        properties: {
-          room_name: session.daily_room_name,
-          nbf,
-          exp,
-          eject_at_token_exp: true,
-          is_owner: isProvider,
-          user_id: userId,
-          enable_recording: isProvider && settings?.enable_recording ? "cloud" : false,
-        },
-      }),
+      body: JSON.stringify({ properties: tokenProperties }),
     });
 
     if (!tokenRes.ok) {
       const detail = await tokenRes.text();
+      const dailyMessage = parseDailyErrorBody(detail);
       console.error("Daily token creation failed", tokenRes.status, detail);
-      return json({ error: "Jeton d'accès vidéo indisponible", detail }, 502);
+      return json({
+        error: "token_creation_failed",
+        message: `Jeton d'accès vidéo indisponible : ${dailyMessage}`,
+        detail,
+      }, 502);
     }
     const tokenData = await tokenRes.json();
 

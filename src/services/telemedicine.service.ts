@@ -36,7 +36,8 @@ export class TelemedicineService {
       try {
         const body = await error.context.json();
         if (typeof body?.message === 'string') return body.message;
-        if (typeof body?.error === 'string') return body.error;
+        if (typeof body?.info === 'string') return body.info;
+        if (typeof body?.error === 'string' && body.error !== 'room_creation_failed') return body.error;
       } catch {
         // ignore JSON parse errors
       }
