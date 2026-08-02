@@ -13,6 +13,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { Loader2 } from "lucide-react";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ClinicBrandingProvider } from "@/components/ClinicBrandingProvider";
+import { createQueryClient } from "@/lib/cache/react-query-config";
 
 // Lazy load pages for code splitting
 const Index = lazy(() => import("./pages/Index"));
