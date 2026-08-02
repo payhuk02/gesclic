@@ -76,7 +76,7 @@ const Subscriptions = () => (
               <h3 className="text-lg font-bold text-foreground">{plan.name}</h3>
               <p className="text-xs text-muted-foreground mb-3">{plan.description}</p>
               <div className="flex items-baseline justify-center gap-1">
-                <span className="text-3xl font-bold text-foreground">{plan.price}</span>
+                <span className="text-2xl sm:text-3xl font-bold text-foreground">{plan.price}</span>
                 {plan.period && <span className="text-sm text-muted-foreground">FCFA {plan.period}</span>}
               </div>
             </div>

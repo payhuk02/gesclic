@@ -93,7 +93,7 @@ const Staff = () => {
             <div key={d.id} className="bg-card rounded-xl p-5 shadow-card border border-border">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-14 h-14 rounded-full gradient-hero flex items-center justify-center text-lg font-bold text-primary-foreground">{getInitials(d.name)}</div>
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full gradient-hero flex items-center justify-center text-base sm:text-lg font-bold text-primary-foreground">{getInitials(d.name)}</div>
                   <div>
                     <p className="font-semibold text-foreground">{d.name}</p>
                     <div className="flex items-center gap-1.5 text-sm">

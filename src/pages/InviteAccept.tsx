@@ -115,14 +115,14 @@ const InviteAccept = () => {
             </div>
           ) : error ? (
             <div className="text-center py-4">
-              <AlertCircle className="w-10 h-10 text-destructive mx-auto mb-3" />
+              <AlertCircle className="w-8 h-8 sm:w-10 sm:h-10 text-destructive mx-auto mb-3" />
               <h1 className="text-lg font-semibold mb-2">Invitation introuvable</h1>
               <p className="text-sm text-muted-foreground mb-6">{error}</p>
               <Button asChild variant="outline"><Link to="/">Retour à l'accueil</Link></Button>
             </div>
           ) : accepted ? (
             <div className="text-center py-4">
-              <CheckCircle2 className="w-10 h-10 text-success mx-auto mb-3" />
+              <CheckCircle2 className="w-8 h-8 sm:w-10 sm:h-10 text-success mx-auto mb-3" />
               <h1 className="text-lg font-semibold mb-2">Invitation acceptée</h1>
               <p className="text-sm text-muted-foreground mb-6">
                 Vous rejoignez <strong>{invitation?.clinic_name}</strong>. Redirection...
@@ -131,7 +131,7 @@ const InviteAccept = () => {
             </div>
           ) : invitation?.status !== "pending" ? (
             <div className="text-center py-4">
-              <AlertCircle className="w-10 h-10 text-warning mx-auto mb-3" />
+              <AlertCircle className="w-8 h-8 sm:w-10 sm:h-10 text-warning mx-auto mb-3" />
               <h1 className="text-lg font-semibold mb-2">
                 {invitation?.status === "expired" && "Invitation expirée"}
                 {invitation?.status === "accepted" && "Déjà acceptée"}
