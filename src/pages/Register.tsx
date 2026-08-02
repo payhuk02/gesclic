@@ -49,15 +49,15 @@ const Register = () => {
         <img src={registerImage} alt="Doctor register" className="w-full h-full object-cover rounded-2xl" />
       </div>
 
-      <div className="flex-1 flex items-center justify-center p-6">
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-12">
         <div className="w-full max-w-md">
-          <Link to="/" className="flex items-center gap-2 font-bold text-2xl mb-8">
-            <img src={logo} alt="Gesclic" className="w-8 h-8" />
+          <Link to="/" className="flex items-center gap-2 font-bold text-xl sm:text-2xl mb-6 sm:mb-8">
+            <img src={logo} alt="Gesclic" className="w-7 h-7 sm:w-8 sm:h-8" />
             <span>Gesclic</span>
           </Link>
 
-          <h2 className="text-2xl font-bold text-foreground mb-2">Créer un compte</h2>
-          <p className="text-muted-foreground mb-8">Inscrivez votre établissement en quelques minutes.</p>
+          <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-2">Créer un compte</h2>
+          <p className="text-muted-foreground mb-6 sm:mb-8">Inscrivez votre établissement en quelques minutes.</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">

@@ -217,37 +217,39 @@ const Appointments = () => {
             )}
 
             {view === "week" && (
-              <div className="bg-card rounded-xl border border-border overflow-x-auto">
-                <div className="min-w-[800px]">
-                  <div className="grid grid-cols-7 border-b border-border">
-                    <div className="w-20" />
-                    {weekDates.map((date, i) => (
-                      <div key={date} className={`px-2 py-3 text-center text-xs font-medium border-l border-border ${date === selectedDate ? "bg-primary/10 text-primary" : "text-muted-foreground"}`}>
-                        <div>{DAYS_OF_WEEK[i]}</div>
-                        <div className="text-lg font-bold">{new Date(date).getDate()}</div>
+              <div className="bg-card rounded-xl border border-border overflow-hidden">
+                <div className="overflow-x-auto">
+                  <div className="min-w-[600px] sm:min-w-[800px]">
+                    <div className="grid grid-cols-7 border-b border-border">
+                      <div className="w-16 sm:w-20" />
+                      {weekDates.map((date, i) => (
+                        <div key={date} className={`px-1 sm:px-2 py-2 sm:py-3 text-center text-[10px] sm:text-xs font-medium border-l border-border ${date === selectedDate ? "bg-primary/10 text-primary" : "text-muted-foreground"}`}>
+                          <div className="text-[10px] sm:text-xs">{DAYS_OF_WEEK[i]}</div>
+                          <div className="text-sm sm:text-lg font-bold">{new Date(date).getDate()}</div>
+                        </div>
+                      ))}
+                    </div>
+                    {HOURS.map((hour) => (
+                      <div key={hour} className="grid grid-cols-7 border-b border-border last:border-0 min-h-[40px] sm:min-h-[50px]">
+                        <div className="w-16 sm:w-20 px-1 sm:px-2 py-1 text-[10px] sm:text-xs text-muted-foreground bg-secondary/20 flex items-start pt-1 sm:pt-2">{hour}:00</div>
+                        {weekDates.map((date) => {
+                          const appts = appointments.filter((a) => a.date === date && parseInt(a.time.split(":")[0]) === hour);
+                          return (
+                            <div key={date} className="border-l border-border p-0.5">
+                              {appts.map((a) => {
+                                const sc = statusConfig[a.status];
+                                return (
+                                  <div key={a.id} className={`rounded px-1 sm:px-1.5 py-0.5 sm:py-1 text-[9px] sm:text-[10px] mb-0.5 border ${sc.className}`}>
+                                    <span className="font-semibold">{a.time}</span> <span className="hidden sm:inline">{a.patient_name.split(" ")[0]}</span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          );
+                        })}
                       </div>
                     ))}
                   </div>
-                  {HOURS.map((hour) => (
-                    <div key={hour} className="grid grid-cols-7 border-b border-border last:border-0 min-h-[50px]">
-                      <div className="w-20 px-2 py-1 text-xs text-muted-foreground bg-secondary/20 flex items-start pt-2">{hour}:00</div>
-                      {weekDates.map((date) => {
-                        const appts = appointments.filter((a) => a.date === date && parseInt(a.time.split(":")[0]) === hour);
-                        return (
-                          <div key={date} className="border-l border-border p-0.5">
-                            {appts.map((a) => {
-                              const sc = statusConfig[a.status];
-                              return (
-                                <div key={a.id} className={`rounded px-1.5 py-1 text-[10px] mb-0.5 border ${sc.className}`}>
-                                  <span className="font-semibold">{a.time}</span> {a.patient_name.split(" ")[0]}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ))}
                 </div>
               </div>
             )}

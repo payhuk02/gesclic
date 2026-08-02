@@ -31,23 +31,23 @@ const Settings = () => {
   return (
     <AppLayout title="Paramètres">
       <Tabs defaultValue="clinic" className="space-y-6">
-        <TabsList className="flex flex-wrap">
-          <TabsTrigger value="clinic"><Building2 className="w-4 h-4 mr-1" />Clinique</TabsTrigger>
-          <TabsTrigger value="notifications"><Bell className="w-4 h-4 mr-1" />Notifications</TabsTrigger>
-          <TabsTrigger value="security"><Shield className="w-4 h-4 mr-1" />Sécurité</TabsTrigger>
-          <TabsTrigger value="billing"><CreditCard className="w-4 h-4 mr-1" />Abonnement</TabsTrigger>
-          <TabsTrigger value="appearance"><Palette className="w-4 h-4 mr-1" />Apparence</TabsTrigger>
+        <TabsList className="flex flex-wrap w-full">
+          <TabsTrigger value="clinic" className="flex-1 sm:flex-none"><Building2 className="w-4 h-4 mr-1" />Clinique</TabsTrigger>
+          <TabsTrigger value="notifications" className="flex-1 sm:flex-none"><Bell className="w-4 h-4 mr-1" />Notifications</TabsTrigger>
+          <TabsTrigger value="security" className="flex-1 sm:flex-none"><Shield className="w-4 h-4 mr-1" />Sécurité</TabsTrigger>
+          <TabsTrigger value="billing" className="flex-1 sm:flex-none"><CreditCard className="w-4 h-4 mr-1" />Abonnement</TabsTrigger>
+          <TabsTrigger value="appearance" className="flex-1 sm:flex-none"><Palette className="w-4 h-4 mr-1" />Apparence</TabsTrigger>
         </TabsList>
 
         {/* CLINIC */}
         <TabsContent value="clinic">
           <div className="bg-card rounded-xl p-6 border border-border space-y-6">
             <h3 className="text-lg font-semibold text-foreground">Profil de la clinique</h3>
-            <div className="flex items-center gap-4 mb-6">
-              <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center">
-                <Building2 className="w-10 h-10 text-primary" />
+            <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-primary/10 flex items-center justify-center">
+                <Building2 className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
               </div>
-              <Button variant="outline" size="sm" className="gap-2"><Upload className="w-4 h-4" />Changer le logo</Button>
+              <Button variant="outline" size="sm" className="gap-2 text-xs sm:text-sm"><Upload className="w-3 h-3 sm:w-4 sm:h-4" />Changer le logo</Button>
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
               <div><Label>Nom de la clinique</Label><Input defaultValue="Clinique Gesclic Abidjan" className="mt-1" /></div>
