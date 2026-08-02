@@ -4,6 +4,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 const DAILY_API_URL = "https://api.daily.co/v1";
 const GRACE_BEFORE_MIN = 10;
 const GRACE_AFTER_MIN = 15;
+const JOIN_CODE_RE = /^[a-z0-9][a-z0-9_-]{3,31}$/;
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -43,30 +44,54 @@ function buildRoomProperties(
   return { properties, safeExp };
 }
 
-async function loadSession(admin: ReturnType<typeof createClient>, sessionId: string, token: string) {
+const SESSION_SELECT = `
+  id,
+  clinic_id,
+  patient_id,
+  status,
+  reason,
+  daily_room_name,
+  daily_room_url,
+  actual_start,
+  scheduled_start,
+  scheduled_end,
+  patient_rating,
+  patient_join_token,
+  patient_join_code,
+  appointments ( patient_name, doctor_name, date, time )
+`;
+
+async function loadSessionByToken(
+  admin: ReturnType<typeof createClient>,
+  sessionId: string,
+  token: string,
+) {
   const { data, error } = await admin
     .from("telemedicine_sessions")
-    .select(`
-      id,
-      clinic_id,
-      patient_id,
-      status,
-      reason,
-      daily_room_name,
-      daily_room_url,
-      actual_start,
-      scheduled_start,
-      scheduled_end,
-      patient_rating,
-      patient_join_token,
-      appointments ( patient_name, doctor_name, date, time )
-    `)
+    .select(SESSION_SELECT)
     .eq("id", sessionId)
     .eq("patient_join_token", token)
     .maybeSingle();
 
   if (error) return { error: error.message, session: null };
   if (!data) return { error: "invalid_token", session: null };
+  return { error: null, session: data };
+}
+
+async function loadSessionByCode(admin: ReturnType<typeof createClient>, code: string) {
+  const normalized = code.trim().toLowerCase();
+  if (!JOIN_CODE_RE.test(normalized)) {
+    return { error: "invalid_code", session: null };
+  }
+
+  const { data, error } = await admin
+    .from("telemedicine_sessions")
+    .select(SESSION_SELECT)
+    .eq("patient_join_code", normalized)
+    .maybeSingle();
+
+  if (error) return { error: error.message, session: null };
+  if (!data) return { error: "invalid_code", session: null };
   return { error: null, session: data };
 }
 
@@ -104,6 +129,7 @@ Deno.serve(async (req) => {
     let body: {
       sessionId?: string;
       token?: string;
+      code?: string;
       action?: string;
       rating?: number;
       feedback?: string;
@@ -114,27 +140,41 @@ Deno.serve(async (req) => {
       return json({ error: "invalid_json" }, 400);
     }
 
+    const code = typeof body.code === "string" ? body.code.trim().toLowerCase() : "";
     const sessionId = typeof body.sessionId === "string" ? body.sessionId : "";
     const token = typeof body.token === "string" ? body.token : "";
     const action = body.action === "join" ? "join" : body.action === "feedback" ? "feedback" : "info";
-
-    if (!/^[0-9a-f-]{36}$/i.test(sessionId)) return json({ error: "sessionId invalide" }, 400);
-    if (!/^[0-9a-f-]{36}$/i.test(token)) return json({ error: "token invalide" }, 401);
 
     const admin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
+    let loadError: string | null = null;
+    let session: Record<string, unknown> | null = null;
+
+    if (code) {
+      const result = await loadSessionByCode(admin, code);
+      loadError = result.error;
+      session = result.session as Record<string, unknown> | null;
+    } else if (/^[0-9a-f-]{36}$/i.test(sessionId) && /^[0-9a-f-]{36}$/i.test(token)) {
+      const result = await loadSessionByToken(admin, sessionId, token);
+      loadError = result.error;
+      session = result.session as Record<string, unknown> | null;
+    } else {
+      return json({ error: "missing_auth", message: "Code ou lien invalide." }, 400);
+    }
+
+    if (loadError || !session) {
+      return json({ error: "forbidden", message: "Lien invalide ou expiré." }, 403);
+    }
+
+    const resolvedSessionId = String(session.id);
+
     const logRoomEvent = async (row: Record<string, unknown>) => {
       const { error } = await admin.from("telemedicine_room_events").insert(row);
       if (error) console.error("guest room event log failed", error.message);
     };
-
-    const { error: loadError, session } = await loadSession(admin, sessionId, token);
-    if (loadError || !session) {
-      return json({ error: "forbidden", message: "Lien invalide ou expiré." }, 403);
-    }
 
     const baseEvent = {
       session_id: session.id,
@@ -146,7 +186,7 @@ Deno.serve(async (req) => {
     };
 
     if (action === "info") {
-      return json({ session: mapSessionInfo(session as Record<string, unknown>) });
+      return json({ session: mapSessionInfo(session) });
     }
 
     if (action === "feedback") {
@@ -166,7 +206,7 @@ Deno.serve(async (req) => {
           patient_feedback: feedbackText || null,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", sessionId);
+        .eq("id", resolvedSessionId);
       await logRoomEvent({
         ...baseEvent,
         event_type: "patient_feedback",
@@ -190,10 +230,10 @@ Deno.serve(async (req) => {
     const maxMinutes = Math.min(Math.max(settings?.max_session_duration_minutes ?? 30, 15), 240);
     const nowSec = Math.floor(Date.now() / 1000);
     const startSec = session.scheduled_start
-      ? Math.floor(new Date(session.scheduled_start).getTime() / 1000)
+      ? Math.floor(new Date(String(session.scheduled_start)).getTime() / 1000)
       : nowSec;
     const scheduledEndSec = session.scheduled_end
-      ? Math.floor(new Date(session.scheduled_end).getTime() / 1000)
+      ? Math.floor(new Date(String(session.scheduled_end)).getTime() / 1000)
       : startSec + maxMinutes * 60;
     const endSec = Math.min(scheduledEndSec, startSec + maxMinutes * 60);
     const nbf = startSec - GRACE_BEFORE_MIN * 60;
@@ -221,7 +261,7 @@ Deno.serve(async (req) => {
       Authorization: `Bearer ${dailyKey}`,
       "Content-Type": "application/json",
     };
-    const encodedRoomName = encodeRoomName(session.daily_room_name);
+    const encodedRoomName = encodeRoomName(String(session.daily_room_name));
     const { properties: roomProperties, safeExp } = buildRoomProperties(settings, nbf, exp, nowSec);
 
     let roomUrl = session.daily_room_url as string | null;
@@ -258,7 +298,7 @@ Deno.serve(async (req) => {
       eject_at_token_exp: true,
       is_owner: false,
       user_id: `guest-patient-${session.id}`,
-      user_name: mapSessionInfo(session as Record<string, unknown>).patient_name || "Patient",
+      user_name: mapSessionInfo(session).patient_name || "Patient",
     };
     if (nbf > nowSec) tokenProperties.nbf = nbf;
 
@@ -285,7 +325,7 @@ Deno.serve(async (req) => {
       updates.status = "in_progress";
       updates.actual_start = session.actual_start ?? new Date().toISOString();
     }
-    await admin.from("telemedicine_sessions").update(updates).eq("id", sessionId);
+    await admin.from("telemedicine_sessions").update(updates).eq("id", resolvedSessionId);
 
     await logRoomEvent({
       ...baseEvent,

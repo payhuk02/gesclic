@@ -118,6 +118,7 @@ const App = () => (
                   
                   {/* Phase 1 Features */}
                   <Route path="/telemedicine" element={<ProtectedPages><Telemedicine /></ProtectedPages>} />
+                  <Route path="/t/:joinCode" element={<TelemedicineJoin />} />
                   <Route path="/telemedicine/join/:sessionId/:token" element={<TelemedicineJoin />} />
                   <Route path="/telemedicine/join/:sessionId" element={<TelemedicineJoin />} />
                   <Route path="/security" element={<ProtectedPages><Security /></ProtectedPages>} />

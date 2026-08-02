@@ -18,7 +18,13 @@ export interface CreateSessionInput {
   scheduled_time: string;
   duration: number;
   reason: string;
+  /** Optional custom short join code (4-32 chars, a-z 0-9 - _) */
+  patient_join_code?: string;
 }
+
+export type GuestJoinAuth =
+  | { mode: 'code'; code: string }
+  | { mode: 'legacy'; sessionId: string; token: string };
 
 export interface TelemedicineSessionListItem {
   id: string;
@@ -59,6 +65,41 @@ export class TelemedicineService {
 
   private generateRoomName(): string {
     return `gesclic-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+  }
+
+  private generateJoinCode(): string {
+    const chars = 'abcdefghjkmnpqrstuvwxyz23456789';
+    const bytes = crypto.getRandomValues(new Uint8Array(8));
+    return Array.from(bytes, (b) => chars[b % chars.length]).join('');
+  }
+
+  normalizeJoinCode(code: string): string {
+    return code.trim().toLowerCase();
+  }
+
+  validateJoinCode(code: string): void {
+    const normalized = this.normalizeJoinCode(code);
+    if (!/^[a-z0-9][a-z0-9_-]{3,31}$/.test(normalized)) {
+      throw new Error('Code invalide : 4 à 32 caractères (lettres, chiffres, - ou _)');
+    }
+  }
+
+  buildShortJoinUrl(code: string): string {
+    return `${window.location.origin}/t/${this.normalizeJoinCode(code)}`;
+  }
+
+  private guestRequestBody(auth: GuestJoinAuth, action: string, extra?: Record<string, unknown>) {
+    if (auth.mode === 'code') {
+      return { code: auth.code, action, ...extra };
+    }
+    return { sessionId: auth.sessionId, token: auth.token, action, ...extra };
+  }
+
+  private resolveJoinCode(input?: string): string | undefined {
+    if (!input?.trim()) return undefined;
+    const normalized = this.normalizeJoinCode(input);
+    this.validateJoinCode(normalized);
+    return normalized;
   }
 
   private buildScheduledTimes(input: CreateSessionInput) {
@@ -110,6 +151,8 @@ export class TelemedicineService {
       throw new Error(message);
     }
 
+    const joinCode = this.resolveJoinCode(input.patient_join_code) ?? this.generateJoinCode();
+
     const { error: sessionError } = await supabase
       .from('telemedicine_sessions')
       .insert({
@@ -124,6 +167,7 @@ export class TelemedicineService {
         reason: input.reason || null,
         status: 'scheduled',
         consent_recording: false,
+        patient_join_code: joinCode,
       });
 
     if (sessionError) {
@@ -140,8 +184,8 @@ export class TelemedicineService {
   async createSessionFromAppointment(
     appointmentId: string,
     clinicId: string,
-    options?: { duration?: number; reason?: string },
-  ): Promise<{ sessionId: string; patientJoinToken: string }> {
+    options?: { duration?: number; reason?: string; patient_join_code?: string },
+  ): Promise<{ sessionId: string; patientJoinCode: string }> {
     const { data: userData, error: userError } = await supabase.auth.getUser();
     if (userError || !userData.user) {
       throw new Error('Utilisateur non authentifié');
@@ -198,6 +242,8 @@ export class TelemedicineService {
     const scheduledStart = new Date(`${appointment.date}T${appointment.time}`);
     const scheduledEnd = new Date(scheduledStart.getTime() + duration * 60 * 1000);
 
+    const joinCode = this.resolveJoinCode(options?.patient_join_code) ?? this.generateJoinCode();
+
     const { data: session, error: sessionError } = await supabase
       .from('telemedicine_sessions')
       .insert({
@@ -212,8 +258,9 @@ export class TelemedicineService {
         reason: options?.reason ?? null,
         status: 'scheduled',
         consent_recording: false,
+        patient_join_code: joinCode,
       })
-      .select('id, patient_join_token')
+      .select('id, patient_join_code')
       .single();
 
     if (sessionError || !session) {
@@ -230,16 +277,42 @@ export class TelemedicineService {
 
     return {
       sessionId: session.id,
-      patientJoinToken: session.patient_join_token,
+      patientJoinCode: session.patient_join_code,
     };
   }
 
   /**
-   * Guest patient: fetch session info via secure link token (no Gesclic account)
+   * Update the short join code for a session (admin/clinic staff)
    */
-  async getGuestSession(sessionId: string, token: string): Promise<TelemedicineSessionListItem | null> {
+  async updatePatientJoinCode(sessionId: string, code: string): Promise<string> {
+    const normalized = this.resolveJoinCode(code);
+    if (!normalized) {
+      throw new Error('Code requis');
+    }
+
+    const { data, error } = await supabase
+      .from('telemedicine_sessions')
+      .update({ patient_join_code: normalized, updated_at: new Date().toISOString() })
+      .eq('id', sessionId)
+      .select('patient_join_code')
+      .single();
+
+    if (error) {
+      if (error.message.includes('duplicate') || error.code === '23505') {
+        throw new Error('Ce code est déjà utilisé par une autre session');
+      }
+      throw new Error(error.message);
+    }
+
+    return data.patient_join_code;
+  }
+
+  /**
+   * Guest patient: fetch session info (short code or legacy token)
+   */
+  async getGuestSessionAuth(auth: GuestJoinAuth): Promise<TelemedicineSessionListItem | null> {
     const { data, error } = await supabase.functions.invoke('telemedicine-guest', {
-      body: { sessionId, token, action: 'info' },
+      body: this.guestRequestBody(auth, 'info'),
     });
 
     if (error || data?.error) {
@@ -249,12 +322,21 @@ export class TelemedicineService {
     return data.session as TelemedicineSessionListItem;
   }
 
+  /** @deprecated Use getGuestSessionAuth */
+  async getGuestSession(sessionId: string, token: string): Promise<TelemedicineSessionListItem | null> {
+    return this.getGuestSessionAuth({ mode: 'legacy', sessionId, token });
+  }
+
+  async getGuestSessionByCode(code: string): Promise<TelemedicineSessionListItem | null> {
+    return this.getGuestSessionAuth({ mode: 'code', code: this.normalizeJoinCode(code) });
+  }
+
   /**
-   * Guest patient: join video room via secure link token
+   * Guest patient: join video room
    */
-  async guestJoinSession(sessionId: string, token: string): Promise<JoinToken> {
+  async guestJoinAuth(auth: GuestJoinAuth): Promise<JoinToken> {
     const { data, error } = await supabase.functions.invoke('telemedicine-guest', {
-      body: { sessionId, token, action: 'join' },
+      body: this.guestRequestBody(auth, 'join'),
     });
 
     if (error) {
@@ -277,17 +359,25 @@ export class TelemedicineService {
     };
   }
 
+  /** @deprecated Use guestJoinAuth */
+  async guestJoinSession(sessionId: string, token: string): Promise<JoinToken> {
+    return this.guestJoinAuth({ mode: 'legacy', sessionId, token });
+  }
+
+  async guestJoinByCode(code: string): Promise<JoinToken> {
+    return this.guestJoinAuth({ mode: 'code', code: this.normalizeJoinCode(code) });
+  }
+
   /**
-   * Guest patient: submit feedback via secure link token
+   * Guest patient: submit feedback
    */
-  async guestSubmitFeedback(
-    sessionId: string,
-    token: string,
+  async guestSubmitFeedbackAuth(
+    auth: GuestJoinAuth,
     rating: number,
     feedback?: string,
   ): Promise<void> {
     const { data, error } = await supabase.functions.invoke('telemedicine-guest', {
-      body: { sessionId, token, action: 'feedback', rating, feedback },
+      body: this.guestRequestBody(auth, 'feedback', { rating, feedback }),
     });
 
     if (error) {
@@ -299,24 +389,55 @@ export class TelemedicineService {
     }
   }
 
+  /** @deprecated Use guestSubmitFeedbackAuth */
+  async guestSubmitFeedback(
+    sessionId: string,
+    token: string,
+    rating: number,
+    feedback?: string,
+  ): Promise<void> {
+    return this.guestSubmitFeedbackAuth({ mode: 'legacy', sessionId, token }, rating, feedback);
+  }
+
+  async guestSubmitFeedbackByCode(code: string, rating: number, feedback?: string): Promise<void> {
+    return this.guestSubmitFeedbackAuth({ mode: 'code', code: this.normalizeJoinCode(code) }, rating, feedback);
+  }
+
   /**
-   * Build patient join URL with secure token
+   * Get the short join code for a session
+   */
+  async getSessionJoinCode(sessionId: string): Promise<string> {
+    const { data, error } = await supabase
+      .from('telemedicine_sessions')
+      .select('patient_join_code')
+      .eq('id', sessionId)
+      .single();
+
+    if (error || !data?.patient_join_code) {
+      throw new Error('Code introuvable');
+    }
+
+    return data.patient_join_code;
+  }
+
+  /**
+   * Build short patient join URL
    */
   async getPatientJoinUrl(sessionId: string): Promise<string> {
     const { data, error } = await supabase
       .from('telemedicine_sessions')
-      .select('patient_join_token')
+      .select('patient_join_code')
       .eq('id', sessionId)
       .single();
 
-    if (error || !data?.patient_join_token) {
+    if (error || !data?.patient_join_code) {
       throw new Error('Impossible de générer le lien patient');
     }
 
-    return `${window.location.origin}/telemedicine/join/${sessionId}/${data.patient_join_token}`;
+    return this.buildShortJoinUrl(data.patient_join_code);
   }
 
-  /** @deprecated Use async getPatientJoinUrl */
+  /** @deprecated Use buildShortJoinUrl */
   buildPatientJoinUrl(sessionId: string, token: string): string {
     return `${window.location.origin}/telemedicine/join/${sessionId}/${token}`;
   }

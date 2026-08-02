@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Loader2, Video, Calendar, User, Star } from "lucide-react";
-import { telemedicineService, TelemedicineSessionListItem } from "@/services/telemedicine.service";
+import {
+  telemedicineService,
+  TelemedicineSessionListItem,
+  GuestJoinAuth,
+} from "@/services/telemedicine.service";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/Logo_Gesclic.png";
@@ -24,22 +28,36 @@ const statusLabels: Record<string, string> = {
 };
 
 const TelemedicineJoin = () => {
-  const { sessionId, token: tokenParam } = useParams<{ sessionId: string; token?: string }>();
+  const { joinCode, sessionId, token: tokenParam } = useParams<{
+    joinCode?: string;
+    sessionId?: string;
+    token?: string;
+  }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const tokenFromQuery = searchParams.get("token") ?? "";
-  const token = tokenParam ?? tokenFromQuery;
+  const legacyToken = tokenParam ?? tokenFromQuery;
+
+  const auth = useMemo((): GuestJoinAuth | null => {
+    if (joinCode) {
+      return { mode: "code", code: joinCode };
+    }
+    if (sessionId && legacyToken && UUID_RE.test(legacyToken)) {
+      return { mode: "legacy", sessionId, token: legacyToken };
+    }
+    return null;
+  }, [joinCode, sessionId, legacyToken]);
 
   const [session, setSession] = useState<TelemedicineSessionListItem | null>(null);
   const [loading, setLoading] = useState(true);
-  const [resolvingLink, setResolvingLink] = useState(!token);
+  const [resolvingLink, setResolvingLink] = useState(!auth && !!sessionId && !joinCode);
   const [joining, setJoining] = useState(false);
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState("");
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
 
   useEffect(() => {
-    if (!sessionId || token) {
+    if (auth || joinCode || !sessionId) {
       setResolvingLink(false);
       return;
     }
@@ -55,14 +73,14 @@ const TelemedicineJoin = () => {
 
         const { data, error } = await supabase
           .from("telemedicine_sessions")
-          .select("patient_join_token")
+          .select("patient_join_code")
           .eq("id", sessionId)
           .maybeSingle();
 
         if (cancelled) return;
 
-        if (!error && data?.patient_join_token) {
-          navigate(`/telemedicine/join/${sessionId}/${data.patient_join_token}`, { replace: true });
+        if (!error && data?.patient_join_code) {
+          navigate(`/t/${data.patient_join_code}`, { replace: true });
           return;
         }
       } finally {
@@ -73,25 +91,27 @@ const TelemedicineJoin = () => {
     return () => {
       cancelled = true;
     };
-  }, [sessionId, token, navigate]);
+  }, [auth, joinCode, sessionId, navigate]);
 
   useEffect(() => {
-    if (!sessionId || !token || !UUID_RE.test(token)) {
+    if (!auth) {
       setLoading(false);
       return;
     }
+
+    setLoading(true);
     telemedicineService
-      .getGuestSession(sessionId, token)
+      .getGuestSessionAuth(auth)
       .then(setSession)
       .catch(() => toast.error("Lien invalide ou expiré"))
       .finally(() => setLoading(false));
-  }, [sessionId, token]);
+  }, [auth]);
 
   const handleJoin = async () => {
-    if (!sessionId || !token) return;
+    if (!auth) return;
     setJoining(true);
     try {
-      const joinData = await telemedicineService.guestJoinSession(sessionId, token);
+      const joinData = await telemedicineService.guestJoinAuth(auth);
       telemedicineService.openVideoRoom(joinData);
       toast.success("Ouverture de la salle vidéo...");
     } catch (error) {
@@ -103,15 +123,15 @@ const TelemedicineJoin = () => {
 
   const handleFeedback = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!sessionId || !token || rating < 1) {
+    if (!auth || rating < 1) {
       toast.error("Veuillez sélectionner une note");
       return;
     }
     setSubmittingFeedback(true);
     try {
-      await telemedicineService.guestSubmitFeedback(sessionId, token, rating, feedback);
+      await telemedicineService.guestSubmitFeedbackAuth(auth, rating, feedback);
       toast.success("Merci pour votre avis !");
-      const updated = await telemedicineService.getGuestSession(sessionId, token);
+      const updated = await telemedicineService.getGuestSessionAuth(auth);
       setSession(updated);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Impossible d'envoyer l'avis");
@@ -137,21 +157,21 @@ const TelemedicineJoin = () => {
 
       <main className="flex-1 flex items-start justify-center p-4 py-10">
         <div className="w-full max-w-lg space-y-6">
-          {!token ? (
+          {!auth ? (
             resolvingLink || loading ? (
               <div className="flex justify-center py-20">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
               </div>
             ) : (
-            <Card>
-              <CardContent className="py-12 text-center text-muted-foreground space-y-2">
-                <p>Lien incomplet : il manque le code d&apos;accès sécurisé.</p>
-                <p className="text-sm">
-                  Demandez à votre clinique le lien complet via le bouton « Lien patient »
-                  (format : …/join/…/code).
-                </p>
-              </CardContent>
-            </Card>
+              <Card>
+                <CardContent className="py-12 text-center text-muted-foreground space-y-2">
+                  <p>Lien incomplet ou invalide.</p>
+                  <p className="text-sm">
+                    Demandez à votre clinique le lien court via le bouton « Lien patient »
+                    (format : …/t/votre-code).
+                  </p>
+                </CardContent>
+              </Card>
             )
           ) : loading ? (
             <div className="flex justify-center py-20">

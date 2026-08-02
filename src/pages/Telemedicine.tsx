@@ -32,6 +32,7 @@ interface SessionForm {
   scheduledTime: string;
   duration: number;
   reason: string;
+  joinCode: string;
 }
 
 const emptyForm: SessionForm = {
@@ -41,6 +42,7 @@ const emptyForm: SessionForm = {
   scheduledTime: "09:00",
   duration: 30,
   reason: "",
+  joinCode: "",
 };
 
 interface EndSessionForm {
@@ -82,6 +84,10 @@ const Telemedicine = () => {
   const [joiningSession, setJoiningSession] = useState<string | null>(null);
   const [cancellingSession, setCancellingSession] = useState<string | null>(null);
   const [detailSession, setDetailSession] = useState<TelemedicineSessionListItem | null>(null);
+  const [joinCodeDialogOpen, setJoinCodeDialogOpen] = useState(false);
+  const [joinCodeSessionId, setJoinCodeSessionId] = useState<string | null>(null);
+  const [joinCodeDraft, setJoinCodeDraft] = useState("");
+  const [savingJoinCode, setSavingJoinCode] = useState(false);
 
   useEffect(() => {
     loadSessions();
@@ -163,6 +169,7 @@ const Telemedicine = () => {
         scheduled_time: form.scheduledTime,
         duration: form.duration,
         reason: form.reason,
+        ...(form.joinCode.trim() ? { patient_join_code: form.joinCode.trim() } : {}),
       }, activeClinicId);
 
       toast.success("Session créée avec succès");
@@ -237,9 +244,36 @@ const Telemedicine = () => {
     try {
       const url = await telemedicineService.getPatientJoinUrl(sessionId);
       await navigator.clipboard.writeText(url);
-      toast.success("Lien patient copié dans le presse-papier");
+      toast.success("Lien court copié dans le presse-papier");
     } catch {
       toast.error("Impossible de copier le lien");
+    }
+  };
+
+  const openJoinCodeDialog = async (sessionId: string) => {
+    setJoinCodeSessionId(sessionId);
+    setJoinCodeDialogOpen(true);
+    setJoinCodeDraft("");
+    try {
+      const code = await telemedicineService.getSessionJoinCode(sessionId);
+      setJoinCodeDraft(code);
+    } catch {
+      // dialog still usable with empty draft
+    }
+  };
+
+  const handleSaveJoinCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!joinCodeSessionId || !joinCodeDraft.trim()) return;
+    setSavingJoinCode(true);
+    try {
+      const code = await telemedicineService.updatePatientJoinCode(joinCodeSessionId, joinCodeDraft);
+      toast.success(`Lien mis à jour : /t/${code}`);
+      setJoinCodeDialogOpen(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Impossible de modifier le code");
+    } finally {
+      setSavingJoinCode(false);
     }
   };
 
@@ -383,6 +417,18 @@ const Telemedicine = () => {
                       onChange={(e) => setForm({ ...form, reason: e.target.value })}
                     />
                   </div>
+                  <div className="space-y-2">
+                    <Label>Code du lien patient (optionnel)</Label>
+                    <Input
+                      placeholder="ex. dupont-12 (sinon généré automatiquement)"
+                      value={form.joinCode}
+                      onChange={(e) => setForm({ ...form, joinCode: e.target.value })}
+                      autoComplete="off"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Lien court : gesclic…/t/votre-code
+                    </p>
+                  </div>
                   <Button type="submit" className="w-full">Créer la Session</Button>
                 </form>
               </DialogContent>
@@ -458,10 +504,20 @@ const Telemedicine = () => {
                               size="sm"
                               variant="outline"
                               onClick={() => copyPatientLink(session.id)}
-                              title="Copier le lien patient"
+                              title="Copier le lien court patient"
                             >
                               <Link2 className="w-4 h-4 mr-2" />
                               Lien patient
+                            </Button>
+                          )}
+                          {["scheduled", "in_progress"].includes(session.status) && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => openJoinCodeDialog(session.id)}
+                              title="Personnaliser le code du lien"
+                            >
+                              Personnaliser
                             </Button>
                           )}
                           {session.status === "in_progress" && (
@@ -735,6 +791,37 @@ const Telemedicine = () => {
               )}
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={joinCodeDialogOpen} onOpenChange={setJoinCodeDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Personnaliser le lien patient</DialogTitle>
+            <DialogDescription>
+              Choisissez un code court et mémorable (4 à 32 caractères).
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSaveJoinCode} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Code du lien</Label>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground shrink-0">/t/</span>
+                <Input
+                  value={joinCodeDraft}
+                  onChange={(e) => setJoinCodeDraft(e.target.value)}
+                  placeholder="dupont-consult"
+                  autoComplete="off"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Lettres minuscules, chiffres, tirets (-) ou underscores (_).
+              </p>
+            </div>
+            <Button type="submit" className="w-full" disabled={savingJoinCode || !joinCodeDraft.trim()}>
+              {savingJoinCode ? <Loader2 className="w-4 h-4 animate-spin" /> : "Enregistrer le code"}
+            </Button>
+          </form>
         </DialogContent>
       </Dialog>
 
