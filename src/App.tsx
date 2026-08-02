@@ -11,7 +11,8 @@ import { FeatureFlagsProvider } from "@/contexts/FeatureFlagsContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { Loader2 } from "lucide-react";
-import { createQueryClient } from "@/lib/cache/react-query-config";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { ClinicBrandingProvider } from "@/components/ClinicBrandingProvider";
 
 // Lazy load pages for code splitting
 const Index = lazy(() => import("./pages/Index"));
@@ -83,6 +84,7 @@ const LoadingFallback = () => (
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -90,6 +92,7 @@ const App = () => (
           <AuthProvider>
             <FeatureFlagsProvider>
             <ClinicProvider>
+              <ClinicBrandingProvider>
               <SuperAdminProvider>
                 <Suspense fallback={<LoadingFallback />}>
                   <Routes>
@@ -151,11 +154,13 @@ const App = () => (
                 </Routes>
               </Suspense>
               </SuperAdminProvider>
+              </ClinicBrandingProvider>
             </ClinicProvider>
             </FeatureFlagsProvider>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   </ErrorBoundary>
 );

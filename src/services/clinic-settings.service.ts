@@ -15,6 +15,10 @@ export interface ClinicNotificationSettings {
   resultReady: boolean;
 }
 
+export interface ClinicAppearanceSettings {
+  primaryColor: string;
+}
+
 export interface ClinicProfileSettings {
   email: string;
   phone: string;
@@ -23,6 +27,7 @@ export interface ClinicProfileSettings {
   website: string;
   opening_hours: ClinicOpeningHours;
   notifications: ClinicNotificationSettings;
+  appearance: ClinicAppearanceSettings;
 }
 
 export interface ClinicProfile {
@@ -54,6 +59,10 @@ export const DEFAULT_NOTIFICATION_SETTINGS: ClinicNotificationSettings = {
   resultReady: true,
 };
 
+export const DEFAULT_APPEARANCE_SETTINGS: ClinicAppearanceSettings = {
+  primaryColor: '#0EA5E9',
+};
+
 export const DEFAULT_CLINIC_PROFILE_SETTINGS: ClinicProfileSettings = {
   email: '',
   phone: '',
@@ -62,6 +71,7 @@ export const DEFAULT_CLINIC_PROFILE_SETTINGS: ClinicProfileSettings = {
   website: '',
   opening_hours: { ...DEFAULT_OPENING_HOURS },
   notifications: { ...DEFAULT_NOTIFICATION_SETTINGS },
+  appearance: { ...DEFAULT_APPEARANCE_SETTINGS },
 };
 
 function parseNotifications(raw: unknown): ClinicNotificationSettings {
@@ -74,6 +84,12 @@ function parseNotifications(raw: unknown): ClinicNotificationSettings {
     reminder1h: typeof obj.reminder1h === 'boolean' ? obj.reminder1h : DEFAULT_NOTIFICATION_SETTINGS.reminder1h,
     resultReady: typeof obj.resultReady === 'boolean' ? obj.resultReady : DEFAULT_NOTIFICATION_SETTINGS.resultReady,
   };
+}
+
+function parseAppearance(raw: unknown): ClinicAppearanceSettings {
+  const obj = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
+  const color = typeof obj.primaryColor === 'string' ? obj.primaryColor : DEFAULT_APPEARANCE_SETTINGS.primaryColor;
+  return { primaryColor: color.startsWith('#') ? color : DEFAULT_APPEARANCE_SETTINGS.primaryColor };
 }
 
 function parseSettings(raw: unknown): ClinicProfileSettings {
@@ -94,6 +110,7 @@ function parseSettings(raw: unknown): ClinicProfileSettings {
       sunday: typeof hours.sunday === 'string' ? hours.sunday : DEFAULT_OPENING_HOURS.sunday,
     },
     notifications: parseNotifications(obj.notifications),
+    appearance: parseAppearance(obj.appearance),
   };
 }
 
@@ -111,6 +128,10 @@ function mergeSettings(
     notifications: {
       ...current.notifications,
       ...(patch.notifications ?? {}),
+    },
+    appearance: {
+      ...current.appearance,
+      ...(patch.appearance ?? {}),
     },
   };
 }

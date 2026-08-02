@@ -2,6 +2,9 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
 import { initWebVitalsMonitoring } from "./lib/monitoring/web-vitals";
+import { getStoredLocale } from "./lib/clinic-branding";
+
+document.documentElement.lang = getStoredLocale();
 
 // Initialize Web Vitals monitoring
 initWebVitalsMonitoring();

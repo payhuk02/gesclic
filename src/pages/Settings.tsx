@@ -8,9 +8,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import {
   Building2, Bell, Shield, CreditCard, Palette, Globe,
   Upload, Save, Clock, ShieldAlert, Loader2, ArrowRight, User,
-  ToggleLeft, ToggleRight, Check,
+  ToggleLeft, ToggleRight, Check, Sun, Moon, Monitor,
 } from "lucide-react";
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useTheme } from "next-themes";
 import { Link } from "react-router-dom";
 import { useClinic } from "@/contexts/ClinicContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -24,15 +25,26 @@ import {
   type ClinicNotificationSettings,
 } from "@/services/clinic-settings.service";
 import { getClinicPlan } from "@/lib/clinic-plans";
+import {
+  applyClinicBrandColor,
+  BRAND_COLOR_PRESETS,
+  getStoredLocale,
+  setStoredLocale,
+  type AppLocale,
+} from "@/lib/clinic-branding";
 
 const Settings = () => {
   const { activeClinicId, activeClinic, hasClinicRole, refetch, loading: clinicLoading } = useClinic();
   const { user, profile, hasRole, refetchProfile } = useAuth();
   const canManage = hasRole("admin") || hasClinicRole("admin");
 
+  const { theme, setTheme } = useTheme();
+  const [locale, setLocale] = useState<AppLocale>(() => getStoredLocale());
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [savingNotifications, setSavingNotifications] = useState(false);
+  const [savingAppearance, setSavingAppearance] = useState(false);
   const [savingAccount, setSavingAccount] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [clinicName, setClinicName] = useState("");
@@ -74,11 +86,25 @@ const Settings = () => {
     setLastName(profile?.last_name ?? "");
   }, [profile]);
 
-  const updateSetting = <K extends keyof Omit<ClinicProfileSettings, "notifications" | "opening_hours">>(
+  const updateSetting = <K extends keyof Omit<ClinicProfileSettings, "notifications" | "opening_hours" | "appearance">>(
     key: K,
     value: ClinicProfileSettings[K],
   ) => {
     setSettings((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const updateAppearanceColor = (primaryColor: string) => {
+    setSettings((prev) => ({
+      ...prev,
+      appearance: { ...prev.appearance, primaryColor },
+    }));
+    applyClinicBrandColor(primaryColor);
+  };
+
+  const handleLocaleChange = (next: AppLocale) => {
+    setStoredLocale(next);
+    setLocale(next);
+    toast.success(next === "fr" ? "Langue : Français" : "Language: English");
   };
 
   const updateOpeningHour = (key: keyof ClinicProfileSettings["opening_hours"], value: string) => {
@@ -140,6 +166,29 @@ const Settings = () => {
       toast.error(error instanceof Error ? error.message : "Erreur lors de la sauvegarde");
     } finally {
       setSavingNotifications(false);
+    }
+  };
+
+  const handleSaveAppearance = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!canManage || !activeClinicId) {
+      toast.error("Action réservée aux administrateurs de la clinique.");
+      return;
+    }
+
+    setSavingAppearance(true);
+    try {
+      await clinicSettingsService.updateClinicProfile(
+        activeClinicId,
+        { settings: { appearance: settings.appearance } },
+        settings,
+      );
+      applyClinicBrandColor(settings.appearance.primaryColor);
+      toast.success("Apparence enregistrée");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Erreur lors de la sauvegarde");
+    } finally {
+      setSavingAppearance(false);
     }
   };
 
@@ -483,21 +532,104 @@ const Settings = () => {
         </TabsContent>
 
         <TabsContent value="appearance">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Palette className="w-5 h-5" />Apparence</CardTitle>
-              <CardDescription>Thème et langue — disponible prochainement (pack P2).</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div>
-                <Label>Langue (aperçu)</Label>
-                <div className="flex gap-2 mt-2">
-                  <Button variant="default" size="sm" disabled><Globe className="w-4 h-4 mr-1" />Français</Button>
-                  <Button variant="outline" size="sm" disabled>English</Button>
+          <form onSubmit={handleSaveAppearance}>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Palette className="w-5 h-5" />Apparence</CardTitle>
+                <CardDescription>Thème, couleur de marque et langue de l&apos;interface.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-8">
+                <div>
+                  <Label>Thème</Label>
+                  <p className="text-xs text-muted-foreground mt-1 mb-3">
+                    Appliqué localement sur cet appareil.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {([
+                      { value: "light", label: "Clair", icon: Sun },
+                      { value: "dark", label: "Sombre", icon: Moon },
+                      { value: "system", label: "Système", icon: Monitor },
+                    ] as const).map(({ value, label, icon: Icon }) => (
+                      <Button
+                        key={value}
+                        type="button"
+                        variant={theme === value ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setTheme(value)}
+                      >
+                        <Icon className="w-4 h-4 mr-1" />
+                        {label}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+
+                <div>
+                  <Label>Couleur principale</Label>
+                  <p className="text-xs text-muted-foreground mt-1 mb-3">
+                    Partagée avec tous les utilisateurs de la clinique.
+                  </p>
+                  <div className="flex flex-wrap gap-3">
+                    {BRAND_COLOR_PRESETS.map((preset) => {
+                      const selected = settings.appearance.primaryColor.toLowerCase() === preset.hex.toLowerCase();
+                      return (
+                        <button
+                          key={preset.id}
+                          type="button"
+                          disabled={!canManage || savingAppearance}
+                          title={preset.label}
+                          onClick={() => updateAppearanceColor(preset.hex)}
+                          className={`relative w-10 h-10 rounded-full border-2 transition-transform hover:scale-105 disabled:opacity-50 disabled:pointer-events-none ${
+                            selected ? "border-foreground ring-2 ring-offset-2 ring-primary" : "border-transparent"
+                          }`}
+                          style={{ backgroundColor: preset.hex }}
+                        >
+                          {selected && (
+                            <Check className="w-4 h-4 text-white absolute inset-0 m-auto drop-shadow" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Sélection : {BRAND_COLOR_PRESETS.find((p) => p.hex.toLowerCase() === settings.appearance.primaryColor.toLowerCase())?.label ?? settings.appearance.primaryColor}
+                  </p>
+                </div>
+
+                <div>
+                  <Label>Langue</Label>
+                  <p className="text-xs text-muted-foreground mt-1 mb-3">
+                    Appliquée localement sur cet appareil (traduction complète à venir).
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant={locale === "fr" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handleLocaleChange("fr")}
+                    >
+                      <Globe className="w-4 h-4 mr-1" />Français
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={locale === "en" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handleLocaleChange("en")}
+                    >
+                      English
+                    </Button>
+                  </div>
+                </div>
+
+                {canManage && (
+                  <Button type="submit" disabled={savingAppearance}>
+                    {savingAppearance ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                    Enregistrer l&apos;apparence
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          </form>
         </TabsContent>
       </Tabs>
     </AppLayout>

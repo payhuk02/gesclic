@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   DEFAULT_CLINIC_PROFILE_SETTINGS,
   DEFAULT_NOTIFICATION_SETTINGS,
+  DEFAULT_APPEARANCE_SETTINGS,
   clinicSettingsService,
 } from '@/services/clinic-settings.service';
 
@@ -15,5 +16,7 @@ describe('clinicSettingsService', () => {
     expect(DEFAULT_CLINIC_PROFILE_SETTINGS.opening_hours.weekday).toBe('08:00 - 18:00');
     expect(DEFAULT_NOTIFICATION_SETTINGS.reminder24h).toBe(true);
     expect(DEFAULT_CLINIC_PROFILE_SETTINGS.notifications.emailNotif).toBe(true);
+    expect(DEFAULT_APPEARANCE_SETTINGS.primaryColor).toBe('#0EA5E9');
+    expect(DEFAULT_CLINIC_PROFILE_SETTINGS.appearance.primaryColor).toBe('#0EA5E9');
   });
 });
