@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.telemedicine-guest]
 verify_jwt = false
+
+[functions.workflow-run]
+verify_jwt = true

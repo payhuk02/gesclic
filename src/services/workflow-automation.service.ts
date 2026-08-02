@@ -2,6 +2,7 @@
 // Service layer for Workflow Automation functionality
 
 import { supabase } from '@/integrations/supabase/client';
+import { FunctionsHttpError } from '@supabase/supabase-js';
 import type { 
   WorkflowDefinition,
   WorkflowExecution,
@@ -10,6 +11,7 @@ import type {
   WorkflowGraph,
   PaginatedResponse
 } from '@/types/phase2';
+import { stepsToGraph, type WorkflowEditorStep } from '@/lib/workflow-steps';
 
 /** Categories allowed by workflow_definitions.category CHECK constraint */
 export const WORKFLOW_CATEGORIES = [
@@ -42,6 +44,28 @@ export class WorkflowAutomationService {
     }
     return new Error(fallback);
   }
+
+  private async parseFunctionError(error: unknown, fallback: string): Promise<string> {
+    if (error instanceof FunctionsHttpError) {
+      try {
+        const body = await error.context.json();
+        if (typeof body?.message === 'string') return body.message;
+        if (typeof body?.error === 'string') return body.error;
+      } catch {
+        // ignore
+      }
+    }
+    if (error instanceof Error && error.message) return error.message;
+    return fallback;
+  }
+
+  /**
+   * Save simple editor steps as workflow definition
+   */
+  async saveWorkflowSteps(workflowId: string, steps: WorkflowEditorStep[]): Promise<void> {
+    await this.updateWorkflow(workflowId, { definition: stepsToGraph(steps) });
+  }
+
   /**
    * Create workflow definition
    */
@@ -187,127 +211,31 @@ export class WorkflowAutomationService {
   }
 
   /**
-   * Execute workflow manually
-   * Note: In production, this should use a proper background job system
-   * like Supabase Edge Functions, BullMQ, or similar
+   * Execute workflow via server-side edge function
    */
   async executeWorkflow(
     workflowId: string,
-    userId: string,
-    inputData: Record<string, any> = {}
+    _userId: string,
+    inputData: Record<string, unknown> = {},
   ): Promise<string> {
     try {
-      const { data, error } = await supabase.rpc('create_workflow_execution', {
-        p_workflow_id: workflowId,
-        p_trigger_type: 'manual',
-        p_trigger_data: {},
-        p_input_data: inputData,
-        p_triggered_by: userId
+      const { data, error } = await supabase.functions.invoke('workflow-run', {
+        body: { workflowId, inputData },
       });
 
-      if (error) throw error;
-
-      // Execute workflow in background
-      // In production, this should be a proper background job queue
-      // For now, we use a non-blocking async execution
-      this.executeWorkflowLogic(data, workflowId, inputData)
-        .catch(error => {
-          console.error('Workflow execution failed:', error);
-          // Log the error to the workflow execution record
-          this.logWorkflowExecutionError(data, error).catch(console.error);
-        });
-
-      return data;
-    } catch (error) {
-      console.error('Error executing workflow:', error);
-      throw this.formatServiceError(error, 'Impossible d\'exécuter le workflow');
-    }
-  }
-
-  /**
-   * Log workflow execution error
-   */
-  private async logWorkflowExecutionError(executionId: string, error: Error): Promise<void> {
-    try {
-      await supabase.rpc('complete_workflow_execution', {
-        p_execution_id: executionId,
-        p_status: 'failed',
-        p_error_message: error.message,
-        p_error_details: { stack: error.stack }
-      });
-    } catch (logError) {
-      console.error('Failed to log workflow error:', logError);
-    }
-  }
-
-  /**
-   * Execute workflow logic (simplified implementation)
-   */
-  private async executeWorkflowLogic(
-    executionId: string,
-    workflowId: string,
-    inputData: Record<string, any>
-  ): Promise<void> {
-    try {
-      const workflow = await this.getWorkflow(workflowId);
-      if (!workflow) throw new Error('Workflow not found');
-
-      const definition = workflow.definition as WorkflowGraph;
-      let currentNode = definition.nodes.find(n => n.type === 'trigger');
-      let outputData = { ...inputData };
-
-      // Execute nodes in sequence
-      while (currentNode) {
-
-        await this.logWorkflowEvent(executionId, 'info', currentNode.id, `Executing node: ${currentNode.id}`);
-
-        // Execute node based on type
-        const result = await this.executeNode(currentNode, outputData);
-        outputData = { ...outputData, ...result };
-
-        // Find next node
-        const edge = definition.edges.find(e => e.source === currentNode.id);
-
-        currentNode = edge ? definition.nodes.find(n => n.id === edge.target) : undefined;
+      if (error) {
+        throw new Error(await this.parseFunctionError(error, 'Impossible d\'exécuter le workflow'));
       }
 
-      // Complete execution
-      await supabase.rpc('complete_workflow_execution', {
-        p_execution_id: executionId,
-        p_status: 'completed',
-        p_output_data: outputData
-      });
+      if (data?.error) {
+        throw new Error(data.message ?? data.error);
+      }
+
+      return data.executionId as string;
     } catch (error) {
-      console.error('Error executing workflow logic:', error);
-      
-      // Fail execution
-      await supabase.rpc('complete_workflow_execution', {
-        p_execution_id: executionId,
-        p_status: 'failed',
-        p_error_message: error instanceof Error ? error.message : 'Unknown error',
-        p_error_details: { error: String(error) }
-      });
-    }
-  }
-
-  /**
-   * Execute a single workflow node
-   */
-
-  private async executeNode(node: any, inputData: Record<string, any>): Promise<Record<string, any>> {
-
-    // Simplified node execution
-    // In a real implementation, this would handle different node types (action, condition, loop, etc.)
-    
-    switch (node.config.type) {
-      case 'notification':
-        return { notification_sent: true };
-      case 'api_call':
-        return { api_response: {} };
-      case 'transform':
-        return { transformed: true };
-      default:
-        return {};
+      console.error('Error executing workflow:', error);
+      if (error instanceof Error) throw error;
+      throw this.formatServiceError(error, 'Impossible d\'exécuter le workflow');
     }
   }
 

@@ -47,7 +47,7 @@ const navItems: NavItem[] = [
   // Phase 2 Features
   { icon: Puzzle, label: "Intégrations", path: "/integrations", roles: ["admin"] },
   { icon: Key, label: "API Platform", path: "/api-platform", roles: ["admin"] },
-  { icon: Workflow, label: "Workflows", path: "/workflow-automation", roles: ["admin"] },
+  { icon: Workflow, label: "Workflows", path: "/workflow-automation", roles: ["admin"], featureFlag: "workflow_automation_enabled" },
   { icon: Globe, label: "Webhooks", path: "/webhooks", roles: ["admin"] },
   
   // Admin

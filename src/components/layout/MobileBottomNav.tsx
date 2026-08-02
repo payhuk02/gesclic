@@ -41,7 +41,7 @@ const allNavItems: NavItem[] = [
   { icon: BarChart3, label: "Analytics Avancés", path: "/advanced-analytics" },
   { icon: Puzzle, label: "Intégrations", path: "/integrations" },
   { icon: Key, label: "API Platform", path: "/api-platform" },
-  { icon: Workflow, label: "Workflows", path: "/workflow-automation" },
+  { icon: Workflow, label: "Workflows", path: "/workflow-automation", featureFlag: "workflow_automation_enabled" },
   { icon: Globe, label: "Webhooks", path: "/webhooks" },
   { icon: UserCog, label: "Personnel", path: "/staff" },
   { icon: Crown, label: "Abonnements", path: "/subscriptions" },

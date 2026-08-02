@@ -1,7 +1,7 @@
 import AppLayout from "@/components/layout/AppLayout";
 import { useState, useEffect, useCallback } from "react";
 
-import { Workflow, Play, Pause, Archive, Plus, Trash2, Clock, CheckCircle, AlertCircle, Loader2, Settings, Zap, FileText, Copy, ShieldAlert } from "lucide-react";
+import { Workflow, Play, Pause, Archive, Plus, Trash2, Clock, CheckCircle, AlertCircle, Loader2, Settings, Zap, FileText, Copy, ShieldAlert, Pencil } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +22,14 @@ import { useClinic } from "@/contexts/ClinicContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import EmptyState from "@/components/EmptyState";
+import { useFeatureFlags } from "@/contexts/FeatureFlagsContext";
+import {
+  graphToSteps,
+  emptyWorkflowStep,
+  stepsToGraph,
+  type WorkflowEditorStep,
+} from "@/lib/workflow-steps";
+import type { WorkflowGraph } from "@/types/phase2";
 
 interface WorkflowForm {
   name: string;
@@ -46,6 +54,8 @@ const categoryLabels: Record<WorkflowCategory, string> = {
 const WorkflowAutomation = () => {
   const { activeClinicId, hasClinicRole } = useClinic();
   const { user, hasRole } = useAuth();
+  const { isEnabled, loading: flagsLoading } = useFeatureFlags();
+  const workflowEnabled = isEnabled("workflow_automation_enabled");
   const canManage = hasRole("admin") || hasClinicRole("admin");
 
   const [workflows, setWorkflows] = useState<any[]>([]);
@@ -53,6 +63,11 @@ const WorkflowAutomation = () => {
   const [templates, setTemplates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editWorkflowId, setEditWorkflowId] = useState<string | null>(null);
+  const [editWorkflowName, setEditWorkflowName] = useState("");
+  const [editSteps, setEditSteps] = useState<WorkflowEditorStep[]>([]);
+  const [savingSteps, setSavingSteps] = useState(false);
   const [form, setForm] = useState<WorkflowForm>(emptyForm);
   const [executionFilter, setExecutionFilter] = useState<string>("all");
 
@@ -94,10 +109,10 @@ const WorkflowAutomation = () => {
   }, [activeClinicId, executionFilter, loadExecutions]);
 
   useEffect(() => {
-    if (activeClinicId) {
+    if (activeClinicId && workflowEnabled) {
       loadData();
     }
-  }, [activeClinicId, loadData]);
+  }, [activeClinicId, workflowEnabled, loadData]);
 
   const handleActionError = (error: unknown, fallback: string) => {
     toast.error(error instanceof Error ? error.message : fallback);
@@ -112,13 +127,19 @@ const WorkflowAutomation = () => {
     try {
       if (!user || !activeClinicId) return;
 
+      const defaultStep: WorkflowEditorStep = {
+        ...emptyWorkflowStep(),
+        title: form.name.trim(),
+        message: form.description.trim() || "Notification envoyée par votre workflow Gesclic.",
+      };
+
       await workflowAutomationService.createWorkflow(
         activeClinicId,
         user.id,
         form.name,
         form.description,
         form.category,
-        { nodes: [], edges: [], triggers: [] },
+        stepsToGraph([defaultStep]),
       );
 
       setCreateDialogOpen(false);
@@ -135,7 +156,7 @@ const WorkflowAutomation = () => {
     try {
       if (!user) return;
       await workflowAutomationService.executeWorkflow(workflowId, user.id);
-      toast.success("Workflow exécuté avec succès");
+      toast.success("Workflow exécuté — vérifiez vos notifications");
       loadData();
     } catch (error) {
       console.error("Error executing workflow:", error);
@@ -221,6 +242,40 @@ const WorkflowAutomation = () => {
     }
   };
 
+  const openEditDialog = (workflow: { id: string; name: string; definition: WorkflowGraph }) => {
+    setEditWorkflowId(workflow.id);
+    setEditWorkflowName(workflow.name);
+    setEditSteps(graphToSteps(workflow.definition));
+    setEditDialogOpen(true);
+  };
+
+  const handleSaveSteps = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editWorkflowId || !canManage) return;
+
+    const invalid = editSteps.some((s) => !s.title.trim() || !s.message.trim());
+    if (invalid) {
+      toast.error("Chaque étape doit avoir un titre et un message");
+      return;
+    }
+
+    setSavingSteps(true);
+    try {
+      await workflowAutomationService.saveWorkflowSteps(editWorkflowId, editSteps);
+      toast.success("Étapes enregistrées");
+      setEditDialogOpen(false);
+      loadData();
+    } catch (error) {
+      handleActionError(error, "Impossible d'enregistrer les étapes");
+    } finally {
+      setSavingSteps(false);
+    }
+  };
+
+  const updateEditStep = (index: number, patch: Partial<WorkflowEditorStep>) => {
+    setEditSteps((prev) => prev.map((s, i) => (i === index ? { ...s, ...patch } : s)));
+  };
+
   const statusConfig: Record<string, { label: string; icon: typeof Play; className: string }> = {
     draft: { label: "Brouillon", icon: FileText, className: "bg-blue-500/10 text-blue-500 border-blue-500/20" },
     active: { label: "Actif", icon: Play, className: "bg-success/10 text-success border-success/20" },
@@ -248,6 +303,14 @@ const WorkflowAutomation = () => {
 
   return (
     <AppLayout title="Workflow Automation">
+      {!flagsLoading && !workflowEnabled ? (
+        <EmptyState
+          icon={Workflow}
+          title="Workflows désactivés"
+          description="Cette fonctionnalité est désactivée au niveau de la plateforme. Contactez l'administrateur Gesclic."
+        />
+      ) : (
+      <>
       {!canManage && (
         <Card className="mb-6 border-warning/30 bg-warning/5">
           <CardContent className="py-4 flex items-start gap-3">
@@ -388,6 +451,16 @@ const WorkflowAutomation = () => {
                             <Button size="sm" variant="outline" onClick={() => handleArchiveWorkflow(workflow.id)}>
                               <Archive className="w-4 h-4 mr-2" />
                               Archiver
+                            </Button>
+                          )}
+                          {canManage && workflow.status !== "archived" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => openEditDialog(workflow)}
+                            >
+                              <Pencil className="w-4 h-4 mr-2" />
+                              Étapes
                             </Button>
                           )}
                           {canManage && (
@@ -549,6 +622,96 @@ const WorkflowAutomation = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Étapes — {editWorkflowName}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSaveSteps} className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Chaque étape envoie une notification in-app réelle lors de l&apos;exécution du workflow.
+            </p>
+            {editSteps.map((step, index) => (
+              <Card key={step.id}>
+                <CardContent className="p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Étape {index + 1} — Notification</span>
+                    {editSteps.length > 1 && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setEditSteps((prev) => prev.filter((_, i) => i !== index))}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Titre</Label>
+                    <Input
+                      value={step.title}
+                      onChange={(e) => updateEditStep(index, { title: e.target.value })}
+                      placeholder="Rappel rendez-vous"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Message</Label>
+                    <Textarea
+                      value={step.message}
+                      onChange={(e) => updateEditStep(index, { message: e.target.value })}
+                      placeholder="Votre rendez-vous est demain à 10h."
+                      rows={2}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Lien (optionnel)</Label>
+                    <Input
+                      value={step.link ?? ""}
+                      onChange={(e) => updateEditStep(index, { link: e.target.value })}
+                      placeholder="/appointments"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Destinataires</Label>
+                    <Select
+                      value={step.target}
+                      onValueChange={(v) =>
+                        updateEditStep(index, { target: v as WorkflowEditorStep["target"] })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="trigger_user">Utilisateur qui exécute</SelectItem>
+                        <SelectItem value="clinic_admins">Administrateurs de la clinique</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() => setEditSteps((prev) => [...prev, emptyWorkflowStep()])}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Ajouter une étape
+            </Button>
+            <Button type="submit" className="w-full" disabled={savingSteps}>
+              {savingSteps ? <Loader2 className="w-4 h-4 animate-spin" /> : "Enregistrer les étapes"}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+      </>
+      )}
     </AppLayout>
   );
 };
