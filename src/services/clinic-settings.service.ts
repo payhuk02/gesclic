@@ -6,6 +6,15 @@ export interface ClinicOpeningHours {
   sunday: string;
 }
 
+export interface ClinicNotificationSettings {
+  smsReminder: boolean;
+  whatsappReminder: boolean;
+  emailNotif: boolean;
+  reminder24h: boolean;
+  reminder1h: boolean;
+  resultReady: boolean;
+}
+
 export interface ClinicProfileSettings {
   email: string;
   phone: string;
@@ -13,6 +22,7 @@ export interface ClinicProfileSettings {
   country: string;
   website: string;
   opening_hours: ClinicOpeningHours;
+  notifications: ClinicNotificationSettings;
 }
 
 export interface ClinicProfile {
@@ -23,10 +33,25 @@ export interface ClinicProfile {
   settings: ClinicProfileSettings;
 }
 
+export interface UserProfile {
+  first_name: string;
+  last_name: string;
+  avatar_url: string | null;
+}
+
 const DEFAULT_OPENING_HOURS: ClinicOpeningHours = {
   weekday: '08:00 - 18:00',
   saturday: '08:00 - 13:00',
   sunday: 'Fermé',
+};
+
+export const DEFAULT_NOTIFICATION_SETTINGS: ClinicNotificationSettings = {
+  smsReminder: false,
+  whatsappReminder: false,
+  emailNotif: true,
+  reminder24h: true,
+  reminder1h: false,
+  resultReady: true,
 };
 
 export const DEFAULT_CLINIC_PROFILE_SETTINGS: ClinicProfileSettings = {
@@ -36,7 +61,20 @@ export const DEFAULT_CLINIC_PROFILE_SETTINGS: ClinicProfileSettings = {
   country: '',
   website: '',
   opening_hours: { ...DEFAULT_OPENING_HOURS },
+  notifications: { ...DEFAULT_NOTIFICATION_SETTINGS },
 };
+
+function parseNotifications(raw: unknown): ClinicNotificationSettings {
+  const obj = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
+  return {
+    smsReminder: typeof obj.smsReminder === 'boolean' ? obj.smsReminder : DEFAULT_NOTIFICATION_SETTINGS.smsReminder,
+    whatsappReminder: typeof obj.whatsappReminder === 'boolean' ? obj.whatsappReminder : DEFAULT_NOTIFICATION_SETTINGS.whatsappReminder,
+    emailNotif: typeof obj.emailNotif === 'boolean' ? obj.emailNotif : DEFAULT_NOTIFICATION_SETTINGS.emailNotif,
+    reminder24h: typeof obj.reminder24h === 'boolean' ? obj.reminder24h : DEFAULT_NOTIFICATION_SETTINGS.reminder24h,
+    reminder1h: typeof obj.reminder1h === 'boolean' ? obj.reminder1h : DEFAULT_NOTIFICATION_SETTINGS.reminder1h,
+    resultReady: typeof obj.resultReady === 'boolean' ? obj.resultReady : DEFAULT_NOTIFICATION_SETTINGS.resultReady,
+  };
+}
 
 function parseSettings(raw: unknown): ClinicProfileSettings {
   const obj = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
@@ -54,6 +92,25 @@ function parseSettings(raw: unknown): ClinicProfileSettings {
       weekday: typeof hours.weekday === 'string' ? hours.weekday : DEFAULT_OPENING_HOURS.weekday,
       saturday: typeof hours.saturday === 'string' ? hours.saturday : DEFAULT_OPENING_HOURS.saturday,
       sunday: typeof hours.sunday === 'string' ? hours.sunday : DEFAULT_OPENING_HOURS.sunday,
+    },
+    notifications: parseNotifications(obj.notifications),
+  };
+}
+
+function mergeSettings(
+  current: ClinicProfileSettings,
+  patch: Partial<ClinicProfileSettings>,
+): ClinicProfileSettings {
+  return {
+    ...current,
+    ...patch,
+    opening_hours: {
+      ...current.opening_hours,
+      ...(patch.opening_hours ?? {}),
+    },
+    notifications: {
+      ...current.notifications,
+      ...(patch.notifications ?? {}),
     },
   };
 }
@@ -87,25 +144,18 @@ export class ClinicSettingsService {
     patch: {
       name?: string;
       logo_url?: string | null;
+      plan?: string;
       settings?: Partial<ClinicProfileSettings>;
     },
     existingSettings?: ClinicProfileSettings,
   ): Promise<void> {
     const current = existingSettings ?? DEFAULT_CLINIC_PROFILE_SETTINGS;
-    const nextSettings = patch.settings
-      ? {
-          ...current,
-          ...patch.settings,
-          opening_hours: {
-            ...current.opening_hours,
-            ...(patch.settings.opening_hours ?? {}),
-          },
-        }
-      : current;
+    const nextSettings = patch.settings ? mergeSettings(current, patch.settings) : current;
 
     const payload: Record<string, unknown> = {};
     if (patch.name !== undefined) payload.name = patch.name.trim();
     if (patch.logo_url !== undefined) payload.logo_url = patch.logo_url;
+    if (patch.plan !== undefined) payload.plan = patch.plan;
     if (patch.settings !== undefined) payload.settings = nextSettings;
 
     const { error } = await supabase
@@ -119,6 +169,20 @@ export class ClinicSettingsService {
         throw new Error('Seuls les administrateurs de la clinique peuvent modifier ces paramètres');
       }
       throw new Error(error.message || 'Impossible de sauvegarder le profil clinique');
+    }
+  }
+
+  async updateClinicPlan(clinicId: string, plan: string): Promise<void> {
+    const { error } = await supabase
+      .from('clinics')
+      .update({ plan })
+      .eq('id', clinicId);
+
+    if (error) {
+      if (error.code === '42501') {
+        throw new Error('Seuls les administrateurs de la clinique peuvent modifier le plan');
+      }
+      throw new Error(error.message || 'Impossible de mettre à jour le plan');
     }
   }
 
@@ -149,6 +213,42 @@ export class ClinicSettingsService {
     }
 
     return signed.signedUrl;
+  }
+
+  async getUserProfile(userId: string): Promise<UserProfile | null> {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('first_name, last_name, avatar_url')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Error loading user profile:', error);
+      throw new Error(error.message || 'Impossible de charger le profil utilisateur');
+    }
+
+    if (!data) return null;
+
+    return {
+      first_name: data.first_name ?? '',
+      last_name: data.last_name ?? '',
+      avatar_url: data.avatar_url,
+    };
+  }
+
+  async updateUserProfile(userId: string, patch: Partial<UserProfile>): Promise<void> {
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        ...(patch.first_name !== undefined ? { first_name: patch.first_name.trim() } : {}),
+        ...(patch.last_name !== undefined ? { last_name: patch.last_name.trim() } : {}),
+        ...(patch.avatar_url !== undefined ? { avatar_url: patch.avatar_url } : {}),
+      })
+      .eq('user_id', userId);
+
+    if (error) {
+      throw new Error(error.message || 'Impossible de sauvegarder le profil utilisateur');
+    }
   }
 }
 
