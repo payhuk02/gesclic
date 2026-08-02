@@ -170,7 +170,7 @@ export function IntegrationCatalog() {
         
         {loading ? (
           <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+            <div className="inline-block animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-primary" />
             <p className="mt-4 text-muted-foreground">Chargement...</p>
           </div>
         ) : regularIntegrations.length === 0 && featuredIntegrations.length === 0 ? (

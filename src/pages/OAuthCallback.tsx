@@ -70,11 +70,11 @@ const OAuthCallback = () => {
   }, [searchParams, user?.id]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-6">
-      <div className="max-w-md w-full bg-card border border-border rounded-xl p-8 text-center space-y-4">
-        {status === "loading" && <Loader2 className="w-10 h-10 animate-spin text-primary mx-auto" />}
-        {status === "success" && <CheckCircle2 className="w-10 h-10 text-green-600 mx-auto" />}
-        {status === "error" && <XCircle className="w-10 h-10 text-destructive mx-auto" />}
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 sm:p-6">
+      <div className="max-w-md w-full bg-card border border-border rounded-xl p-6 sm:p-8 text-center space-y-4">
+        {status === "loading" && <Loader2 className="w-8 h-8 sm:w-10 sm:h-10 animate-spin text-primary mx-auto" />}
+        {status === "success" && <CheckCircle2 className="w-8 h-8 sm:w-10 sm:h-10 text-green-600 mx-auto" />}
+        {status === "error" && <XCircle className="w-8 h-8 sm:w-10 sm:h-10 text-destructive mx-auto" />}
         <p className="text-foreground">{message}</p>
         {status !== "loading" && (
           <Button onClick={() => navigate("/integrations")}>Retour aux intégrations</Button>
