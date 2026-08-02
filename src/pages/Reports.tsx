@@ -80,10 +80,10 @@ const Reports = () => {
     <AppLayout title="Rapports & Statistiques">
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between gap-4">
-          <div className="flex items-center gap-2"><Activity className="w-5 h-5 text-primary" /><h2 className="text-lg font-semibold">Tableau analytique</h2></div>
-          <div className="flex gap-3 items-center">
+          <div className="flex items-center gap-2"><Activity className="w-4 h-4 sm:w-5 sm:h-5 text-primary" /><h2 className="text-base sm:text-lg font-semibold">Tableau analytique</h2></div>
+          <div className="flex gap-2 sm:gap-3 items-center">
             <Select value={period} onValueChange={setPeriod}>
-              <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-32 sm:w-40"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Toute période</SelectItem>
                 <SelectItem value="week">Cette semaine</SelectItem>

@@ -154,7 +154,7 @@ const Security = () => {
             <CardContent className="space-y-6">
               {loading ? (
                 <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                  <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 animate-spin text-primary" />
                 </div>
               ) : mfaEnabled ? (
                 <div className="space-y-4">
@@ -356,7 +356,7 @@ const Security = () => {
             <CardContent>
               {loading ? (
                 <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                  <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 animate-spin text-primary" />
                 </div>
               ) : auditLogs.length === 0 ? (
                 <EmptyState
@@ -402,7 +402,7 @@ const Security = () => {
             <CardContent>
               {loading ? (
                 <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                  <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 animate-spin text-primary" />
                 </div>
               ) : securityEvents.length === 0 ? (
                 <EmptyState

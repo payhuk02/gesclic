@@ -76,7 +76,7 @@ const Payments = () => {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
+        <div className="flex items-center justify-center py-16 sm:py-20"><Loader2 className="w-6 h-6 sm:w-8 sm:h-8 animate-spin text-primary" /></div>
       ) : (
         payments.length === 0 ? (
           <div className="bg-card rounded-xl shadow-card border border-border">

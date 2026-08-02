@@ -23,7 +23,7 @@ const PatientDetail = () => {
   const { records } = useMedicalRecords();
 
   if (loading) {
-    return <AppLayout title="Chargement..."><div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div></AppLayout>;
+    return <AppLayout title="Chargement..."><div className="flex justify-center py-16 sm:py-20"><Loader2 className="w-6 h-6 sm:w-8 sm:h-8 animate-spin text-primary" /></div></AppLayout>;
   }
 
   const patient = patients.find((p) => p.id === id);
@@ -95,11 +95,11 @@ const PatientDetail = () => {
       </div>
 
       <Tabs defaultValue="timeline" className="space-y-4">
-        <TabsList className="flex flex-wrap">
-          <TabsTrigger value="timeline"><Clock className="w-4 h-4 mr-1" />Dossiers</TabsTrigger>
-          <TabsTrigger value="appointments"><Calendar className="w-4 h-4 mr-1" />Rendez-vous</TabsTrigger>
-          <TabsTrigger value="prescriptions"><Pill className="w-4 h-4 mr-1" />Ordonnances</TabsTrigger>
-          <TabsTrigger value="payments"><CreditCard className="w-4 h-4 mr-1" />Paiements</TabsTrigger>
+        <TabsList className="flex flex-wrap w-full">
+          <TabsTrigger value="timeline" className="flex-1 sm:flex-none"><Clock className="w-4 h-4 mr-1" />Dossiers</TabsTrigger>
+          <TabsTrigger value="appointments" className="flex-1 sm:flex-none"><Calendar className="w-4 h-4 mr-1" />Rendez-vous</TabsTrigger>
+          <TabsTrigger value="prescriptions" className="flex-1 sm:flex-none"><Pill className="w-4 h-4 mr-1" />Ordonnances</TabsTrigger>
+          <TabsTrigger value="payments" className="flex-1 sm:flex-none"><CreditCard className="w-4 h-4 mr-1" />Paiements</TabsTrigger>
         </TabsList>
 
         <TabsContent value="timeline">

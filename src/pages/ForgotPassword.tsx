@@ -26,14 +26,14 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="min-h-dvh bg-background flex items-center justify-center p-6">
+    <div className="min-h-dvh bg-background flex items-center justify-center p-4 sm:p-6">
       <div className="w-full max-w-md">
-        <Link to="/" className="flex items-center gap-2 font-bold text-2xl mb-8">
-          <Heart className="w-8 h-8 text-primary fill-primary" />
+        <Link to="/" className="flex items-center gap-2 font-bold text-xl sm:text-2xl mb-6 sm:mb-8">
+          <Heart className="w-7 h-7 sm:w-8 sm:h-8 text-primary fill-primary" />
           <span>Medi<span className="text-primary">Flow</span></span>
         </Link>
-        <h2 className="text-2xl font-bold text-foreground mb-2">Mot de passe oublié</h2>
-        <p className="text-muted-foreground mb-8">
+        <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-2">Mot de passe oublié</h2>
+        <p className="text-muted-foreground mb-6 sm:mb-8">
           {sent ? "Vérifiez votre boîte mail pour le lien de réinitialisation." : "Entrez votre email pour recevoir un lien de réinitialisation."}
         </p>
         {!sent && (

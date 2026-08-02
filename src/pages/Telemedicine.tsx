@@ -296,8 +296,8 @@ const Telemedicine = () => {
           </div>
 
           {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <div className="flex items-center justify-center py-16 sm:py-20">
+              <Loader2 className="w-6 h-6 sm:w-8 sm:h-8 animate-spin text-primary" />
             </div>
           ) : filteredSessions.length === 0 ? (
             <EmptyState
