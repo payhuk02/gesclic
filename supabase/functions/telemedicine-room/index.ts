@@ -42,11 +42,13 @@ function buildRoomProperties(
     properties.nbf = nbf;
   }
 
-  if (settings?.enable_recording) {
+  // Cloud recording requires a paid Daily.co plan — opt-in via secret only
+  const recordingEnabled = Deno.env.get("DAILY_RECORDING_ENABLED") === "true";
+  if (recordingEnabled && settings?.enable_recording) {
     properties.enable_recording = "cloud";
   }
 
-  return { properties, safeExp };
+  return { properties, safeExp, recordingEnabled };
 }
 
 Deno.serve(async (req) => {
@@ -275,7 +277,7 @@ Deno.serve(async (req) => {
     }
 
 
-    const { properties: roomProperties, safeExp } = buildRoomProperties(
+    const { properties: roomProperties, safeExp, recordingEnabled } = buildRoomProperties(
       settings,
       nbf,
       exp,
@@ -360,7 +362,7 @@ Deno.serve(async (req) => {
     if (nbf > nowSec) {
       tokenProperties.nbf = nbf;
     }
-    if (isProvider && settings?.enable_recording) {
+    if (recordingEnabled && isProvider && settings?.enable_recording) {
       tokenProperties.enable_recording = "cloud";
     }
 
@@ -407,7 +409,7 @@ Deno.serve(async (req) => {
       token: tokenData.token,
       is_owner: isProvider,
       permissions: {
-        can_record: settings?.enable_recording ?? false,
+        can_record: recordingEnabled && (settings?.enable_recording ?? false),
         can_screen_share: settings?.enable_screen_sharing ?? true,
         can_chat: settings?.enable_chat ?? true,
       },
