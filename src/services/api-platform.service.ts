@@ -318,6 +318,53 @@ export class APIPlatformService {
   }
 
   /**
+   * Create API key for clinic (UI helper)
+   */
+  async createAPIKey(
+    clinicId: string,
+    options: {
+      name: string;
+      scopes: string[];
+      rate_limit?: number;
+      expires_in_days?: number;
+    },
+  ): Promise<{ secret: string; keyId: string }> {
+    const userId = await this.getCurrentUserId();
+    if (!userId) {
+      throw new Error('Utilisateur non authentifié');
+    }
+
+    const { apiKey, keyId } = await this.generateAPIKey(
+      userId,
+      clinicId,
+      options.name,
+      options.scopes,
+    );
+
+    const updates: Record<string, unknown> = {};
+    if (options.rate_limit) {
+      updates.requests_per_minute = options.rate_limit;
+    }
+    if (options.expires_in_days) {
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + options.expires_in_days);
+      updates.expires_at = expiresAt.toISOString();
+    }
+    if (Object.keys(updates).length > 0) {
+      await supabase.from('api_keys').update(updates).eq('id', keyId);
+    }
+
+    return { secret: apiKey, keyId };
+  }
+
+  /**
+   * Revoke API key
+   */
+  async revokeAPIKey(keyId: string): Promise<void> {
+    await this.toggleAPIKey(keyId, false);
+  }
+
+  /**
    * Get API request logs
    */
   async getAPIRequestLogs(
@@ -370,12 +417,21 @@ export class APIPlatformService {
 
       if (error) throw error;
 
-      const result = data[0];
+      const row = Array.isArray(data) ? data[0] : null;
+      if (!row) {
+        return {
+          total_requests: 0,
+          avg_response_time: 0,
+          success_rate: 0,
+          unique_ips: 0,
+        };
+      }
+
       return {
-        total_requests: Number(result.total_requests) || 0,
-        avg_response_time: Number(result.avg_response_time) || 0,
-        success_rate: Number(result.success_rate) || 0,
-        unique_ips: Number(result.unique_ips) || 0
+        total_requests: Number(row.total_requests) || 0,
+        avg_response_time: Number(row.avg_response_time) || 0,
+        success_rate: Number(row.success_rate) || 0,
+        unique_ips: Number(row.unique_ips) || 0,
       };
     } catch (error) {
       console.error('Error getting API usage summary:', error);

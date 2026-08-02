@@ -33,6 +33,33 @@ const emptyForm: APIKeyForm = {
   expiresIn: 365,
 };
 
+const normalizeScopes = (scopes: unknown): string[] =>
+  Array.isArray(scopes) ? scopes : [];
+
+const getKeyStatus = (key: { is_active?: boolean; expires_at?: string | null }) => {
+  if (key.is_active === false) return "revoked";
+  if (key.expires_at && new Date(key.expires_at) < new Date()) return "expired";
+  return "active";
+};
+
+const normalizeUsageSummary = (raw: {
+  total_requests: number;
+  avg_response_time: number;
+  success_rate: number;
+  unique_ips: number;
+}) => {
+  const total = raw.total_requests || 0;
+  const successful = Math.round(total * (raw.success_rate || 0) / 100);
+  return {
+    total_requests: total,
+    successful_requests: successful,
+    failed_requests: Math.max(0, total - successful),
+    average_response_time: Math.round(raw.avg_response_time || 0),
+    unique_ips: raw.unique_ips || 0,
+    requests_by_endpoint: [] as { endpoint: string; count: number }[],
+  };
+};
+
 const APIPlatform = () => {
   const { activeClinicId } = useClinic();
 
@@ -64,17 +91,24 @@ const APIPlatform = () => {
 
       setApiKeys(keys);
       setWebhookSubscriptions(subscriptions);
-      
-      // Get logs and usage for the first API key if available
+
       if (keys.length > 0) {
-        const [logs, usage] = await Promise.all([
-          apiPlatformService.getAPIRequestLogs(keys[0].id, 1, 50),
-          apiPlatformService.getAPIUsageSummary(keys[0].id, 30),
-        ]);
+        try {
+          const logs = await apiPlatformService.getAPIRequestLogs(keys[0].id, 1, 50);
+          setRequestLogs(logs.data ?? []);
+        } catch {
+          setRequestLogs([]);
+        }
 
-        setRequestLogs(logs);
-
-        setUsageSummary(usage);
+        try {
+          const usage = await apiPlatformService.getAPIUsageSummary(keys[0].id, 30);
+          setUsageSummary(normalizeUsageSummary(usage));
+        } catch {
+          setUsageSummary(null);
+        }
+      } else {
+        setRequestLogs([]);
+        setUsageSummary(null);
       }
     } catch (error) {
       console.error("Error loading API data:", error);
@@ -264,7 +298,8 @@ const APIPlatform = () => {
           ) : (
             <div className="grid gap-4">
               {apiKeys.map((key) => {
-                const config = statusConfig[key.status] || statusConfig.active;
+                const config = statusConfig[getKeyStatus(key)] || statusConfig.active;
+                const scopes = normalizeScopes(key.scopes);
                 return (
                   <Card key={key.id}>
                     <CardContent className="p-6">
@@ -281,7 +316,7 @@ const APIPlatform = () => {
                             </Button>
                           </div>
                           <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
-                            {key.scopes.map((scope: string) => (
+                            {scopes.map((scope: string) => (
                               <Badge key={scope} variant="outline">{scope}</Badge>
                             ))}
                           </div>
@@ -291,7 +326,7 @@ const APIPlatform = () => {
                           </p>
                         </div>
                         <div className="flex gap-2">
-                          {key.status === "active" && (
+                          {getKeyStatus(key) === "active" && (
                             <>
                               <Button size="sm" variant="outline" onClick={() => handleRevokeAPIKey(key.id)}>
                                 <Shield className="w-4 h-4 mr-2" />
@@ -345,12 +380,12 @@ const APIPlatform = () => {
                         {log.status_code}
                       </Badge>
                       <div className="flex-1">
-                        <p className="font-medium">{log.method} {log.endpoint}</p>
+                        <p className="font-medium">{log.method} {log.path ?? log.endpoint}</p>
                         <p className="text-sm text-muted-foreground">
                           {new Date(log.created_at).toLocaleString()}
                         </p>
                       </div>
-                      <Badge variant="outline">{log.response_time}ms</Badge>
+                      <Badge variant="outline">{log.response_time_ms ?? log.response_time ?? 0}ms</Badge>
                     </div>
                   ))}
                 </div>
@@ -386,11 +421,16 @@ const APIPlatform = () => {
                   {webhookSubscriptions.map((sub) => (
                     <div key={sub.id} className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg">
                       <div className="flex-1">
-                        <p className="font-medium">{sub.event_type}</p>
-                        <p className="text-sm text-muted-foreground">{sub.endpoint_url}</p>
+                        <p className="font-medium">{sub.name ?? sub.event_type ?? "Webhook"}</p>
+                        <p className="text-sm text-muted-foreground">{sub.url ?? sub.endpoint_url}</p>
+                        {Array.isArray(sub.events) && sub.events.length > 0 && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {sub.events.join(", ")}
+                          </p>
+                        )}
                       </div>
-                      <Badge variant={sub.active ? "default" : "secondary"}>
-                        {sub.active ? "Actif" : "Inactif"}
+                      <Badge variant={(sub.is_active ?? sub.active) ? "default" : "secondary"}>
+                        {(sub.is_active ?? sub.active) ? "Actif" : "Inactif"}
                       </Badge>
                     </div>
                   ))}
