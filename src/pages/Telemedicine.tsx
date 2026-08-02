@@ -235,7 +235,8 @@ const Telemedicine = () => {
 
   const copyPatientLink = async (sessionId: string) => {
     try {
-      await navigator.clipboard.writeText(telemedicineService.getPatientJoinUrl(sessionId));
+      const url = await telemedicineService.getPatientJoinUrl(sessionId);
+      await navigator.clipboard.writeText(url);
       toast.success("Lien patient copié dans le presse-papier");
     } catch {
       toast.error("Impossible de copier le lien");

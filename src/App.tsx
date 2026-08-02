@@ -118,7 +118,7 @@ const App = () => (
                   
                   {/* Phase 1 Features */}
                   <Route path="/telemedicine" element={<ProtectedPages><Telemedicine /></ProtectedPages>} />
-                  <Route path="/telemedicine/join/:sessionId" element={<ProtectedPages><TelemedicineJoin /></ProtectedPages>} />
+                  <Route path="/telemedicine/join/:sessionId" element={<TelemedicineJoin />} />
                   <Route path="/security" element={<ProtectedPages><Security /></ProtectedPages>} />
                   <Route path="/advanced-analytics" element={<ProtectedPages><AdvancedAnalytics /></ProtectedPages>} />
                   

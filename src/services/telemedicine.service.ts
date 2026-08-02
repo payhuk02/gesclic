@@ -141,7 +141,7 @@ export class TelemedicineService {
     appointmentId: string,
     clinicId: string,
     options?: { duration?: number; reason?: string },
-  ): Promise<string> {
+  ): Promise<{ sessionId: string; patientJoinToken: string }> {
     const { data: userData, error: userError } = await supabase.auth.getUser();
     if (userError || !userData.user) {
       throw new Error('Utilisateur non authentifié');
@@ -213,7 +213,7 @@ export class TelemedicineService {
         status: 'scheduled',
         consent_recording: false,
       })
-      .select('id')
+      .select('id, patient_join_token')
       .single();
 
     if (sessionError || !session) {
@@ -228,11 +228,101 @@ export class TelemedicineService {
         .eq('id', appointmentId);
     }
 
-    return session.id;
+    return {
+      sessionId: session.id,
+      patientJoinToken: session.patient_join_token,
+    };
   }
 
   /**
-   * Submit patient feedback after a completed session
+   * Guest patient: fetch session info via secure link token (no Gesclic account)
+   */
+  async getGuestSession(sessionId: string, token: string): Promise<TelemedicineSessionListItem | null> {
+    const { data, error } = await supabase.functions.invoke('telemedicine-guest', {
+      body: { sessionId, token, action: 'info' },
+    });
+
+    if (error || data?.error) {
+      return null;
+    }
+
+    return data.session as TelemedicineSessionListItem;
+  }
+
+  /**
+   * Guest patient: join video room via secure link token
+   */
+  async guestJoinSession(sessionId: string, token: string): Promise<JoinToken> {
+    const { data, error } = await supabase.functions.invoke('telemedicine-guest', {
+      body: { sessionId, token, action: 'join' },
+    });
+
+    if (error) {
+      throw new Error(await this.parseFunctionError(error, 'Impossible de rejoindre la session'));
+    }
+
+    if (data?.error) {
+      throw new Error(data.message ?? data.error);
+    }
+
+    return {
+      token: data.token,
+      room_url: data.room_url,
+      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      permissions: data.permissions ?? {
+        can_record: false,
+        can_screen_share: true,
+        can_chat: true,
+      },
+    };
+  }
+
+  /**
+   * Guest patient: submit feedback via secure link token
+   */
+  async guestSubmitFeedback(
+    sessionId: string,
+    token: string,
+    rating: number,
+    feedback?: string,
+  ): Promise<void> {
+    const { data, error } = await supabase.functions.invoke('telemedicine-guest', {
+      body: { sessionId, token, action: 'feedback', rating, feedback },
+    });
+
+    if (error) {
+      throw new Error(await this.parseFunctionError(error, 'Impossible d\'envoyer votre avis'));
+    }
+
+    if (data?.error) {
+      throw new Error(data.message ?? data.error);
+    }
+  }
+
+  /**
+   * Build patient join URL with secure token
+   */
+  async getPatientJoinUrl(sessionId: string): Promise<string> {
+    const { data, error } = await supabase
+      .from('telemedicine_sessions')
+      .select('patient_join_token')
+      .eq('id', sessionId)
+      .single();
+
+    if (error || !data?.patient_join_token) {
+      throw new Error('Impossible de générer le lien patient');
+    }
+
+    return `${window.location.origin}/telemedicine/join/${sessionId}?token=${data.patient_join_token}`;
+  }
+
+  /** @deprecated Use async getPatientJoinUrl */
+  buildPatientJoinUrl(sessionId: string, token: string): string {
+    return `${window.location.origin}/telemedicine/join/${sessionId}?token=${token}`;
+  }
+
+  /**
+   * Submit patient feedback after a completed session (authenticated patient)
    */
   async submitPatientFeedback(
     sessionId: string,
@@ -510,10 +600,6 @@ export class TelemedicineService {
   openVideoRoom(joinData: JoinToken): void {
     const roomUrl = `${joinData.room_url}${joinData.room_url.includes('?') ? '&' : '?'}t=${joinData.token}`;
     window.open(roomUrl, '_blank', 'noopener,noreferrer');
-  }
-
-  getPatientJoinUrl(sessionId: string): string {
-    return `${window.location.origin}/telemedicine/join/${sessionId}`;
   }
 
   private getDefaultSettings(): TelemedicineSettings {

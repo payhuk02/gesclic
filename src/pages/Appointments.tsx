@@ -68,13 +68,13 @@ const Appointments = () => {
     if (!activeClinicId) return;
     setCreatingVideoFor(appointmentId);
     try {
-      const sessionId = await telemedicineService.createSessionFromAppointment(
+      const { sessionId, patientJoinToken } = await telemedicineService.createSessionFromAppointment(
         appointmentId,
         activeClinicId,
       );
       toast.success("Session vidéo créée");
       await loadVideoSessions();
-      navigate(`/telemedicine/join/${sessionId}`);
+      navigate(`/telemedicine/join/${sessionId}?token=${patientJoinToken}`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Erreur création session vidéo");
     } finally {
