@@ -1,5 +1,5 @@
 import AppLayout from "@/components/layout/AppLayout";
-import { useAppointments, type AppointmentStatus } from "@/hooks/useAppointments";
+import { useAppointments } from "@/hooks/useAppointments";
 import { usePatients } from "@/hooks/usePatients";
 import { useDoctors } from "@/hooks/useDoctors";
 import { Badge } from "@/components/ui/badge";
@@ -23,12 +23,22 @@ import { Link, useNavigate } from "react-router-dom";
 
 
 
-const statusConfig: Record<AppointmentStatus, { label: string; className: string }> = {
+const statusConfig: Record<string, { label: string; className: string }> = {
   confirmed: { label: "Confirmé", className: "bg-success/10 text-success border-success/20" },
   pending: { label: "En attente", className: "bg-warning/10 text-warning border-warning/20" },
+  scheduled: { label: "Planifié", className: "bg-blue-500/10 text-blue-500 border-blue-500/20" },
+  planifie: { label: "Planifié", className: "bg-blue-500/10 text-blue-500 border-blue-500/20" },
   completed: { label: "Terminé", className: "bg-primary/10 text-primary border-primary/20" },
+  termine: { label: "Terminé", className: "bg-primary/10 text-primary border-primary/20" },
   cancelled: { label: "Annulé", className: "bg-destructive/10 text-destructive border-destructive/20" },
+  annule: { label: "Annulé", className: "bg-destructive/10 text-destructive border-destructive/20" },
+  no_show: { label: "Absence", className: "bg-muted text-muted-foreground border-border" },
 };
+
+const defaultStatusConfig = { label: "Inconnu", className: "bg-muted text-muted-foreground border-border" };
+
+const getStatusConfig = (status: string) =>
+  statusConfig[status] ?? { ...defaultStatusConfig, label: status || defaultStatusConfig.label };
 
 const HOURS = Array.from({ length: 11 }, (_, i) => i + 7);
 const DAYS_OF_WEEK = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
@@ -194,7 +204,7 @@ const Appointments = () => {
                       </thead>
                       <tbody>
                         {filtered.map((a) => {
-                          const sc = statusConfig[a.status];
+                          const sc = getStatusConfig(a.status);
                           return (
                             <tr key={a.id} className="border-b border-border last:border-0 hover:bg-secondary/20 transition-colors">
                               <td className="px-4 py-3 text-sm font-medium text-foreground">{a.patient_name}</td>
@@ -261,7 +271,7 @@ const Appointments = () => {
                       <div className="w-20 flex-shrink-0 px-3 py-2 text-xs font-medium text-muted-foreground bg-secondary/20 flex items-start pt-3">{hour}:00</div>
                       <div className="flex-1 p-1.5 flex flex-wrap gap-1.5">
                         {hourAppts.map((a) => {
-                          const sc = statusConfig[a.status];
+                          const sc = getStatusConfig(a.status);
                           return (
                             <div key={a.id} className={`rounded-lg px-3 py-2 text-xs flex-1 min-w-[200px] border ${sc.className} group relative`}>
                               <p className="font-semibold">{a.time} — {a.patient_name}</p>
@@ -307,7 +317,7 @@ const Appointments = () => {
                           return (
                             <div key={date} className="border-l border-border p-0.5">
                               {appts.map((a) => {
-                                const sc = statusConfig[a.status];
+                                const sc = getStatusConfig(a.status);
                                 return (
                                   <div key={a.id} className={`rounded px-1 sm:px-1.5 py-0.5 sm:py-1 text-[9px] sm:text-[10px] mb-0.5 border ${sc.className}`}>
                                     <span className="font-semibold">{a.time}</span> <span className="hidden sm:inline">{a.patient_name.split(" ")[0]}</span>
