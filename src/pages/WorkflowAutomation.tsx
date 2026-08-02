@@ -1,7 +1,7 @@
 import AppLayout from "@/components/layout/AppLayout";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
-import { Workflow, Play, Pause, Archive, Plus, Trash2, Edit, Clock, CheckCircle, AlertCircle, Loader2, Settings, Zap, FileText, Copy } from "lucide-react";
+import { Workflow, Play, Pause, Archive, Plus, Trash2, Clock, CheckCircle, AlertCircle, Loader2, Settings, Zap, FileText, Copy, ShieldAlert } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +12,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { workflowAutomationService } from "@/services/workflow-automation.service";
+import {
+  workflowAutomationService,
+  WORKFLOW_CATEGORIES,
+  type WorkflowCategory,
+} from "@/services/workflow-automation.service";
+import type { WorkflowExecutionListItem } from "@/services/workflow-automation.service";
 import { useClinic } from "@/contexts/ClinicContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -21,173 +26,242 @@ import EmptyState from "@/components/EmptyState";
 interface WorkflowForm {
   name: string;
   description: string;
-  category: string;
+  category: WorkflowCategory;
 }
 
 const emptyForm: WorkflowForm = {
   name: "",
   description: "",
-  category: "automation",
+  category: "custom",
+};
+
+const categoryLabels: Record<WorkflowCategory, string> = {
+  appointment: "Rendez-vous",
+  patient: "Patient",
+  billing: "Facturation",
+  notification: "Notification",
+  custom: "Personnalisé",
 };
 
 const WorkflowAutomation = () => {
-  const { activeClinicId } = useClinic();
-  const { user } = useAuth();
+  const { activeClinicId, hasClinicRole } = useClinic();
+  const { user, hasRole } = useAuth();
+  const canManage = hasRole("admin") || hasClinicRole("admin");
+
   const [workflows, setWorkflows] = useState<any[]>([]);
-  const [executions, setExecutions] = useState<any[]>([]);
+  const [executions, setExecutions] = useState<WorkflowExecutionListItem[]>([]);
   const [templates, setTemplates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [form, setForm] = useState<WorkflowForm>(emptyForm);
+  const [executionFilter, setExecutionFilter] = useState<string>("all");
 
-  const [selectedWorkflow, setSelectedWorkflow] = useState<any>(null);
-
-
-  useEffect(() => {
-    if (activeClinicId) {
-      loadData();
+  const loadExecutions = useCallback(async (clinicId: string, workflowId?: string) => {
+    try {
+      const result = await workflowAutomationService.getClinicExecutions(
+        clinicId,
+        1,
+        50,
+        workflowId,
+      );
+      setExecutions(result.data);
+    } catch (error) {
+      console.error("Error loading executions:", error);
+      setExecutions([]);
     }
-  }, [activeClinicId]);
+  }, []);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
+    if (!activeClinicId) return;
     try {
       setLoading(true);
       const [wfs, temps] = await Promise.all([
-
         workflowAutomationService.getWorkflows(activeClinicId),
-
         workflowAutomationService.getTemplates(),
       ]);
 
       setWorkflows(wfs);
       setTemplates(temps);
 
-      // Get executions for first workflow if available
-      if (wfs.length > 0) {
-        const execs = await workflowAutomationService.getExecutions(wfs[0].id, 1, 50);
-        setExecutions(execs.data || []);
-      }
+      const filterId = executionFilter === "all" ? undefined : executionFilter;
+      await loadExecutions(activeClinicId, filterId);
     } catch (error) {
       console.error("Error loading workflow data:", error);
       toast.error("Erreur lors du chargement des workflows");
     } finally {
       setLoading(false);
     }
+  }, [activeClinicId, executionFilter, loadExecutions]);
+
+  useEffect(() => {
+    if (activeClinicId) {
+      loadData();
+    }
+  }, [activeClinicId, loadData]);
+
+  const handleActionError = (error: unknown, fallback: string) => {
+    toast.error(error instanceof Error ? error.message : fallback);
   };
 
   const handleCreateWorkflow = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canManage) {
+      toast.error("Action réservée aux administrateurs de la clinique.");
+      return;
+    }
     try {
-      if (!user) return;
+      if (!user || !activeClinicId) return;
 
       await workflowAutomationService.createWorkflow(
-
         activeClinicId,
-
         user.id,
         form.name,
         form.description,
         form.category,
-        { nodes: [], edges: [], triggers: [] }
+        { nodes: [], edges: [], triggers: [] },
       );
 
       setCreateDialogOpen(false);
       setForm(emptyForm);
       loadData();
-      toast.success("Workflow créé avec succès");
+      toast.success("Workflow créé (brouillon) — activez-le pour l'exécuter");
     } catch (error) {
       console.error("Error creating workflow:", error);
-      toast.error("Erreur lors de la création du workflow");
+      handleActionError(error, "Erreur lors de la création du workflow");
     }
   };
 
   const handleExecuteWorkflow = async (workflowId: string) => {
     try {
       if (!user) return;
-
-      const executionId = await workflowAutomationService.executeWorkflow(workflowId, user.id);
-
+      await workflowAutomationService.executeWorkflow(workflowId, user.id);
       toast.success("Workflow exécuté avec succès");
       loadData();
     } catch (error) {
       console.error("Error executing workflow:", error);
-      toast.error("Erreur lors de l'exécution du workflow");
+      handleActionError(error, "Erreur lors de l'exécution du workflow");
     }
   };
 
   const handleActivateWorkflow = async (workflowId: string) => {
+    if (!canManage) {
+      toast.error("Action réservée aux administrateurs de la clinique.");
+      return;
+    }
     try {
       await workflowAutomationService.activateWorkflow(workflowId);
       loadData();
       toast.success("Workflow activé");
     } catch (error) {
-      console.error("Error activating workflow:", error);
-      toast.error("Erreur lors de l'activation du workflow");
+      handleActionError(error, "Erreur lors de l'activation du workflow");
     }
   };
 
   const handlePauseWorkflow = async (workflowId: string) => {
+    if (!canManage) {
+      toast.error("Action réservée aux administrateurs de la clinique.");
+      return;
+    }
     try {
       await workflowAutomationService.pauseWorkflow(workflowId);
       loadData();
       toast.success("Workflow mis en pause");
     } catch (error) {
-      console.error("Error pausing workflow:", error);
-      toast.error("Erreur lors de la pause du workflow");
+      handleActionError(error, "Erreur lors de la pause du workflow");
     }
   };
 
   const handleArchiveWorkflow = async (workflowId: string) => {
+    if (!canManage) {
+      toast.error("Action réservée aux administrateurs de la clinique.");
+      return;
+    }
     try {
       await workflowAutomationService.archiveWorkflow(workflowId);
       loadData();
       toast.success("Workflow archivé");
     } catch (error) {
-      console.error("Error archiving workflow:", error);
-      toast.error("Erreur lors de l'archivage du workflow");
+      handleActionError(error, "Erreur lors de l'archivage du workflow");
     }
   };
 
   const handleDeleteWorkflow = async (workflowId: string) => {
+    if (!canManage) {
+      toast.error("Action réservée aux administrateurs de la clinique.");
+      return;
+    }
     try {
       await workflowAutomationService.deleteWorkflow(workflowId);
       loadData();
       toast.success("Workflow supprimé");
     } catch (error) {
-      console.error("Error deleting workflow:", error);
-      toast.error("Erreur lors de la suppression du workflow");
+      handleActionError(error, "Erreur lors de la suppression du workflow");
     }
   };
 
   const handleCreateFromTemplate = async (templateId: string) => {
+    if (!canManage) {
+      toast.error("Action réservée aux administrateurs de la clinique.");
+      return;
+    }
     try {
-      if (!user) return;
+      if (!user || !activeClinicId) return;
 
-      await workflowAutomationService.createFromTemplate(templateId, activeClinicId, user.id, "Workflow from Template");
+      await workflowAutomationService.createFromTemplate(
+        templateId,
+        activeClinicId,
+        user.id,
+        "Workflow depuis template",
+      );
 
       loadData();
-      toast.success("Workflow créé depuis le template");
+      toast.success("Workflow créé depuis le template (brouillon)");
     } catch (error) {
-      console.error("Error creating from template:", error);
-      toast.error("Erreur lors de la création depuis le template");
+      handleActionError(error, "Erreur lors de la création depuis le template");
     }
   };
 
-  const statusConfig: Record<string, { label: string; icon: any; className: string }> = {
+  const statusConfig: Record<string, { label: string; icon: typeof Play; className: string }> = {
+    draft: { label: "Brouillon", icon: FileText, className: "bg-blue-500/10 text-blue-500 border-blue-500/20" },
     active: { label: "Actif", icon: Play, className: "bg-success/10 text-success border-success/20" },
     paused: { label: "En pause", icon: Pause, className: "bg-warning/10 text-warning border-warning/20" },
     archived: { label: "Archivé", icon: Archive, className: "bg-muted text-muted-foreground" },
   };
 
-  const executionStatusConfig: Record<string, { label: string; icon: any; className: string }> = {
-    pending: { label: "En attente", icon: Clock, className: "bg-muted text-muted-foreground" },
+  const executionStatusConfig: Record<string, { label: string; icon: typeof Clock; className: string }> = {
     running: { label: "En cours", icon: Loader2, className: "bg-blue-500/10 text-blue-500 border-blue-500/20" },
     completed: { label: "Terminé", icon: CheckCircle, className: "bg-success/10 text-success border-success/20" },
     failed: { label: "Échoué", icon: AlertCircle, className: "bg-destructive/10 text-destructive border-destructive/20" },
+    cancelled: { label: "Annulé", icon: Archive, className: "bg-muted text-muted-foreground" },
+    paused: { label: "En pause", icon: Pause, className: "bg-warning/10 text-warning border-warning/20" },
+  };
+
+  const getExecutionDuration = (execution: WorkflowExecutionListItem) => {
+    if (execution.duration_seconds != null) return `${execution.duration_seconds}s`;
+    if (execution.completed_at) {
+      return `${Math.round(
+        (new Date(execution.completed_at).getTime() - new Date(execution.started_at).getTime()) / 1000,
+      )}s`;
+    }
+    return null;
   };
 
   return (
     <AppLayout title="Workflow Automation">
+      {!canManage && (
+        <Card className="mb-6 border-warning/30 bg-warning/5">
+          <CardContent className="py-4 flex items-start gap-3">
+            <ShieldAlert className="w-5 h-5 text-warning shrink-0 mt-0.5" />
+            <div className="text-sm">
+              <p className="font-medium text-foreground">Consultation seule</p>
+              <p className="text-muted-foreground">
+                Seuls les administrateurs de la clinique peuvent créer, modifier ou supprimer des workflows.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Tabs defaultValue="workflows" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="workflows">Workflows</TabsTrigger>
@@ -196,55 +270,61 @@ const WorkflowAutomation = () => {
         </TabsList>
 
         <TabsContent value="workflows" className="space-y-6">
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center gap-4 flex-wrap">
             <p className="text-muted-foreground">{workflows.length} workflow{workflows.length > 1 ? "s" : ""}</p>
-            <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Nouveau Workflow
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-lg">
-                <DialogHeader>
-                  <DialogTitle>Créer un Workflow</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleCreateWorkflow} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Nom</Label>
-                    <Input
-                      placeholder="Mon Workflow"
-                      value={form.name}
-                      onChange={(e) => setForm({ ...form, name: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Description</Label>
-                    <Textarea
-                      placeholder="Description du workflow..."
-                      value={form.description}
-                      onChange={(e) => setForm({ ...form, description: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Catégorie</Label>
-                    <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="automation">Automatisation</SelectItem>
-                        <SelectItem value="notification">Notification</SelectItem>
-                        <SelectItem value="integration">Intégration</SelectItem>
-                        <SelectItem value="reporting">Reporting</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <Button type="submit" className="w-full">Créer le Workflow</Button>
-                </form>
-              </DialogContent>
-            </Dialog>
+            {canManage && (
+              <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Nouveau Workflow
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-lg">
+                  <DialogHeader>
+                    <DialogTitle>Créer un Workflow</DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={handleCreateWorkflow} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Nom</Label>
+                      <Input
+                        placeholder="Mon Workflow"
+                        value={form.name}
+                        onChange={(e) => setForm({ ...form, name: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Description</Label>
+                      <Textarea
+                        placeholder="Description du workflow..."
+                        value={form.description}
+                        onChange={(e) => setForm({ ...form, description: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Catégorie</Label>
+                      <Select
+                        value={form.category}
+                        onValueChange={(v) => setForm({ ...form, category: v as WorkflowCategory })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {WORKFLOW_CATEGORIES.map((cat) => (
+                            <SelectItem key={cat} value={cat}>
+                              {categoryLabels[cat]}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button type="submit" className="w-full">Créer le Workflow</Button>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
 
           {loading ? (
@@ -260,14 +340,15 @@ const WorkflowAutomation = () => {
           ) : (
             <div className="grid gap-4">
               {workflows.map((workflow) => {
-                const config = statusConfig[workflow.status] || statusConfig.paused;
+                const config = statusConfig[workflow.status] || statusConfig.draft;
                 const StatusIcon = config.icon;
+                const canActivate = ["draft", "paused"].includes(workflow.status);
                 return (
                   <Card key={workflow.id}>
                     <CardContent className="p-6">
                       <div className="flex flex-col sm:flex-row gap-4 justify-between items-start">
                         <div className="flex-1 space-y-2">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <h3 className="font-semibold">{workflow.name}</h3>
                             <Badge className={config.className}>
                               <StatusIcon className="w-3 h-3 mr-1" />
@@ -278,39 +359,43 @@ const WorkflowAutomation = () => {
                             <p className="text-sm text-muted-foreground">{workflow.description}</p>
                           )}
                           <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
-                            <Badge variant="outline">{workflow.category}</Badge>
+                            <Badge variant="outline">
+                              {categoryLabels[workflow.category as WorkflowCategory] ?? workflow.category}
+                            </Badge>
                             <span>Créé le {new Date(workflow.created_at).toLocaleDateString()}</span>
                           </div>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2">
                           {workflow.status === "active" && (
                             <Button size="sm" onClick={() => handleExecuteWorkflow(workflow.id)}>
                               <Play className="w-4 h-4 mr-2" />
                               Exécuter
                             </Button>
                           )}
-                          {workflow.status === "active" && (
-                            <Button size="sm" variant="outline" onClick={() => handlePauseWorkflow(workflow.id)}>
-                              <Pause className="w-4 h-4 mr-2" />
-                              Pause
-                            </Button>
-                          )}
-                          {workflow.status === "paused" && (
+                          {canManage && canActivate && (
                             <Button size="sm" onClick={() => handleActivateWorkflow(workflow.id)}>
                               <Play className="w-4 h-4 mr-2" />
                               Activer
                             </Button>
                           )}
-                          {workflow.status !== "archived" && (
+                          {canManage && workflow.status === "active" && (
+                            <Button size="sm" variant="outline" onClick={() => handlePauseWorkflow(workflow.id)}>
+                              <Pause className="w-4 h-4 mr-2" />
+                              Pause
+                            </Button>
+                          )}
+                          {canManage && workflow.status !== "archived" && (
                             <Button size="sm" variant="outline" onClick={() => handleArchiveWorkflow(workflow.id)}>
                               <Archive className="w-4 h-4 mr-2" />
                               Archiver
                             </Button>
                           )}
-                          <Button size="sm" variant="destructive" onClick={() => handleDeleteWorkflow(workflow.id)}>
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Supprimer
-                          </Button>
+                          {canManage && (
+                            <Button size="sm" variant="destructive" onClick={() => handleDeleteWorkflow(workflow.id)}>
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Supprimer
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </CardContent>
@@ -324,13 +409,40 @@ const WorkflowAutomation = () => {
         <TabsContent value="executions" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Zap className="w-5 h-5" />
-                Exécutions de Workflows
-              </CardTitle>
-              <CardDescription>
-                Historique des exécutions de workflows
-              </CardDescription>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Zap className="w-5 h-5" />
+                    Exécutions de Workflows
+                  </CardTitle>
+                  <CardDescription>
+                    Historique des exécutions de la clinique
+                  </CardDescription>
+                </div>
+                {workflows.length > 0 && (
+                  <Select
+                    value={executionFilter}
+                    onValueChange={(v) => {
+                      setExecutionFilter(v);
+                      if (activeClinicId) {
+                        loadExecutions(activeClinicId, v === "all" ? undefined : v);
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="w-full sm:w-56">
+                      <SelectValue placeholder="Filtrer par workflow" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tous les workflows</SelectItem>
+                      {workflows.map((w) => (
+                        <SelectItem key={w.id} value={w.id}>
+                          {w.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               {loading ? (
@@ -346,24 +458,27 @@ const WorkflowAutomation = () => {
               ) : (
                 <div className="space-y-3">
                   {executions.map((execution) => {
-                    const config = executionStatusConfig[execution.status] || executionStatusConfig.pending;
+                    const config = executionStatusConfig[execution.status] || executionStatusConfig.running;
                     const StatusIcon = config.icon;
+                    const duration = getExecutionDuration(execution);
                     return (
                       <div key={execution.id} className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg">
                         <Badge className={config.className}>
                           <StatusIcon className="w-3 h-3 mr-1" />
                           {config.label}
                         </Badge>
-                        <div className="flex-1">
-                          <p className="font-medium">{execution.workflow_name}</p>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{execution.workflow_name}</p>
                           <p className="text-sm text-muted-foreground">
                             {new Date(execution.started_at).toLocaleString()}
+                            {execution.trigger_type && ` · ${execution.trigger_type}`}
                           </p>
+                          {execution.error_message && (
+                            <p className="text-xs text-destructive mt-1 truncate">{execution.error_message}</p>
+                          )}
                         </div>
-                        {execution.completed_at && (
-                          <Badge variant="outline">
-                            {Math.round((new Date(execution.completed_at).getTime() - new Date(execution.started_at).getTime()) / 1000)}s
-                          </Badge>
+                        {duration && (
+                          <Badge variant="outline">{duration}</Badge>
                         )}
                       </div>
                     );
@@ -399,7 +514,7 @@ const WorkflowAutomation = () => {
               ) : (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {templates.map((template) => (
-                    <Card key={template.id} className="cursor-pointer hover:border-primary transition-colors">
+                    <Card key={template.id} className="hover:border-primary transition-colors">
                       <CardContent className="p-6">
                         <div className="space-y-3">
                           <div className="flex items-center gap-2">
@@ -407,15 +522,23 @@ const WorkflowAutomation = () => {
                             <h3 className="font-semibold">{template.name}</h3>
                           </div>
                           <p className="text-sm text-muted-foreground">{template.description}</p>
-                          <Badge variant="outline">{template.category}</Badge>
-                          <Button
-                            size="sm"
-                            className="w-full"
-                            onClick={() => handleCreateFromTemplate(template.id)}
-                          >
-                            <Copy className="w-4 h-4 mr-2" />
-                            Utiliser ce Template
-                          </Button>
+                          <Badge variant="outline">
+                            {categoryLabels[template.category as WorkflowCategory] ?? template.category}
+                          </Badge>
+                          {canManage ? (
+                            <Button
+                              size="sm"
+                              className="w-full"
+                              onClick={() => handleCreateFromTemplate(template.id)}
+                            >
+                              <Copy className="w-4 h-4 mr-2" />
+                              Utiliser ce Template
+                            </Button>
+                          ) : (
+                            <p className="text-xs text-muted-foreground text-center">
+                              Réservé aux administrateurs
+                            </p>
+                          )}
                         </div>
                       </CardContent>
                     </Card>

@@ -11,7 +11,37 @@ import type {
   PaginatedResponse
 } from '@/types/phase2';
 
+/** Categories allowed by workflow_definitions.category CHECK constraint */
+export const WORKFLOW_CATEGORIES = [
+  'appointment',
+  'patient',
+  'billing',
+  'notification',
+  'custom',
+] as const;
+
+export type WorkflowCategory = (typeof WORKFLOW_CATEGORIES)[number];
+
+export type WorkflowExecutionListItem = WorkflowExecution & {
+  workflow_name: string;
+};
+
 export class WorkflowAutomationService {
+  private formatServiceError(error: unknown, fallback: string): Error {
+    if (error && typeof error === 'object') {
+      const err = error as { code?: string; message?: string };
+      if (err.code === '42501' || err.message?.toLowerCase().includes('policy')) {
+        return new Error('Action réservée aux administrateurs de la clinique.');
+      }
+      if (err.code === '23514') {
+        return new Error('Catégorie ou statut invalide pour ce workflow.');
+      }
+      if (err.message) {
+        return new Error(err.message);
+      }
+    }
+    return new Error(fallback);
+  }
   /**
    * Create workflow definition
    */
@@ -47,7 +77,7 @@ export class WorkflowAutomationService {
 
     } catch (error) {
       console.error('Error creating workflow:', error);
-      throw new Error('Failed to create workflow');
+      throw this.formatServiceError(error, 'Impossible de créer le workflow');
     }
   }
 
@@ -114,7 +144,7 @@ export class WorkflowAutomationService {
       if (error) throw error;
     } catch (error) {
       console.error('Error updating workflow:', error);
-      throw new Error('Failed to update workflow');
+      throw this.formatServiceError(error, 'Impossible de modifier le workflow');
     }
   }
 
@@ -131,7 +161,7 @@ export class WorkflowAutomationService {
       if (error) throw error;
     } catch (error) {
       console.error('Error deleting workflow:', error);
-      throw new Error('Failed to delete workflow');
+      throw this.formatServiceError(error, 'Impossible de supprimer le workflow');
     }
   }
 
@@ -190,7 +220,7 @@ export class WorkflowAutomationService {
       return data;
     } catch (error) {
       console.error('Error executing workflow:', error);
-      throw new Error('Failed to execute workflow');
+      throw this.formatServiceError(error, 'Impossible d\'exécuter le workflow');
     }
   }
 
@@ -282,38 +312,106 @@ export class WorkflowAutomationService {
   }
 
   /**
+   * Get executions for all workflows in a clinic (with workflow name)
+   */
+  async getClinicExecutions(
+    clinicId: string,
+    page: number = 1,
+    perPage: number = 50,
+    workflowId?: string,
+  ): Promise<PaginatedResponse<WorkflowExecutionListItem>> {
+    try {
+      const from = (page - 1) * perPage;
+      const to = from + perPage - 1;
+
+      let query = supabase
+        .from('workflow_executions')
+        .select(
+          `
+          *,
+          workflow_definitions!inner(name, clinic_id)
+        `,
+          { count: 'exact' },
+        )
+        .eq('workflow_definitions.clinic_id', clinicId)
+        .order('started_at', { ascending: false })
+        .range(from, to);
+
+      if (workflowId) {
+        query = query.eq('workflow_id', workflowId);
+      }
+
+      const { data, error, count } = await query;
+      if (error) throw error;
+
+      const rows: WorkflowExecutionListItem[] = (data || []).map((row) => {
+        const def = row.workflow_definitions as { name?: string } | { name?: string }[] | null;
+        const name = Array.isArray(def) ? def[0]?.name : def?.name;
+        const { workflow_definitions: _omit, ...execution } = row as WorkflowExecution & {
+          workflow_definitions?: unknown;
+        };
+        return { ...execution, workflow_name: name ?? 'Workflow' };
+      });
+
+      return {
+        data: rows,
+        total: count || 0,
+        page,
+        per_page: perPage,
+        total_pages: Math.ceil((count || 0) / perPage),
+      };
+    } catch (error) {
+      console.error('Error getting clinic executions:', error);
+      throw this.formatServiceError(error, 'Impossible de charger les exécutions');
+    }
+  }
+
+  /**
    * Get workflow executions
    */
   async getExecutions(
     workflowId: string,
     page: number = 1,
     perPage: number = 50
-  ): Promise<PaginatedResponse<WorkflowExecution>> {
+  ): Promise<PaginatedResponse<WorkflowExecutionListItem>> {
     try {
       const from = (page - 1) * perPage;
       const to = from + perPage - 1;
 
       const { data, error, count } = await supabase
         .from('workflow_executions')
-        .select('*', { count: 'exact' })
+        .select(
+          `
+          *,
+          workflow_definitions(name)
+        `,
+          { count: 'exact' },
+        )
         .eq('workflow_id', workflowId)
         .order('started_at', { ascending: false })
         .range(from, to);
 
       if (error) throw error;
 
+      const rows: WorkflowExecutionListItem[] = (data || []).map((row) => {
+        const def = row.workflow_definitions as { name?: string } | { name?: string }[] | null;
+        const name = Array.isArray(def) ? def[0]?.name : def?.name;
+        const { workflow_definitions: _omit, ...execution } = row as WorkflowExecution & {
+          workflow_definitions?: unknown;
+        };
+        return { ...execution, workflow_name: name ?? 'Workflow' };
+      });
+
       return {
-
-        data: data || [],
-
+        data: rows,
         total: count || 0,
         page,
         per_page: perPage,
-        total_pages: Math.ceil((count || 0) / perPage)
+        total_pages: Math.ceil((count || 0) / perPage),
       };
     } catch (error) {
       console.error('Error getting executions:', error);
-      throw new Error('Failed to get workflow executions');
+      throw this.formatServiceError(error, 'Impossible de charger les exécutions');
     }
   }
 
@@ -422,13 +520,23 @@ export class WorkflowAutomationService {
 
       if (error) throw error;
 
-      const result = data[0];
+      const result = Array.isArray(data) ? data[0] : null;
+      if (!result) {
+        return {
+          total_executions: 0,
+          successful_executions: 0,
+          failed_executions: 0,
+          success_rate: 0,
+          avg_duration_seconds: 0,
+        };
+      }
+
       return {
         total_executions: Number(result.total_executions) || 0,
         successful_executions: Number(result.successful_executions) || 0,
         failed_executions: Number(result.failed_executions) || 0,
         success_rate: Number(result.success_rate) || 0,
-        avg_duration_seconds: Number(result.avg_duration_seconds) || 0
+        avg_duration_seconds: Number(result.avg_duration_seconds) || 0,
       };
     } catch (error) {
       console.error('Error getting workflow analytics:', error);
@@ -533,7 +641,7 @@ export class WorkflowAutomationService {
       );
     } catch (error) {
       console.error('Error creating workflow from template:', error);
-      throw new Error('Failed to create workflow from template');
+      throw this.formatServiceError(error, 'Impossible de créer le workflow depuis le template');
     }
   }
 

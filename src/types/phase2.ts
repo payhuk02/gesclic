@@ -355,6 +355,9 @@ export interface WorkflowExecution {
   started_at: string;
   completed_at?: string;
   duration_seconds?: number;
+
+  /** Joined from workflow_definitions */
+  workflow_name?: string;
 }
 
 // Workflow Log
