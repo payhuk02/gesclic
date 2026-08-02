@@ -1,7 +1,7 @@
 import AppLayout from "@/components/layout/AppLayout";
 import { useState, useEffect, useCallback } from "react";
 
-import { Workflow, Play, Pause, Archive, Plus, Trash2, Clock, CheckCircle, AlertCircle, Loader2, Settings, Zap, FileText, Copy, ShieldAlert, Pencil } from "lucide-react";
+import { Workflow, Play, Pause, Archive, Plus, Trash2, Clock, CheckCircle, AlertCircle, Loader2, Settings, Zap, FileText, Copy, ShieldAlert, Pencil, BarChart3, Eye } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,9 +27,11 @@ import {
   graphToSteps,
   emptyWorkflowStep,
   stepsToGraph,
+  getEventType,
+  getScheduleCron,
   type WorkflowEditorStep,
 } from "@/lib/workflow-steps";
-import type { WorkflowGraph } from "@/types/phase2";
+import type { WorkflowGraph, WorkflowLog } from "@/types/phase2";
 
 interface WorkflowForm {
   name: string;
@@ -51,6 +53,27 @@ const categoryLabels: Record<WorkflowCategory, string> = {
   custom: "Personnalisé",
 };
 
+const triggerTypeLabels: Record<string, string> = {
+  manual: "Manuel",
+  event: "Événement",
+  schedule: "Planifié",
+  webhook: "Webhook",
+};
+
+const eventTypeLabels: Record<string, string> = {
+  patient_created: "Création patient",
+  payment_completed: "Paiement reçu",
+  appointment_created: "Création RDV",
+};
+
+interface WorkflowAnalyticsSummary {
+  total_executions: number;
+  successful_executions: number;
+  failed_executions: number;
+  success_rate: number;
+  avg_duration_seconds: number;
+}
+
 const WorkflowAutomation = () => {
   const { activeClinicId, hasClinicRole } = useClinic();
   const { user, hasRole } = useAuth();
@@ -70,6 +93,11 @@ const WorkflowAutomation = () => {
   const [savingSteps, setSavingSteps] = useState(false);
   const [form, setForm] = useState<WorkflowForm>(emptyForm);
   const [executionFilter, setExecutionFilter] = useState<string>("all");
+  const [selectedExecution, setSelectedExecution] = useState<WorkflowExecutionListItem | null>(null);
+  const [executionLogs, setExecutionLogs] = useState<WorkflowLog[]>([]);
+  const [loadingLogs, setLoadingLogs] = useState(false);
+  const [analyticsByWorkflow, setAnalyticsByWorkflow] = useState<Record<string, WorkflowAnalyticsSummary>>({});
+  const [clinicAnalytics, setClinicAnalytics] = useState<WorkflowAnalyticsSummary | null>(null);
 
   const loadExecutions = useCallback(async (clinicId: string, workflowId?: string) => {
     try {
@@ -83,6 +111,40 @@ const WorkflowAutomation = () => {
     } catch (error) {
       console.error("Error loading executions:", error);
       setExecutions([]);
+    }
+  }, []);
+
+  const loadAnalytics = useCallback(async (workflowList: { id: string }[]) => {
+    try {
+      await workflowAutomationService.refreshWorkflowAnalytics();
+      const entries = await Promise.all(
+        workflowList.map(async (w) => {
+          const stats = await workflowAutomationService.getWorkflowAnalytics(w.id, 30);
+          return [w.id, stats] as const;
+        }),
+      );
+      const map = Object.fromEntries(entries);
+      setAnalyticsByWorkflow(map);
+
+      const totals = entries.reduce(
+        (acc, [, s]) => ({
+          total_executions: acc.total_executions + s.total_executions,
+          successful_executions: acc.successful_executions + s.successful_executions,
+          failed_executions: acc.failed_executions + s.failed_executions,
+          success_rate: 0,
+          avg_duration_seconds: acc.avg_duration_seconds + s.avg_duration_seconds,
+        }),
+        { total_executions: 0, successful_executions: 0, failed_executions: 0, success_rate: 0, avg_duration_seconds: 0 },
+      );
+      totals.success_rate = totals.total_executions > 0
+        ? (totals.successful_executions / totals.total_executions) * 100
+        : 0;
+      totals.avg_duration_seconds = workflowList.length > 0
+        ? totals.avg_duration_seconds / workflowList.length
+        : 0;
+      setClinicAnalytics(totals);
+    } catch (error) {
+      console.error("Error loading analytics:", error);
     }
   }, []);
 
@@ -100,13 +162,14 @@ const WorkflowAutomation = () => {
 
       const filterId = executionFilter === "all" ? undefined : executionFilter;
       await loadExecutions(activeClinicId, filterId);
+      await loadAnalytics(wfs);
     } catch (error) {
       console.error("Error loading workflow data:", error);
       toast.error("Erreur lors du chargement des workflows");
     } finally {
       setLoading(false);
     }
-  }, [activeClinicId, executionFilter, loadExecutions]);
+  }, [activeClinicId, executionFilter, loadExecutions, loadAnalytics]);
 
   useEffect(() => {
     if (activeClinicId && workflowEnabled) {
@@ -276,6 +339,27 @@ const WorkflowAutomation = () => {
     setEditSteps((prev) => prev.map((s, i) => (i === index ? { ...s, ...patch } : s)));
   };
 
+  const openExecutionDetail = async (execution: WorkflowExecutionListItem) => {
+    setSelectedExecution(execution);
+    setLoadingLogs(true);
+    try {
+      const logs = await workflowAutomationService.getExecutionLogs(execution.id);
+      setExecutionLogs(logs);
+    } catch {
+      setExecutionLogs([]);
+    } finally {
+      setLoadingLogs(false);
+    }
+  };
+
+  const getWorkflowTriggerLabel = (definition: WorkflowGraph) => {
+    const event = getEventType(definition);
+    if (event) return eventTypeLabels[event] ?? event;
+    const cron = getScheduleCron(definition);
+    if (cron) return `Planifié (${cron})`;
+    return "Manuel";
+  };
+
   const statusConfig: Record<string, { label: string; icon: typeof Play; className: string }> = {
     draft: { label: "Brouillon", icon: FileText, className: "bg-blue-500/10 text-blue-500 border-blue-500/20" },
     active: { label: "Actif", icon: Play, className: "bg-success/10 text-success border-success/20" },
@@ -326,9 +410,10 @@ const WorkflowAutomation = () => {
       )}
 
       <Tabs defaultValue="workflows" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="workflows">Workflows</TabsTrigger>
           <TabsTrigger value="executions">Exécutions</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="templates">Templates</TabsTrigger>
         </TabsList>
 
@@ -425,7 +510,15 @@ const WorkflowAutomation = () => {
                             <Badge variant="outline">
                               {categoryLabels[workflow.category as WorkflowCategory] ?? workflow.category}
                             </Badge>
+                            <Badge variant="secondary">
+                              {getWorkflowTriggerLabel(workflow.definition as WorkflowGraph)}
+                            </Badge>
                             <span>Créé le {new Date(workflow.created_at).toLocaleDateString()}</span>
+                            {analyticsByWorkflow[workflow.id]?.total_executions > 0 && (
+                              <span>
+                                · {Math.round(analyticsByWorkflow[workflow.id].success_rate)}% succès (30j)
+                              </span>
+                            )}
                           </div>
                         </div>
                         <div className="flex flex-wrap gap-2">
@@ -544,7 +637,7 @@ const WorkflowAutomation = () => {
                           <p className="font-medium truncate">{execution.workflow_name}</p>
                           <p className="text-sm text-muted-foreground">
                             {new Date(execution.started_at).toLocaleString()}
-                            {execution.trigger_type && ` · ${execution.trigger_type}`}
+                            {execution.trigger_type && ` · ${triggerTypeLabels[execution.trigger_type] ?? execution.trigger_type}`}
                           </p>
                           {execution.error_message && (
                             <p className="text-xs text-destructive mt-1 truncate">{execution.error_message}</p>
@@ -553,9 +646,88 @@ const WorkflowAutomation = () => {
                         {duration && (
                           <Badge variant="outline">{duration}</Badge>
                         )}
+                        <Button size="sm" variant="ghost" onClick={() => openExecutionDetail(execution)}>
+                          <Eye className="w-4 h-4 mr-1" />
+                          Logs
+                        </Button>
                       </div>
                     );
                   })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="analytics" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="w-5 h-5" />
+                Analytics — 30 derniers jours
+              </CardTitle>
+              <CardDescription>
+                Statistiques agrégées des exécutions de workflows de la clinique
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="flex items-center justify-center py-16">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                </div>
+              ) : !clinicAnalytics || clinicAnalytics.total_executions === 0 ? (
+                <EmptyState
+                  icon={BarChart3}
+                  title="Aucune donnée analytics"
+                  description="Les statistiques apparaîtront après les premières exécutions"
+                />
+              ) : (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <Card>
+                      <CardContent className="pt-6">
+                        <p className="text-2xl font-bold">{clinicAnalytics.total_executions}</p>
+                        <p className="text-sm text-muted-foreground">Exécutions totales</p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="pt-6">
+                        <p className="text-2xl font-bold text-success">{clinicAnalytics.successful_executions}</p>
+                        <p className="text-sm text-muted-foreground">Réussies</p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="pt-6">
+                        <p className="text-2xl font-bold text-destructive">{clinicAnalytics.failed_executions}</p>
+                        <p className="text-sm text-muted-foreground">Échouées</p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="pt-6">
+                        <p className="text-2xl font-bold">{Math.round(clinicAnalytics.success_rate)}%</p>
+                        <p className="text-sm text-muted-foreground">Taux de succès</p>
+                      </CardContent>
+                    </Card>
+                  </div>
+                  {workflows.length > 0 && (
+                    <div className="space-y-3">
+                      <h3 className="font-medium">Par workflow</h3>
+                      {workflows.map((w) => {
+                        const stats = analyticsByWorkflow[w.id];
+                        if (!stats?.total_executions) return null;
+                        return (
+                          <div key={w.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                            <span className="font-medium truncate">{w.name}</span>
+                            <div className="flex gap-3 text-sm text-muted-foreground shrink-0">
+                              <span>{stats.total_executions} exec.</span>
+                              <span>{Math.round(stats.success_rate)}% OK</span>
+                              <span>{Math.round(stats.avg_duration_seconds)}s moy.</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>
@@ -708,6 +880,54 @@ const WorkflowAutomation = () => {
               {savingSteps ? <Loader2 className="w-4 h-4 animate-spin" /> : "Enregistrer les étapes"}
             </Button>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!selectedExecution} onOpenChange={(open) => !open && setSelectedExecution(null)}>
+        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Détail exécution</DialogTitle>
+          </DialogHeader>
+          {selectedExecution && (
+            <div className="space-y-4">
+              <div className="text-sm space-y-1">
+                <p><span className="font-medium">Workflow :</span> {selectedExecution.workflow_name}</p>
+                <p><span className="font-medium">Statut :</span> {executionStatusConfig[selectedExecution.status]?.label ?? selectedExecution.status}</p>
+                <p><span className="font-medium">Déclencheur :</span> {triggerTypeLabels[selectedExecution.trigger_type ?? "manual"] ?? selectedExecution.trigger_type}</p>
+                <p><span className="font-medium">Démarré :</span> {new Date(selectedExecution.started_at).toLocaleString()}</p>
+                {selectedExecution.error_message && (
+                  <p className="text-destructive"><span className="font-medium">Erreur :</span> {selectedExecution.error_message}</p>
+                )}
+              </div>
+              <div>
+                <h4 className="font-medium mb-2">Logs</h4>
+                {loadingLogs ? (
+                  <div className="flex justify-center py-6">
+                    <Loader2 className="w-6 h-6 animate-spin" />
+                  </div>
+                ) : executionLogs.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Aucun log enregistré</p>
+                ) : (
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {executionLogs.map((log) => (
+                      <div key={log.id} className="text-sm p-2 bg-muted/50 rounded">
+                        <div className="flex justify-between gap-2">
+                          <Badge variant="outline" className="text-xs">{log.level}</Badge>
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(log.created_at).toLocaleTimeString()}
+                          </span>
+                        </div>
+                        <p className="mt-1">{log.message}</p>
+                        {log.node_id && (
+                          <p className="text-xs text-muted-foreground mt-1">Nœud : {log.node_id}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
       </>

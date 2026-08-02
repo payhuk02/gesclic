@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.workflow-run]
 verify_jwt = true
+
+[functions.workflow-scheduler]
+verify_jwt = false

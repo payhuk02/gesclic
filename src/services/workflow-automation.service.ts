@@ -11,7 +11,7 @@ import type {
   WorkflowGraph,
   PaginatedResponse
 } from '@/types/phase2';
-import { stepsToGraph, type WorkflowEditorStep } from '@/lib/workflow-steps';
+import { stepsToGraph, type WorkflowEditorStep, normalizeTemplateDefinition, getScheduleCron } from '@/lib/workflow-steps';
 
 /** Categories allowed by workflow_definitions.category CHECK constraint */
 export const WORKFLOW_CATEGORIES = [
@@ -190,17 +190,58 @@ export class WorkflowAutomationService {
   }
 
   /**
-   * Activate workflow
+   * Sync workflow_schedules row when workflow has a schedule trigger
    */
-  async activateWorkflow(workflowId: string): Promise<void> {
-    await this.updateWorkflow(workflowId, { status: 'active' });
+  async syncWorkflowSchedule(workflowId: string, definition: WorkflowGraph): Promise<void> {
+    const cron = getScheduleCron(definition);
+    if (!cron) {
+      await supabase
+        .from('workflow_schedules')
+        .update({ is_active: false })
+        .eq('workflow_id', workflowId);
+      return;
+    }
+
+    const { data: nextRun, error: cronError } = await supabase.rpc('calculate_next_run_time', {
+      cron_expression: cron,
+      timezone: 'UTC',
+    });
+    if (cronError) throw cronError;
+
+    const { error } = await supabase
+      .from('workflow_schedules')
+      .upsert(
+        {
+          workflow_id: workflowId,
+          cron_expression: cron,
+          timezone: 'UTC',
+          is_active: true,
+          next_run_at: nextRun as string,
+        },
+        { onConflict: 'workflow_id' },
+      );
+    if (error) throw error;
   }
 
   /**
-   * Pause workflow
+   * Activate workflow and sync schedule if applicable
+   */
+  async activateWorkflow(workflowId: string): Promise<void> {
+    const workflow = await this.getWorkflow(workflowId);
+    if (!workflow) throw new Error('Workflow introuvable');
+    await this.updateWorkflow(workflowId, { status: 'active' });
+    await this.syncWorkflowSchedule(workflowId, workflow.definition as WorkflowGraph);
+  }
+
+  /**
+   * Pause workflow and disable schedules
    */
   async pauseWorkflow(workflowId: string): Promise<void> {
     await this.updateWorkflow(workflowId, { status: 'paused' });
+    await supabase
+      .from('workflow_schedules')
+      .update({ is_active: false })
+      .eq('workflow_id', workflowId);
   }
 
   /**
@@ -558,14 +599,14 @@ export class WorkflowAutomationService {
       // Increment template usage
       await supabase.rpc('increment_template_usage', { template_id_param: templateId });
 
-      // Create workflow from template
+      // Create workflow from template (normalize template keys → editable steps)
       return await this.createWorkflow(
         clinicId,
         userId,
         name,
         template.description || '',
         template.category || 'custom',
-        template.definition as WorkflowGraph
+        normalizeTemplateDefinition(template.definition as WorkflowGraph),
       );
     } catch (error) {
       console.error('Error creating workflow from template:', error);
