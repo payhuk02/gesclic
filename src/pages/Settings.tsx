@@ -21,6 +21,7 @@ import {
   clinicSettingsService,
   DEFAULT_CLINIC_PROFILE_SETTINGS,
   DEFAULT_NOTIFICATION_SETTINGS,
+  DEFAULT_APPEARANCE_SETTINGS,
   type ClinicProfileSettings,
   type ClinicNotificationSettings,
 } from "@/services/clinic-settings.service";
@@ -54,6 +55,7 @@ const Settings = () => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const savedPrimaryColorRef = useRef(DEFAULT_APPEARANCE_SETTINGS.primaryColor);
 
   const loadProfile = useCallback(async () => {
     if (!activeClinicId) {
@@ -68,6 +70,8 @@ const Settings = () => {
         setLogoUrl(profileData.logo_url);
         setSettings(profileData.settings);
         setNotifications(profileData.settings.notifications);
+        savedPrimaryColorRef.current = profileData.settings.appearance.primaryColor;
+        applyClinicBrandColor(profileData.settings.appearance.primaryColor);
       }
     } catch (error) {
       console.error("Error loading settings:", error);
@@ -80,6 +84,12 @@ const Settings = () => {
   useEffect(() => {
     loadProfile();
   }, [loadProfile]);
+
+  useEffect(() => {
+    return () => {
+      applyClinicBrandColor(savedPrimaryColorRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     setFirstName(profile?.first_name ?? "");
@@ -184,6 +194,7 @@ const Settings = () => {
         settings,
       );
       applyClinicBrandColor(settings.appearance.primaryColor);
+      savedPrimaryColorRef.current = settings.appearance.primaryColor;
       toast.success("Apparence enregistrée");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Erreur lors de la sauvegarde");
