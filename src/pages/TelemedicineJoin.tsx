@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,9 @@ import { telemedicineService, TelemedicineSessionListItem } from "@/services/tel
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/Logo_Gesclic.png";
+import { supabase } from "@/integrations/supabase/client";
+
+const UUID_RE = /^[0-9a-f-]{36}$/i;
 
 const statusLabels: Record<string, string> = {
   scheduled: "Planifiée",
@@ -21,19 +24,59 @@ const statusLabels: Record<string, string> = {
 };
 
 const TelemedicineJoin = () => {
-  const { sessionId } = useParams<{ sessionId: string }>();
+  const { sessionId, token: tokenParam } = useParams<{ sessionId: string; token?: string }>();
   const [searchParams] = useSearchParams();
-  const token = searchParams.get("token") ?? "";
+  const navigate = useNavigate();
+  const tokenFromQuery = searchParams.get("token") ?? "";
+  const token = tokenParam ?? tokenFromQuery;
 
   const [session, setSession] = useState<TelemedicineSessionListItem | null>(null);
   const [loading, setLoading] = useState(true);
+  const [resolvingLink, setResolvingLink] = useState(!token);
   const [joining, setJoining] = useState(false);
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState("");
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
 
   useEffect(() => {
-    if (!sessionId || !token) {
+    if (!sessionId || token) {
+      setResolvingLink(false);
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: authData } = await supabase.auth.getSession();
+        if (!authData.session) {
+          if (!cancelled) setResolvingLink(false);
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from("telemedicine_sessions")
+          .select("patient_join_token")
+          .eq("id", sessionId)
+          .maybeSingle();
+
+        if (cancelled) return;
+
+        if (!error && data?.patient_join_token) {
+          navigate(`/telemedicine/join/${sessionId}/${data.patient_join_token}`, { replace: true });
+          return;
+        }
+      } finally {
+        if (!cancelled) setResolvingLink(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [sessionId, token, navigate]);
+
+  useEffect(() => {
+    if (!sessionId || !token || !UUID_RE.test(token)) {
       setLoading(false);
       return;
     }
@@ -95,11 +138,21 @@ const TelemedicineJoin = () => {
       <main className="flex-1 flex items-start justify-center p-4 py-10">
         <div className="w-full max-w-lg space-y-6">
           {!token ? (
+            resolvingLink || loading ? (
+              <div className="flex justify-center py-20">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              </div>
+            ) : (
             <Card>
-              <CardContent className="py-12 text-center text-muted-foreground">
-                Lien incomplet. Utilisez le lien reçu par votre clinique (avec code d&apos;accès).
+              <CardContent className="py-12 text-center text-muted-foreground space-y-2">
+                <p>Lien incomplet : il manque le code d&apos;accès sécurisé.</p>
+                <p className="text-sm">
+                  Demandez à votre clinique le lien complet via le bouton « Lien patient »
+                  (format : …/join/…/code).
+                </p>
               </CardContent>
             </Card>
+            )
           ) : loading ? (
             <div className="flex justify-center py-20">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />

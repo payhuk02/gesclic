@@ -313,12 +313,12 @@ export class TelemedicineService {
       throw new Error('Impossible de générer le lien patient');
     }
 
-    return `${window.location.origin}/telemedicine/join/${sessionId}?token=${data.patient_join_token}`;
+    return `${window.location.origin}/telemedicine/join/${sessionId}/${data.patient_join_token}`;
   }
 
   /** @deprecated Use async getPatientJoinUrl */
   buildPatientJoinUrl(sessionId: string, token: string): string {
-    return `${window.location.origin}/telemedicine/join/${sessionId}?token=${token}`;
+    return `${window.location.origin}/telemedicine/join/${sessionId}/${token}`;
   }
 
   /**
