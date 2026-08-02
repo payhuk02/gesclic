@@ -110,7 +110,7 @@ const InviteAccept = () => {
         <div className="bg-card border border-border rounded-2xl shadow-card p-6 sm:p-8">
           {loading || authLoading ? (
             <div className="flex flex-col items-center py-8 gap-3">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              <Loader2 className="w-6 h-6 sm:w-8 sm:h-8 animate-spin text-primary" />
               <p className="text-sm text-muted-foreground">Chargement de l'invitation...</p>
             </div>
           ) : error ? (

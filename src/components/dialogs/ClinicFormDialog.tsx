@@ -139,11 +139,11 @@ const ClinicFormDialog = ({ open, onOpenChange, clinic, onSaved }: ClinicFormDia
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Modifier la clinique" : "Nouvelle clinique"}</DialogTitle>
+          <DialogTitle className="text-base sm:text-lg">{isEdit ? "Modifier la clinique" : "Nouvelle clinique"}</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           <div>
             <Label htmlFor="clinic-name">Nom</Label>
             <Input

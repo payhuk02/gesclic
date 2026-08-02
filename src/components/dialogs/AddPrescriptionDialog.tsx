@@ -64,11 +64,11 @@ const AddPrescriptionDialog = ({ onAdd, onEdit, editData, trigger, patients, doc
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Modifier l'ordonnance" : "Nouvelle ordonnance"}</DialogTitle>
+          <DialogTitle className="text-base sm:text-lg">{isEdit ? "Modifier l'ordonnance" : "Nouvelle ordonnance"}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
           <div>
             <Label>Patient *</Label>
             {patientList.length > 0 ? (

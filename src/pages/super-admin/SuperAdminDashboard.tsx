@@ -181,7 +181,7 @@ const SuperAdminDashboard = () => {
     return (
       <SuperAdminLayout>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" />
+          <div className="animate-spin w-6 h-6 sm:w-8 sm:h-8 border-2 border-primary border-t-transparent rounded-full" />
         </div>
       </SuperAdminLayout>
     );
@@ -305,8 +305,8 @@ const SuperAdminDashboard = () => {
               <div className="space-y-4">
                 {recentActivity.map((activity) => (
                   <div key={activity.id} className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <Building2 className="w-4 h-4 text-primary" />
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Building2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-foreground">{activity.clinicName}</p>
@@ -337,7 +337,7 @@ const SuperAdminDashboard = () => {
               <div className="space-y-4">
                 {topClinics.map((clinic, index) => (
                   <div key={clinic.id} className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center text-sm font-bold text-white flex-shrink-0">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center text-xs sm:text-sm font-bold text-white flex-shrink-0">
                       {index + 1}
                     </div>
                     <div className="flex-1 min-w-0">

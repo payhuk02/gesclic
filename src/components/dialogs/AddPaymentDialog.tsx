@@ -55,11 +55,11 @@ const AddPaymentDialog = ({ onAdd, onEdit, editData, trigger, patients }: Props)
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Modifier le paiement" : "Enregistrer un paiement"}</DialogTitle>
+          <DialogTitle className="text-base sm:text-lg">{isEdit ? "Modifier le paiement" : "Enregistrer un paiement"}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
           <div>
             <Label>Patient *</Label>
             {patientList.length > 0 ? (

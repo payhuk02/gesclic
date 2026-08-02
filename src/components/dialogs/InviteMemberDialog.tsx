@@ -93,11 +93,11 @@ const InviteMemberDialog = ({ trigger, onInvited }: Props) => {
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         {!created ? (
           <>
             <DialogHeader>
-              <DialogTitle>Inviter un membre</DialogTitle>
+              <DialogTitle className="text-base sm:text-lg">Inviter un membre</DialogTitle>
               <DialogDescription>
                 L'invité recevra un lien pour rejoindre <strong>{activeClinic?.name ?? "votre clinique"}</strong> avec le rôle choisi. Le lien expire dans 7 jours.
               </DialogDescription>
