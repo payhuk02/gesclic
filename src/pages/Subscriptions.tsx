@@ -11,6 +11,7 @@ import {
   CLINIC_PLANS,
   computePlanTotal,
   formatFcfa,
+  formatPlanPriceLines,
   normalizeClinicPlanId,
   type BillingPeriodMonths,
   type ClinicPlanId,
@@ -32,7 +33,7 @@ const Subscriptions = () => {
   const [billingMonths, setBillingMonths] = useState<BillingPeriodMonths>(1);
 
   const currentPlanId = normalizeClinicPlanId(activeClinic?.plan);
-  const billing = BILLING_PERIODS.find((p) => p.months === billingMonths)!;
+  const billing = getBillingSafe(billingMonths);
 
   const handleSelectPlan = async (planId: ClinicPlanId) => {
     if (!canManage || !activeClinicId || planId === currentPlanId) return;
@@ -49,7 +50,7 @@ const Subscriptions = () => {
       const pricing = computePlanTotal(plan?.monthlyPrice ?? null, billingMonths);
       const periodNote =
         pricing && billingMonths > 1
-          ? ` (${formatFcfa(pricing.total)} FCFA / ${billing.label}, −${billing.discountPercent} %)`
+          ? ` (${formatFcfa(pricing.total)} FCFA · ${billing.label}, −${billing.discountPercent} %)`
           : "";
       toast.success(`Plan ${plan?.name} activé${periodNote}`);
     } catch (error) {
@@ -61,33 +62,39 @@ const Subscriptions = () => {
 
   return (
     <AppLayout title="Abonnements">
-      <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-foreground mb-2">Choisissez votre plan</h2>
-        <p className="text-muted-foreground mb-6">
-          Plan actuel :{" "}
+      <div className="text-center mb-8 max-w-2xl mx-auto">
+        <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Tarifs</h2>
+        <p className="text-muted-foreground text-sm sm:text-base mb-1">Simple et transparent</p>
+        <p className="text-sm text-muted-foreground mb-6">
+          Tarifs en FCFA, par clinique. Engagement long = réduction. Plan actuel :{" "}
           <span className="font-medium text-foreground">
             {CLINIC_PLANS.find((p) => p.id === currentPlanId)?.name ?? currentPlanId}
           </span>
         </p>
 
-        <div className="inline-flex flex-wrap items-center justify-center gap-1 p-1 rounded-xl bg-muted/60 border border-border">
-          {BILLING_PERIODS.map((period) => (
-            <button
-              key={period.months}
-              type="button"
-              onClick={() => setBillingMonths(period.months)}
-              className={`px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                billingMonths === period.months
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {period.label}
-              {period.discountPercent > 0 && (
-                <span className="ml-1.5 text-xs text-success">−{period.discountPercent}%</span>
-              )}
-            </button>
-          ))}
+        <div className="inline-flex flex-wrap items-center justify-center gap-1 p-1 rounded-full bg-muted/70 border border-border">
+          {BILLING_PERIODS.map((period) => {
+            const active = billingMonths === period.months;
+            return (
+              <button
+                key={period.months}
+                type="button"
+                onClick={() => setBillingMonths(period.months)}
+                className={`px-3 sm:px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                  active
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {period.label}
+                {period.discountPercent > 0 && (
+                  <span className={`ml-1 text-xs ${active ? "text-primary-foreground/90" : "text-success"}`}>
+                    (−{period.discountPercent} %)
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -97,6 +104,7 @@ const Subscriptions = () => {
           const isActive = plan.id === currentPlanId;
           const isLoading = updatingPlan === plan.id;
           const pricing = computePlanTotal(plan.monthlyPrice, billingMonths);
+          const lines = pricing ? formatPlanPriceLines(pricing, billing.label) : null;
 
           return (
             <div
@@ -107,15 +115,7 @@ const Subscriptions = () => {
             >
               {plan.popular && (
                 <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-4">
-                  Populaire
-                </Badge>
-              )}
-              {billing.discountPercent > 0 && pricing && (
-                <Badge
-                  variant="outline"
-                  className="absolute -top-3 right-4 border-success/40 text-success bg-background"
-                >
-                  Économisez {formatFcfa(pricing.savings)}
+                  Recommandé
                 </Badge>
               )}
 
@@ -130,30 +130,30 @@ const Subscriptions = () => {
                   />
                 </div>
                 <h3 className="text-lg font-bold text-foreground">{plan.name}</h3>
-                <p className="text-xs text-muted-foreground mb-3">{plan.description}</p>
+                <p className="text-xs text-muted-foreground mb-4">{plan.description}</p>
 
-                {pricing ? (
-                  <div className="space-y-1">
-                    <div className="flex items-baseline justify-center gap-1">
-                      <span className="text-2xl sm:text-3xl font-bold text-foreground">
-                        {formatFcfa(pricing.total)}
+                {lines && pricing ? (
+                  <div className="space-y-1.5 min-h-[5.5rem] flex flex-col justify-center">
+                    {lines.strike && (
+                      <p className="text-sm text-muted-foreground line-through">{lines.strike}</p>
+                    )}
+                    <div className="flex items-baseline justify-center gap-1.5">
+                      <span className="text-2xl sm:text-3xl font-bold text-foreground tabular-nums">
+                        {lines.headline}
                       </span>
                       <span className="text-sm text-muted-foreground">FCFA</span>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      {billingMonths === 1
-                        ? "/ mois"
-                        : `pour ${billing.label} · soit ${formatFcfa(pricing.monthlyEquivalent)} FCFA/mois`}
-                    </p>
-                    {plan.monthlyPrice != null && billingMonths > 1 && (
-                      <p className="text-[11px] text-muted-foreground line-through">
-                        {formatFcfa(plan.monthlyPrice * billingMonths)} FCFA
+                    <p className="text-xs text-muted-foreground leading-snug px-1">{lines.detail}</p>
+                    {pricing.savings > 0 && (
+                      <p className="text-[11px] font-medium text-success">
+                        Vous économisez {formatFcfa(pricing.savings)} FCFA
                       </p>
                     )}
                   </div>
                 ) : (
-                  <div className="flex items-baseline justify-center gap-1">
+                  <div className="min-h-[5.5rem] flex flex-col justify-center">
                     <span className="text-2xl sm:text-3xl font-bold text-foreground">Sur devis</span>
+                    <p className="text-xs text-muted-foreground mt-1">Contactez-nous</p>
                   </div>
                 )}
               </div>
@@ -199,12 +199,12 @@ const Subscriptions = () => {
         <div className="grid sm:grid-cols-2 gap-6">
           {[
             {
-              q: "Puis-je changer de plan ?",
-              a: "Oui, les administrateurs peuvent changer de plan à tout moment depuis cette page.",
+              q: "Comment est calculé le prix ?",
+              a: "Prix catalogue × durée, puis remise (−10 % trimestriel, −20 % semestriel, −30 % annuel). L’équivalent mensuel = total ÷ mois.",
             },
             {
-              q: "Comment fonctionnent les réductions ?",
-              a: "3 mois −10 %, 6 mois −20 %, 12 mois −30 % sur le total payé d’avance.",
+              q: "Puis-je changer de plan ?",
+              a: "Oui, les administrateurs peuvent changer de plan à tout moment depuis cette page.",
             },
             {
               q: "Comment payer ?",
@@ -225,5 +225,9 @@ const Subscriptions = () => {
     </AppLayout>
   );
 };
+
+function getBillingSafe(months: BillingPeriodMonths) {
+  return BILLING_PERIODS.find((p) => p.months === months) ?? BILLING_PERIODS[0];
+}
 
 export default Subscriptions;

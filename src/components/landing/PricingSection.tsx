@@ -1,10 +1,21 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 import { Link } from "react-router-dom";
-import { CLINIC_PLANS, formatFcfa } from "@/lib/clinic-plans";
+import {
+  BILLING_PERIODS,
+  CLINIC_PLANS,
+  computePlanTotal,
+  formatFcfa,
+  formatPlanPriceLines,
+  type BillingPeriodMonths,
+} from "@/lib/clinic-plans";
 
 const PricingSection = () => {
+  const [billingMonths, setBillingMonths] = useState<BillingPeriodMonths>(1);
+  const billing = BILLING_PERIODS.find((p) => p.months === billingMonths) ?? BILLING_PERIODS[0];
+
   return (
     <section id="pricing" className="py-16 sm:py-20 bg-background">
       <div className="container mx-auto px-4">
@@ -12,20 +23,47 @@ const PricingSection = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-12 sm:mb-16"
+          className="text-center mb-10 sm:mb-12"
         >
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-3 sm:mb-4">
-            Des tarifs adaptés à l&apos;Afrique
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-2">
+            Tarifs
           </h2>
-          <p className="text-base sm:text-lg text-muted-foreground px-4">
-            5 900 · 7 500 · 12 500 FCFA/mois. −10 % / −20 % / −30 % sur 3 / 6 / 12 mois.
+          <p className="text-base sm:text-lg text-muted-foreground mb-2">Simple et transparent</p>
+          <p className="text-sm text-muted-foreground px-4 mb-6">
+            Tarifs en FCFA, par clinique. Engagement long = réduction.
           </p>
+
+          <div className="inline-flex flex-wrap items-center justify-center gap-1 p-1 rounded-full bg-muted/70 border border-border">
+            {BILLING_PERIODS.map((period) => {
+              const active = billingMonths === period.months;
+              return (
+                <button
+                  key={period.months}
+                  type="button"
+                  onClick={() => setBillingMonths(period.months)}
+                  className={`px-3 sm:px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                    active
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {period.label}
+                  {period.discountPercent > 0 && (
+                    <span className={`ml-1 text-xs ${active ? "text-primary-foreground/90" : "text-success"}`}>
+                      (−{period.discountPercent} %)
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </motion.div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 max-w-6xl mx-auto">
           {CLINIC_PLANS.map((plan, i) => {
-            const priceLabel =
-              plan.monthlyPrice == null ? "Sur mesure" : formatFcfa(plan.monthlyPrice);
+            const pricing = computePlanTotal(plan.monthlyPrice, billingMonths);
+            const lines = pricing ? formatPlanPriceLines(pricing, billing.label) : null;
+
             return (
               <motion.div
                 key={plan.id}
@@ -41,17 +79,36 @@ const PricingSection = () => {
               >
                 {plan.popular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 gradient-hero text-primary-foreground text-xs font-semibold px-3 sm:px-4 py-1 rounded-full">
-                    Populaire
+                    Recommandé
                   </div>
                 )}
                 <h3 className="font-bold text-base sm:text-lg text-foreground">{plan.name}</h3>
                 <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">{plan.description}</p>
-                <div className="mb-4 sm:mb-6">
-                  <span className="text-2xl sm:text-3xl font-extrabold text-foreground">{priceLabel}</span>
-                  {plan.monthlyPrice != null && (
-                    <span className="text-xs sm:text-sm text-muted-foreground"> FCFA/mois</span>
+
+                <div className="mb-4 sm:mb-6 min-h-[5.5rem]">
+                  {lines && pricing ? (
+                    <>
+                      {lines.strike && (
+                        <p className="text-sm text-muted-foreground line-through mb-0.5">{lines.strike}</p>
+                      )}
+                      <div>
+                        <span className="text-2xl sm:text-3xl font-extrabold text-foreground tabular-nums">
+                          {lines.headline}
+                        </span>
+                        <span className="text-xs sm:text-sm text-muted-foreground"> FCFA</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1 leading-snug">{lines.detail}</p>
+                      {pricing.savings > 0 && (
+                        <p className="text-[11px] font-medium text-success mt-1">
+                          −{formatFcfa(pricing.savings)} FCFA
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <span className="text-2xl sm:text-3xl font-extrabold text-foreground">Sur mesure</span>
                   )}
                 </div>
+
                 <ul className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
                   {plan.features.map((f) => (
                     <li key={f} className="flex items-center gap-2 text-xs sm:text-sm text-foreground">
@@ -65,9 +122,7 @@ const PricingSection = () => {
                   className={`w-full text-sm sm:text-base ${plan.popular ? "gradient-hero border-0" : ""}`}
                   variant={plan.popular ? "default" : "outline"}
                 >
-                  <Link to={plan.contactSales ? "/register" : "/register"}>
-                    {plan.contactSales ? "Nous contacter" : "Commencer"}
-                  </Link>
+                  <Link to="/register">{plan.contactSales ? "Nous contacter" : "Commencer"}</Link>
                 </Button>
               </motion.div>
             );

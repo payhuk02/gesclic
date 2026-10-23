@@ -15,16 +15,31 @@ export interface ClinicPlanDefinition {
   contactSales?: boolean;
 }
 
+export interface PlanPricingBreakdown {
+  /** Base monthly catalogue price */
+  monthlyPrice: number;
+  months: BillingPeriodMonths;
+  /** monthlyPrice × months (before discount) */
+  listTotal: number;
+  /** Amount to pay after discount */
+  total: number;
+  /** total / months (effective monthly rate) */
+  monthlyEquivalent: number;
+  discountPercent: number;
+  savings: number;
+}
+
 /** Discount applied when paying N months upfront */
 export const BILLING_PERIODS: {
   months: BillingPeriodMonths;
   label: string;
+  shortLabel: string;
   discountPercent: number;
 }[] = [
-  { months: 1, label: '1 mois', discountPercent: 0 },
-  { months: 3, label: '3 mois', discountPercent: 10 },
-  { months: 6, label: '6 mois', discountPercent: 20 },
-  { months: 12, label: '12 mois', discountPercent: 30 },
+  { months: 1, label: 'Mensuel', shortLabel: 'Mensuel', discountPercent: 0 },
+  { months: 3, label: 'Trimestriel', shortLabel: 'Trimestriel', discountPercent: 10 },
+  { months: 6, label: 'Semestriel', shortLabel: 'Semestriel', discountPercent: 20 },
+  { months: 12, label: 'Annuel', shortLabel: 'Annuel', discountPercent: 30 },
 ];
 
 export const CLINIC_PLANS: ClinicPlanDefinition[] = [
@@ -125,18 +140,44 @@ export function formatFcfa(amount: number): string {
 }
 
 /**
- * Total to pay for a plan over `months`, with upfront discount.
- * Returns null for custom / quote plans.
+ * Automatic plan pricing (Acoschool-style):
+ * listTotal = monthly × months
+ * total = listTotal × (1 − discount%)
+ * monthlyEquivalent = total / months
  */
 export function computePlanTotal(
   monthlyPrice: number | null,
   months: BillingPeriodMonths,
-): { total: number; monthlyEquivalent: number; discountPercent: number; savings: number } | null {
+): PlanPricingBreakdown | null {
   if (monthlyPrice == null) return null;
   const { discountPercent } = getBillingPeriod(months);
   const listTotal = monthlyPrice * months;
   const total = Math.round(listTotal * (1 - discountPercent / 100));
   const monthlyEquivalent = Math.round(total / months);
   const savings = listTotal - total;
-  return { total, monthlyEquivalent, discountPercent, savings };
+  return {
+    monthlyPrice,
+    months,
+    listTotal,
+    total,
+    monthlyEquivalent,
+    discountPercent,
+    savings,
+  };
+}
+
+/** Display helper for cards: headline + supporting lines */
+export function formatPlanPriceLines(pricing: PlanPricingBreakdown, periodLabel: string) {
+  if (pricing.months === 1) {
+    return {
+      headline: formatFcfa(pricing.monthlyPrice),
+      strike: null as string | null,
+      detail: `${formatFcfa(pricing.monthlyPrice)} FCFA / mois`,
+    };
+  }
+  return {
+    headline: formatFcfa(pricing.total),
+    strike: `${formatFcfa(pricing.listTotal)} FCFA`,
+    detail: `soit ~${formatFcfa(pricing.monthlyEquivalent)} FCFA / mois · ${periodLabel} (−${pricing.discountPercent} %)`,
+  };
 }
