@@ -16,6 +16,7 @@ import {
   type BillingPeriodMonths,
   type ClinicPlanId,
 } from "@/lib/clinic-plans";
+import { BillingPeriodToggle } from "@/components/BillingPeriodToggle";
 import { clinicSettingsService } from "@/services/clinic-settings.service";
 
 const PLAN_ICONS = {
@@ -72,30 +73,7 @@ const Subscriptions = () => {
           </span>
         </p>
 
-        <div className="inline-flex flex-wrap items-center justify-center gap-1 p-1 rounded-full bg-muted/70 border border-border">
-          {BILLING_PERIODS.map((period) => {
-            const active = billingMonths === period.months;
-            return (
-              <button
-                key={period.months}
-                type="button"
-                onClick={() => setBillingMonths(period.months)}
-                className={`px-3 sm:px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                  active
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {period.label}
-                {period.discountPercent > 0 && (
-                  <span className={`ml-1 text-xs ${active ? "text-primary-foreground/90" : "text-success"}`}>
-                    (−{period.discountPercent} %)
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
+        <BillingPeriodToggle value={billingMonths} onChange={setBillingMonths} />
       </div>
 
       <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
