@@ -15,24 +15,20 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-// Mock crypto.getRandomValues
-global.crypto = {
-  getRandomValues: vi.fn((arr) => {
-    for (let i = 0; i < arr.length; i++) {
-      arr[i] = Math.floor(Math.random() * 256);
-    }
-    return arr;
-  }),
-  subtle: {
-    importKey: vi.fn(),
-    sign: vi.fn(),
-  },
-} as any;
+// Patch Web Crypto without replacing the whole global (jsdom getter)
+vi.spyOn(globalThis.crypto, 'getRandomValues').mockImplementation((arr: ArrayBufferView) => {
+  const view = new Uint8Array(arr.buffer, arr.byteOffset, arr.byteLength);
+  for (let i = 0; i < view.length; i++) view[i] = Math.floor(Math.random() * 256);
+  return arr;
+});
+vi.spyOn(globalThis.crypto.subtle, 'importKey').mockResolvedValue('mock-key' as unknown as CryptoKey);
+vi.spyOn(globalThis.crypto.subtle, 'sign').mockResolvedValue(new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]));
 
 describe('WebhookService', () => {
   let webhookService: WebhookService;
 
   beforeEach(() => {
+    vi.stubEnv('VITE_WEBHOOK_SECRET', 'test-webhook-secret');
     webhookService = new WebhookService();
     vi.clearAllMocks();
   });
@@ -40,14 +36,12 @@ describe('WebhookService', () => {
   describe('HMAC Signature Generation', () => {
     it('should generate HMAC-SHA256 signature', async () => {
       const testData = { test: 'data', value: 123 };
-      
-      // Mock crypto.subtle.importKey and sign
-      const mockSignature = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
-      (global.crypto.subtle.importKey as any).mockResolvedValue('mock-key');
-      (global.crypto.subtle.sign as any).mockResolvedValue(mockSignature);
-      
-      const signature = await (webhookService as any).generateSignature(testData);
-      
+      (globalThis.crypto.subtle.sign as any).mockResolvedValueOnce(
+        new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]),
+      );
+
+      const signature = await (webhookService as any).generateSignature(testData, 'test-secret');
+
       expect(signature).toBeDefined();
       expect(signature).toMatch(/^sha256=/);
       expect(signature).toContain('0102030405060708');
@@ -56,20 +50,12 @@ describe('WebhookService', () => {
     it('should use provided secret when available', async () => {
       const testData = { test: 'data' };
       const customSecret = 'custom-secret-key';
-      
-      const mockSignature = new Uint8Array([1, 2, 3, 4]);
-      (global.crypto.subtle.importKey as any).mockResolvedValue('mock-key');
-      (global.crypto.subtle.sign as any).mockResolvedValue(mockSignature);
-      
+
       await (webhookService as any).generateSignature(testData, customSecret);
-      
-      expect(global.crypto.subtle.importKey).toHaveBeenCalledWith(
-        expect.any(Object),
-        expect.any(Uint8Array),
-        expect.objectContaining({ name: 'HMAC', hash: 'SHA-256' }),
-        false,
-        ['sign']
-      );
+
+      expect(globalThis.crypto.subtle.importKey).toHaveBeenCalled();
+      const [, keyData] = (globalThis.crypto.subtle.importKey as any).mock.calls.at(-1);
+      expect(new TextDecoder().decode(keyData)).toBe(customSecret);
     });
 
     it('should handle complex data structures', async () => {
@@ -84,12 +70,8 @@ describe('WebhookService', () => {
         null: null,
       };
       
-      const mockSignature = new Uint8Array([1, 2, 3, 4]);
-      (global.crypto.subtle.importKey as any).mockResolvedValue('mock-key');
-      (global.crypto.subtle.sign as any).mockResolvedValue(mockSignature);
-      
-      const signature = await (webhookService as any).generateSignature(complexData);
-      
+      const signature = await (webhookService as any).generateSignature(complexData, 'test-secret');
+
       expect(signature).toBeDefined();
       expect(signature).toMatch(/^sha256=/);
     });
@@ -98,37 +80,33 @@ describe('WebhookService', () => {
   describe('Signature Verification', () => {
     it('should verify correct signature', async () => {
       const payload = JSON.stringify({ test: 'data' });
-      const mockSignature = new Uint8Array([1, 2, 3, 4]);
-      
-      (global.crypto.subtle.importKey as any).mockResolvedValue('mock-key');
-      (global.crypto.subtle.sign as any).mockResolvedValue(mockSignature);
-      
-      const expectedSignature = await (webhookService as any).generateSignature({ test: 'data' });
-      const isValid = await webhookService.verifySignature(payload, expectedSignature);
-      
+      const expectedSignature = await (webhookService as any).generateSignature(
+        { test: 'data' },
+        'test-secret',
+      );
+      const isValid = await webhookService.verifySignature(payload, expectedSignature, 'test-secret');
+
       expect(isValid).toBe(true);
     });
 
     it('should reject incorrect signature', async () => {
       const payload = JSON.stringify({ test: 'data' });
       const incorrectSignature = 'sha256=incorrect';
-      
-      const isValid = await webhookService.verifySignature(payload, incorrectSignature);
-      
+
+      const isValid = await webhookService.verifySignature(payload, incorrectSignature, 'test-secret');
+
       expect(isValid).toBe(false);
     });
 
     it('should use custom secret when provided', async () => {
       const payload = JSON.stringify({ test: 'data' });
       const customSecret = 'custom-secret';
-      const mockSignature = new Uint8Array([1, 2, 3, 4]);
-      
-      (global.crypto.subtle.importKey as any).mockResolvedValue('mock-key');
-      (global.crypto.subtle.sign as any).mockResolvedValue(mockSignature);
-      
-      const expectedSignature = await (webhookService as any).generateSignature({ test: 'data' }, customSecret);
+      const expectedSignature = await (webhookService as any).generateSignature(
+        { test: 'data' },
+        customSecret,
+      );
       const isValid = await webhookService.verifySignature(payload, expectedSignature, customSecret);
-      
+
       expect(isValid).toBe(true);
     });
   });

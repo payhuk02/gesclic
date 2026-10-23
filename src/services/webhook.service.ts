@@ -16,7 +16,8 @@ export interface WebhookDeliveryResult {
 export class WebhookService {
   private readonly MAX_RETRIES = 3;
   private readonly RETRY_DELAYS = [1000, 5000, 15000]; // 1s, 5s, 15s
-  private readonly WEBHOOK_SECRET = import.meta.env.VITE_WEBHOOK_SECRET || 'default-secret';
+  /** Prefer per-subscription secrets; no hardcoded fallback */
+  private readonly WEBHOOK_SECRET = import.meta.env.VITE_WEBHOOK_SECRET as string | undefined;
 
   /**
    * Deliver webhook to external URL
@@ -25,10 +26,11 @@ export class WebhookService {
     eventId: string,
     eventType: string,
     eventData: Record<string, any>,
-    deliveryUrl: string
+    deliveryUrl: string,
+    signingSecret?: string,
   ): Promise<WebhookDeliveryResult> {
     try {
-      const signature = await this.generateSignature(eventData);
+      const signature = await this.generateSignature(eventData, signingSecret);
       
       const response = await fetch(deliveryUrl, {
         method: 'POST',
@@ -98,12 +100,13 @@ export class WebhookService {
     eventId: string,
     eventType: string,
     eventData: Record<string, any>,
-    deliveryUrl: string
+    deliveryUrl: string,
+    signingSecret?: string,
   ): Promise<WebhookDeliveryResult> {
     let lastError: string | undefined;
     
     for (let attempt = 0; attempt < this.MAX_RETRIES; attempt++) {
-      const result = await this.deliverWebhook(eventId, eventType, eventData, deliveryUrl);
+      const result = await this.deliverWebhook(eventId, eventType, eventData, deliveryUrl, signingSecret);
       
       if (result.success) {
         return result;
@@ -395,7 +398,7 @@ export class WebhookService {
   async verifySignature(payload: string, signature: string, secret?: string): Promise<boolean> {
     const expectedSignature = await this.generateSignature(
       JSON.parse(payload),
-      secret || this.WEBHOOK_SECRET
+      secret,
     );
     
     return signature === expectedSignature;
@@ -406,6 +409,9 @@ export class WebhookService {
    */
   private async generateSignature(data: Record<string, any>, secret?: string): Promise<string> {
     const secretKey = secret || this.WEBHOOK_SECRET;
+    if (!secretKey) {
+      throw new Error('Webhook secret required (configure per-subscription secret)');
+    }
     const payload = JSON.stringify(data);
     
     try {

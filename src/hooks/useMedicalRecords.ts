@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useClinic } from "@/contexts/ClinicContext";
+import { softDeleteRecord } from "@/lib/soft-delete";
 import { toast } from "sonner";
 
 export interface MedicalRecord {
@@ -25,6 +26,7 @@ export const useMedicalRecords = () => {
       .from("medical_records")
       .select("id, patient_name, date, diagnosis, treatment, notes")
       .eq("clinic_id", activeClinicId)
+      .is("deleted_at", null)
       .order("date", { ascending: false });
     if (error) { console.error(error); toast.error("Erreur chargement dossiers"); }
     else setRecords(data || []);
@@ -49,7 +51,7 @@ export const useMedicalRecords = () => {
   };
 
   const deleteRecord = async (id: string) => {
-    const { error } = await supabase.from("medical_records").delete().eq("id", id);
+    const { error } = await softDeleteRecord("medical_records", id);
     if (error) { toast.error("Erreur suppression"); return; }
     setRecords((prev) => prev.filter((r) => r.id !== id));
     toast.success("Dossier supprimé");

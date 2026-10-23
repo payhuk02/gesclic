@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { exportToExcel, exportToPDF, generateInvoicePDF } from "@/utils/exportUtils";
 
 // Mock jsPDF and ExcelJS
@@ -49,6 +49,14 @@ describe("exportUtils", () => {
     { header: "Name", key: "name" },
     { header: "Age", key: "age" },
   ];
+
+  beforeEach(() => {
+    vi.stubGlobal("URL", {
+      ...URL,
+      createObjectURL: vi.fn(() => "blob:mock"),
+      revokeObjectURL: vi.fn(),
+    });
+  });
 
   describe("exportToExcel", () => {
     it("should export data to Excel format", async () => {

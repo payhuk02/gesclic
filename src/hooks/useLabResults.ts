@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useClinic } from "@/contexts/ClinicContext";
+import { softDeleteRecord } from "@/lib/soft-delete";
 import { toast } from "sonner";
 
 export type LabStatus = "pending" | "in_progress" | "completed" | "validated";
@@ -27,6 +28,7 @@ export const useLabResults = () => {
       .from("lab_results")
       .select("id, patient_name, analysis_type, date, result, status")
       .eq("clinic_id", activeClinicId)
+      .is("deleted_at", null)
       .order("date", { ascending: false });
     if (error) { console.error(error); toast.error("Erreur chargement analyses"); }
     else setResults((data || []) as LabResult[]);
@@ -51,7 +53,7 @@ export const useLabResults = () => {
   };
 
   const deleteResult = async (id: string) => {
-    const { error } = await supabase.from("lab_results").delete().eq("id", id);
+    const { error } = await softDeleteRecord("lab_results", id);
     if (error) { toast.error("Erreur suppression"); return; }
     setResults((prev) => prev.filter((r) => r.id !== id));
     toast.success("Analyse supprimée");

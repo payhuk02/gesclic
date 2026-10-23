@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useClinic } from "@/contexts/ClinicContext";
+import { softDeleteRecord } from "@/lib/soft-delete";
 import { toast } from "sonner";
 
 export interface Prescription {
@@ -43,6 +44,7 @@ export const usePrescriptions = () => {
       .from("prescriptions")
       .select("id, patient_name, doctor_name, date, medications, notes, status")
       .eq("clinic_id", activeClinicId)
+      .is("deleted_at", null)
       .order("date", { ascending: false });
     if (error) { console.error(error); toast.error("Erreur chargement ordonnances"); }
     else setPrescriptions((data as DbPrescription[] || []).map((p) => ({ ...p, medications: parseMeds(p.medications) })));
@@ -82,7 +84,7 @@ export const usePrescriptions = () => {
   };
 
   const deletePrescription = async (id: string) => {
-    const { error } = await supabase.from("prescriptions").delete().eq("id", id);
+    const { error } = await softDeleteRecord("prescriptions", id);
     if (error) { toast.error("Erreur suppression"); return; }
     setPrescriptions((prev) => prev.filter((rx) => rx.id !== id));
     toast.success("Ordonnance supprimée");

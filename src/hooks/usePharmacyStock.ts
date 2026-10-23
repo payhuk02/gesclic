@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useClinic } from "@/contexts/ClinicContext";
+import { softDeleteRecord } from "@/lib/soft-delete";
 import { toast } from "sonner";
 
 export interface PharmacyItem {
@@ -25,6 +26,7 @@ export const usePharmacyStock = () => {
       .from("pharmacy_stock")
       .select("id, name, category, quantity, price, threshold")
       .eq("clinic_id", activeClinicId)
+      .is("deleted_at", null)
       .order("name");
     if (error) { console.error(error); toast.error("Erreur chargement stock"); }
     else setItems(data || []);
@@ -49,7 +51,7 @@ export const usePharmacyStock = () => {
   };
 
   const deleteItem = async (id: string) => {
-    const { error } = await supabase.from("pharmacy_stock").delete().eq("id", id);
+    const { error } = await softDeleteRecord("pharmacy_stock", id);
     if (error) { toast.error("Erreur suppression"); return; }
     setItems((prev) => prev.filter((i) => i.id !== id));
     toast.success("Produit supprimé");

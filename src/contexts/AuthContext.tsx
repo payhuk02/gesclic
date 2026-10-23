@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { clearMfaPending } from "@/lib/mfa-session";
 
 type AppRole = "super_admin" | "admin" | "medecin" | "secretaire" | "infirmier";
 
@@ -83,6 +84,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signOut = async () => {
+    clearMfaPending();
     await supabase.auth.signOut();
     setProfile(null);
     setRoles([]);

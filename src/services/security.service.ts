@@ -343,6 +343,9 @@ export class SecurityService {
         .eq('user_id', userId);
     } catch (error) {
       console.error('Error disabling MFA:', error);
+      if (error instanceof Error && error.message === 'Invalid MFA code') {
+        throw error;
+      }
       throw new Error('Failed to disable MFA');
     }
   }
@@ -453,24 +456,25 @@ export class SecurityService {
    * Using crypto API for enterprise-grade security
    */
   private generateSecureTOTPSecret(): string {
-    // Use crypto API for secure random generation
-    const array = new Uint8Array(20);
-    crypto.getRandomValues(array);
-    
-    // Convert to base32
-    const base32Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-    let secret = '';
-    for (let i = 0; i < array.length; i += 5) {
-      const chunk = array.slice(i, i + 5);
-      for (let j = 0; j < 8; j++) {
-        if (j < chunk.length) {
-          const byte = chunk[j];
-          const index = (byte >> (5 * (j % 5))) & 31;
-          secret += base32Chars[index];
-        }
+    // 20 bytes (160-bit) → exactly 32 base32 characters (RFC 4648)
+    const bytes = new Uint8Array(20);
+    crypto.getRandomValues(bytes);
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    let bits = 0;
+    let value = 0;
+    let output = '';
+    for (const byte of bytes) {
+      value = (value << 8) | byte;
+      bits += 8;
+      while (bits >= 5) {
+        output += alphabet[(value >>> (bits - 5)) & 31];
+        bits -= 5;
       }
     }
-    return secret.substring(0, 32);
+    if (bits > 0) {
+      output += alphabet[(value << (5 - bits)) & 31];
+    }
+    return output.slice(0, 32);
   }
 
   /**

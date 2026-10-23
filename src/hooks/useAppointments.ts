@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useClinic } from "@/contexts/ClinicContext";
+import { softDeleteRecord } from "@/lib/soft-delete";
 import { toast } from "sonner";
 
 export type AppointmentStatus = "confirmed" | "pending" | "completed" | "cancelled";
@@ -28,6 +29,7 @@ export const useAppointments = () => {
       .from("appointments")
       .select("id, patient_name, doctor_name, date, time, type, status")
       .eq("clinic_id", activeClinicId)
+      .is("deleted_at", null)
       .order("date", { ascending: false });
     if (error) { console.error(error); toast.error("Erreur chargement rendez-vous"); }
     else setAppointments((data || []) as Appointment[]);
@@ -56,7 +58,7 @@ export const useAppointments = () => {
   };
 
   const deleteAppointment = async (id: string) => {
-    const { error } = await supabase.from("appointments").delete().eq("id", id);
+    const { error } = await softDeleteRecord("appointments", id);
     if (error) { toast.error("Erreur suppression"); return; }
     setAppointments((prev) => prev.filter((a) => a.id !== id));
     toast.success("Rendez-vous supprimé");

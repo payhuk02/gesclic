@@ -8,7 +8,14 @@ import { OAuthService } from '../oauth.service';
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     auth: {
-      getUser: vi.fn(),
+      getUser: vi.fn().mockResolvedValue({
+        data: { user: { id: 'test-user-id' } },
+        error: null,
+      }),
+      getSession: vi.fn().mockResolvedValue({
+        data: { session: { access_token: 'test-token' } },
+        error: null,
+      }),
     },
     from: vi.fn(),
     rpc: vi.fn(),
@@ -19,6 +26,7 @@ describe('OAuthService', () => {
   let oauthService: OAuthService;
 
   beforeEach(() => {
+    vi.stubEnv('VITE_ENCRYPTION_KEY', 'test-encryption-key-32chars!!');
     oauthService = new OAuthService();
     vi.clearAllMocks();
   });

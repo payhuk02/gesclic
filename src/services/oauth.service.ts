@@ -6,11 +6,14 @@ import type { OAuthToken } from '@/types/phase2';
 
 export interface OAuthConfig {
   client_id: string;
-  client_secret: string;
+  /** @deprecated Never ship client secrets to the browser — exchange via Edge Function */
+  client_secret?: string;
   authorization_url: string;
   token_url: string;
   scope: string[];
   redirect_uri: string;
+  /** Provider key for server-side token exchange */
+  provider?: 'google' | 'microsoft' | 'salesforce';
 }
 
 export interface OAuthTokenResponse {
@@ -22,7 +25,42 @@ export interface OAuthTokenResponse {
 }
 
 export class OAuthService {
-  private readonly ENCRYPTION_KEY = import.meta.env.VITE_ENCRYPTION_KEY || 'default-encryption-key';
+  private readonly ENCRYPTION_KEY = import.meta.env.VITE_ENCRYPTION_KEY;
+
+  private getEncryptionKey(): string {
+    if (!this.ENCRYPTION_KEY || this.ENCRYPTION_KEY === 'default-encryption-key') {
+      throw new Error(
+        'VITE_ENCRYPTION_KEY manquant. Configurez une clé dédiée (idéalement chiffrement côté serveur).',
+      );
+    }
+    return this.ENCRYPTION_KEY;
+  }
+
+  private async callOAuthExchange(body: Record<string, string>): Promise<OAuthTokenResponse> {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData.session?.access_token;
+    if (!accessToken) throw new Error('Session expirée');
+
+    const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/oauth-exchange`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+        apikey:
+          import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+          import.meta.env.VITE_SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ error: 'Token exchange failed' }));
+      throw new Error(err.error || 'Token exchange failed');
+    }
+
+    return response.json();
+  }
 
   /**
    * Generate OAuth authorization URL
@@ -45,35 +83,21 @@ export class OAuthService {
   }
 
   /**
-   * Exchange authorization code for access token
+   * Exchange authorization code for access token (server-side secrets)
    */
   async exchangeCodeForToken(
     config: OAuthConfig,
     code: string
   ): Promise<OAuthTokenResponse> {
     try {
-      const response = await fetch(config.token_url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Accept': 'application/json'
-        },
-        body: new URLSearchParams({
-          grant_type: 'authorization_code',
-          code,
-          client_id: config.client_id,
-          client_secret: config.client_secret,
-          redirect_uri: config.redirect_uri
-        })
+      const provider = config.provider;
+      if (!provider) throw new Error('OAuth provider key required');
+      return await this.callOAuthExchange({
+        provider,
+        grant_type: 'authorization_code',
+        code,
+        redirect_uri: config.redirect_uri,
       });
-
-      if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`Token exchange failed: ${error}`);
-      }
-
-      const data = await response.json();
-      return data;
     } catch (error) {
       console.error('Error exchanging code for token:', error);
       throw new Error('Failed to exchange authorization code for token');
@@ -81,34 +105,20 @@ export class OAuthService {
   }
 
   /**
-   * Refresh access token using refresh token
+   * Refresh access token using refresh token (server-side secrets)
    */
   async refreshAccessToken(
     config: OAuthConfig,
     refreshToken: string
   ): Promise<OAuthTokenResponse> {
     try {
-      const response = await fetch(config.token_url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Accept': 'application/json'
-        },
-        body: new URLSearchParams({
-          grant_type: 'refresh_token',
-          refresh_token: refreshToken,
-          client_id: config.client_id,
-          client_secret: config.client_secret
-        })
+      const provider = config.provider;
+      if (!provider) throw new Error('OAuth provider key required');
+      return await this.callOAuthExchange({
+        provider,
+        grant_type: 'refresh_token',
+        refresh_token: refreshToken,
       });
-
-      if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`Token refresh failed: ${error}`);
-      }
-
-      const data = await response.json();
-      return data;
     } catch (error) {
       console.error('Error refreshing access token:', error);
       throw new Error('Failed to refresh access token');
@@ -317,24 +327,24 @@ export class OAuthService {
       // Derive a key from the encryption key
       const keyMaterial = await crypto.subtle.importKey(
         'raw',
-        new TextEncoder().encode(this.ENCRYPTION_KEY.padEnd(32, '0').slice(0, 32)),
-        'PBKDF2',
-        false,
-        ['deriveKey']
-      );
-      
-      const key = await crypto.subtle.deriveKey(
-        {
-          name: 'PBKDF2',
-          salt: new TextEncoder().encode('gesclic-oauth-salt'),
-          iterations: 100000,
-          hash: 'SHA-256'
-        },
-        keyMaterial,
-        { name: 'AES-GCM', length: 256 },
-        false,
-        ['encrypt']
-      );
+        new TextEncoder().encode(this.getEncryptionKey().padEnd(32, '0').slice(0, 32)),
+    'PBKDF2',
+    false,
+    ['deriveKey']
+  );
+  
+  const key = await crypto.subtle.deriveKey(
+    {
+      name: 'PBKDF2',
+      salt: new TextEncoder().encode('gesclic-oauth-salt'),
+      iterations: 100000,
+      hash: 'SHA-256'
+    },
+    keyMaterial,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt']
+  );
       
       // Encrypt the data
       const encryptedBytes = await crypto.subtle.encrypt(
@@ -371,7 +381,7 @@ export class OAuthService {
       // Derive the same key
       const keyMaterial = await crypto.subtle.importKey(
         'raw',
-        new TextEncoder().encode(this.ENCRYPTION_KEY.padEnd(32, '0').slice(0, 32)),
+        new TextEncoder().encode(this.getEncryptionKey().padEnd(32, '0').slice(0, 32)),
         'PBKDF2',
         false,
         ['deriveKey']
@@ -448,29 +458,30 @@ export class OAuthService {
 export const oauthService = new OAuthService();
 
 // Pre-configured OAuth providers
+/** Public OAuth client config only — secrets live in Edge Function env */
 export const OAuthProviders = {
   google: {
+    provider: 'google' as const,
     client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || '',
-    client_secret: import.meta.env.VITE_GOOGLE_CLIENT_SECRET || '',
     authorization_url: 'https://accounts.google.com/o/oauth2/v2/auth',
     token_url: 'https://oauth2.googleapis.com/token',
     scope: ['openid', 'profile', 'email'],
-    redirect_uri: `${window.location.origin}/oauth/callback`
+    redirect_uri: `${typeof window !== 'undefined' ? window.location.origin : ''}/oauth/callback`
   },
   microsoft: {
+    provider: 'microsoft' as const,
     client_id: import.meta.env.VITE_MICROSOFT_CLIENT_ID || '',
-    client_secret: import.meta.env.VITE_MICROSOFT_CLIENT_SECRET || '',
     authorization_url: 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize',
     token_url: 'https://login.microsoftonline.com/common/oauth2/v2.0/token',
     scope: ['openid', 'profile', 'email'],
-    redirect_uri: `${window.location.origin}/oauth/callback`
+    redirect_uri: `${typeof window !== 'undefined' ? window.location.origin : ''}/oauth/callback`
   },
   salesforce: {
+    provider: 'salesforce' as const,
     client_id: import.meta.env.VITE_SALESFORCE_CLIENT_ID || '',
-    client_secret: import.meta.env.VITE_SALESFORCE_CLIENT_SECRET || '',
     authorization_url: 'https://login.salesforce.com/services/oauth2/authorize',
     token_url: 'https://login.salesforce.com/services/oauth2/token',
     scope: ['api', 'refresh_token', 'offline_access'],
-    redirect_uri: `${window.location.origin}/oauth/callback`
+    redirect_uri: `${typeof window !== 'undefined' ? window.location.origin : ''}/oauth/callback`
   }
 };

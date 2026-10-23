@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useClinic } from "@/contexts/ClinicContext";
+import { softDeleteRecord } from "@/lib/soft-delete";
 import { toast } from "sonner";
 
 export interface Payment {
@@ -27,6 +28,7 @@ export const usePayments = () => {
       .from("payments")
       .select("id, patient_name, amount, currency, method, status, date, description")
       .eq("clinic_id", activeClinicId)
+      .is("deleted_at", null)
       .order("created_at", { ascending: false });
     if (error) { console.error(error); toast.error("Erreur chargement paiements"); }
     else setPayments(data || []);
@@ -55,7 +57,7 @@ export const usePayments = () => {
   };
 
   const deletePayment = async (id: string) => {
-    const { error } = await supabase.from("payments").delete().eq("id", id);
+    const { error } = await softDeleteRecord("payments", id);
     if (error) { toast.error("Erreur suppression"); return; }
     setPayments((prev) => prev.filter((p) => p.id !== id));
     toast.success("Paiement supprimé");

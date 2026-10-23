@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useAuth } from "@/contexts/AuthContext";
+import { useClinic } from "@/contexts/ClinicContext";
 import { useFeatureFlags } from "@/contexts/FeatureFlagsContext";
 
 
@@ -59,10 +60,9 @@ const navItems: NavItem[] = [
 const SidebarNav = ({ onNavigate }: { onNavigate?: () => void }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { signOut, roles } = useAuth();
+  const { signOut, roles, hasRole } = useAuth();
   const { isEnabled } = useFeatureFlags();
-
-
+  const { activeRole } = useClinic();
 
   const handleLogout = async () => {
     await signOut();
@@ -70,13 +70,14 @@ const SidebarNav = ({ onNavigate }: { onNavigate?: () => void }) => {
     navigate("/login");
   };
 
-  const isSuperAdmin = roles.includes("super_admin");
+  const isSuperAdmin = hasRole("super_admin") || roles.includes("super_admin");
 
   const visibleItems = navItems.filter((item) => {
     if (item.featureFlag && !isEnabled(item.featureFlag)) return false;
     if (!item.roles) return true;
-    if (roles.length === 0) return true; // no roles = show all (demo)
-    return item.roles.some((r) => roles.includes(r));
+    if (isSuperAdmin) return true;
+    if (!activeRole) return false;
+    return item.roles.includes(activeRole);
   });
 
   return (

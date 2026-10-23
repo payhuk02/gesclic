@@ -9,7 +9,9 @@ import { ClinicProvider } from "@/contexts/ClinicContext";
 import { SuperAdminProvider } from "@/contexts/SuperAdminContext";
 import { FeatureFlagsProvider } from "@/contexts/FeatureFlagsContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import RoleGuard from "@/components/RoleGuard";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import type { AppRole } from "@/contexts/ClinicContext";
 import { Loader2 } from "lucide-react";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ClinicBrandingProvider } from "@/components/ClinicBrandingProvider";
@@ -76,6 +78,20 @@ const ProtectedPages = ({ children }: { children: React.ReactNode }) => (
   <ProtectedRoute>{children}</ProtectedRoute>
 );
 
+const RoleProtected = ({
+  children,
+  roles,
+}: {
+  children: React.ReactNode;
+  roles: AppRole[];
+}) => (
+  <ProtectedRoute>
+    <RoleGuard allowedRoles={roles} redirectTo="/dashboard">
+      {children}
+    </RoleGuard>
+  </ProtectedRoute>
+);
+
 const LoadingFallback = () => (
   <div className="flex items-center justify-center min-h-screen">
     <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -109,48 +125,48 @@ const App = () => (
                   <Route path="/patients" element={<ProtectedPages><Patients /></ProtectedPages>} />
                   <Route path="/patients/:id" element={<ProtectedPages><PatientDetail /></ProtectedPages>} />
                   <Route path="/medical-records" element={<ProtectedPages><MedicalRecords /></ProtectedPages>} />
-                  <Route path="/prescriptions" element={<ProtectedPages><Prescriptions /></ProtectedPages>} />
-                  <Route path="/payments" element={<ProtectedPages><Payments /></ProtectedPages>} />
-                  <Route path="/laboratory" element={<ProtectedPages><Laboratory /></ProtectedPages>} />
-                  <Route path="/pharmacy" element={<ProtectedPages><Pharmacy /></ProtectedPages>} />
-                  <Route path="/staff" element={<ProtectedPages><Staff /></ProtectedPages>} />
+                  <Route path="/prescriptions" element={<RoleProtected roles={["admin", "medecin"]}><Prescriptions /></RoleProtected>} />
+                  <Route path="/payments" element={<RoleProtected roles={["admin", "secretaire"]}><Payments /></RoleProtected>} />
+                  <Route path="/laboratory" element={<RoleProtected roles={["admin", "medecin", "infirmier"]}><Laboratory /></RoleProtected>} />
+                  <Route path="/pharmacy" element={<RoleProtected roles={["admin", "medecin", "infirmier"]}><Pharmacy /></RoleProtected>} />
+                  <Route path="/staff" element={<RoleProtected roles={["admin"]}><Staff /></RoleProtected>} />
                   <Route path="/settings" element={<ProtectedPages><SettingsPage /></ProtectedPages>} />
-                  <Route path="/subscriptions" element={<ProtectedPages><Subscriptions /></ProtectedPages>} />
-                  <Route path="/reports" element={<ProtectedPages><Reports /></ProtectedPages>} />
-                  <Route path="/integrations" element={<ProtectedPages><Integrations /></ProtectedPages>} />
-                  <Route path="/oauth/callback" element={<ProtectedPages><OAuthCallback /></ProtectedPages>} />
+                  <Route path="/subscriptions" element={<RoleProtected roles={["admin"]}><Subscriptions /></RoleProtected>} />
+                  <Route path="/reports" element={<RoleProtected roles={["admin", "medecin"]}><Reports /></RoleProtected>} />
+                  <Route path="/integrations" element={<RoleProtected roles={["admin"]}><Integrations /></RoleProtected>} />
+                  <Route path="/oauth/callback" element={<RoleProtected roles={["admin"]}><OAuthCallback /></RoleProtected>} />
                   
                   {/* Phase 1 Features */}
-                  <Route path="/telemedicine" element={<ProtectedPages><Telemedicine /></ProtectedPages>} />
+                  <Route path="/telemedicine" element={<RoleProtected roles={["admin", "medecin"]}><Telemedicine /></RoleProtected>} />
                   <Route path="/t/:joinCode" element={<TelemedicineJoin />} />
                   <Route path="/telemedicine/join/:sessionId/:token" element={<TelemedicineJoin />} />
                   <Route path="/telemedicine/join/:sessionId" element={<TelemedicineJoin />} />
                   <Route path="/security" element={<ProtectedPages><Security /></ProtectedPages>} />
-                  <Route path="/advanced-analytics" element={<ProtectedPages><AdvancedAnalytics /></ProtectedPages>} />
+                  <Route path="/advanced-analytics" element={<RoleProtected roles={["admin", "medecin"]}><AdvancedAnalytics /></RoleProtected>} />
                   
                   {/* Phase 2 Features */}
-                  <Route path="/api-platform" element={<ProtectedPages><APIPlatform /></ProtectedPages>} />
-                  <Route path="/workflow-automation" element={<ProtectedPages><WorkflowAutomation /></ProtectedPages>} />
-                  <Route path="/webhooks" element={<ProtectedPages><Webhooks /></ProtectedPages>} />
+                  <Route path="/api-platform" element={<RoleProtected roles={["admin"]}><APIPlatform /></RoleProtected>} />
+                  <Route path="/workflow-automation" element={<RoleProtected roles={["admin"]}><WorkflowAutomation /></RoleProtected>} />
+                  <Route path="/webhooks" element={<RoleProtected roles={["admin"]}><Webhooks /></RoleProtected>} />
                   
-                  {/* Super Admin Routes */}
-                  <Route path="/super-admin" element={<SuperAdminDashboard />} />
-                  <Route path="/super-admin/clinics" element={<SuperAdminClinics />} />
-                  <Route path="/super-admin/users" element={<SuperAdminUsers />} />
-                  <Route path="/super-admin/analytics" element={<SuperAdminAnalytics />} />
-                  <Route path="/super-admin/billing" element={<SuperAdminBilling />} />
-                  <Route path="/super-admin/activity" element={<SuperAdminActivity />} />
-                  <Route path="/super-admin/security" element={<SuperAdminSecurity />} />
-                  <Route path="/super-admin/audit" element={<SuperAdminAuditLogs />} />
-                  <Route path="/super-admin/feature-flags" element={<SuperAdminFeatureFlags />} />
-                  <Route path="/super-admin/health" element={<SuperAdminSystemHealth />} />
-                  <Route path="/super-admin/email" element={<SuperAdminEmailTemplates />} />
-                  <Route path="/super-admin/support" element={<SuperAdminSupport />} />
-                  <Route path="/super-admin/announcements" element={<SuperAdminAnnouncements />} />
-                  <Route path="/super-admin/backup" element={<SuperAdminBackup />} />
-                  <Route path="/super-admin/api" element={<SuperAdminAPIManagement />} />
-                  <Route path="/super-admin/ai" element={<SuperAdminAI />} />
-                  <Route path="/super-admin/settings" element={<SuperAdminSettings />} />
+                  {/* Super Admin Routes — auth required; SuperAdminLayout enforces role */}
+                  <Route path="/super-admin" element={<ProtectedPages><SuperAdminDashboard /></ProtectedPages>} />
+                  <Route path="/super-admin/clinics" element={<ProtectedPages><SuperAdminClinics /></ProtectedPages>} />
+                  <Route path="/super-admin/users" element={<ProtectedPages><SuperAdminUsers /></ProtectedPages>} />
+                  <Route path="/super-admin/analytics" element={<ProtectedPages><SuperAdminAnalytics /></ProtectedPages>} />
+                  <Route path="/super-admin/billing" element={<ProtectedPages><SuperAdminBilling /></ProtectedPages>} />
+                  <Route path="/super-admin/activity" element={<ProtectedPages><SuperAdminActivity /></ProtectedPages>} />
+                  <Route path="/super-admin/security" element={<ProtectedPages><SuperAdminSecurity /></ProtectedPages>} />
+                  <Route path="/super-admin/audit" element={<ProtectedPages><SuperAdminAuditLogs /></ProtectedPages>} />
+                  <Route path="/super-admin/feature-flags" element={<ProtectedPages><SuperAdminFeatureFlags /></ProtectedPages>} />
+                  <Route path="/super-admin/health" element={<ProtectedPages><SuperAdminSystemHealth /></ProtectedPages>} />
+                  <Route path="/super-admin/email" element={<ProtectedPages><SuperAdminEmailTemplates /></ProtectedPages>} />
+                  <Route path="/super-admin/support" element={<ProtectedPages><SuperAdminSupport /></ProtectedPages>} />
+                  <Route path="/super-admin/announcements" element={<ProtectedPages><SuperAdminAnnouncements /></ProtectedPages>} />
+                  <Route path="/super-admin/backup" element={<ProtectedPages><SuperAdminBackup /></ProtectedPages>} />
+                  <Route path="/super-admin/api" element={<ProtectedPages><SuperAdminAPIManagement /></ProtectedPages>} />
+                  <Route path="/super-admin/ai" element={<ProtectedPages><SuperAdminAI /></ProtectedPages>} />
+                  <Route path="/super-admin/settings" element={<ProtectedPages><SuperAdminSettings /></ProtectedPages>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>

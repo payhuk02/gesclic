@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { isMfaPending } from "@/lib/mfa-session";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { session, loading, profile } = useAuth();
@@ -9,6 +10,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     if (loading || !session) return;
+    if (isMfaPending()) return;
+
     const pending = localStorage.getItem("pending_invitation_token");
     if (pending && !location.pathname.startsWith("/invite/")) {
       localStorage.removeItem("pending_invitation_token");
@@ -36,6 +39,11 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (!session) return <Navigate to="/login" replace />;
+
+  // Password accepted but TOTP/backup code not verified yet
+  if (isMfaPending()) {
+    return <Navigate to="/login" replace />;
+  }
 
   return <>{children}</>;
 };

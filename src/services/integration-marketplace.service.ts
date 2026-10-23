@@ -537,7 +537,8 @@ export class IntegrationMarketplaceService {
    * Generate HMAC-SHA256 webhook signature
    */
   private async generateSignature(data: Record<string, any>): Promise<string> {
-    const secret = import.meta.env.VITE_WEBHOOK_SECRET || 'default-secret';
+    const secret = import.meta.env.VITE_WEBHOOK_SECRET;
+    if (!secret) throw new Error('Webhook secret required');
     const payload = JSON.stringify(data);
     
     try {
