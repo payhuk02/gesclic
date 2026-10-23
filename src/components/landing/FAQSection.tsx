@@ -29,11 +29,15 @@ const faqs = [
   },
   {
     q: "Est-ce que Gesclic fonctionne hors connexion ?",
-    a: "Les fonctionnalités essentielles comme la consultation de fiches patients et la prise de rendez-vous fonctionnent avec une connexion internet minimale. Nous travaillons sur un mode hors ligne complet.",
+    a: "Oui ! Grâce à notre technologie Progressive Web App (PWA) et au stockage local sécurisé, Gesclic continue de fonctionner même en cas de coupure internet. Vous pouvez consulter les dossiers et saisir des actes, qui sont automatiquement synchronisés dès le rétablissement de la connexion.",
+  },
+  {
+    q: "Comment fonctionne l'IA Médicale Gesclic ?",
+    a: "Gesclic AI agit comme un copilote clinique d'aide à la décision. Elle analyse les symptômes saisis, vérifie automatiquement les interactions médicamenteuses avant impression d'ordonnance et génère des synthèses. Elle ne remplace jamais le médecin, qui garde l'entière autorité et la validation de chaque décision.",
   },
   {
     q: "Puis-je gérer plusieurs cliniques ?",
-    a: "Oui, avec le plan Pro ou Entreprise, vous pouvez gérer plusieurs établissements depuis un seul compte. Chaque clinique a son propre espace avec ses données, son personnel et son branding.",
+    a: "Oui, avec les plans Pro, Premium ou Sur mesure, vous pouvez administrer plusieurs établissements depuis un compte unique avec cloisonnement étanche des données, de la caisse et des équipes.",
   },
 ];
 
