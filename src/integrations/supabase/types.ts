@@ -15,7 +15,77 @@ export type Database = {
   }
   public: {
     Tables: {
-
+      subscription_payments: {
+        Row: {
+          id: string
+          clinic_id: string
+          user_id: string | null
+          plan: string
+          billing_months: number
+          amount: number
+          currency: string
+          status: string
+          payment_method: string
+          client_name: string | null
+          phone_number: string | null
+          moneyfusion_token: string | null
+          moneyfusion_url: string | null
+          moneyfusion_transaction_id: string | null
+          metadata: Json
+          paid_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          clinic_id: string
+          user_id?: string | null
+          plan: string
+          billing_months?: number
+          amount: number
+          currency?: string
+          status?: string
+          payment_method?: string
+          client_name?: string | null
+          phone_number?: string | null
+          moneyfusion_token?: string | null
+          moneyfusion_url?: string | null
+          moneyfusion_transaction_id?: string | null
+          metadata?: Json
+          paid_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          clinic_id?: string
+          user_id?: string | null
+          plan?: string
+          billing_months?: number
+          amount?: number
+          currency?: string
+          status?: string
+          payment_method?: string
+          client_name?: string | null
+          phone_number?: string | null
+          moneyfusion_token?: string | null
+          moneyfusion_url?: string | null
+          moneyfusion_transaction_id?: string | null
+          metadata?: Json
+          paid_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_payments_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       appointments: {
         Row: {
           clinic_id: string
