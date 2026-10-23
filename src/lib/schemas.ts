@@ -72,7 +72,7 @@ export const clinicSchema = z.object({
   name: z.string().min(2, "Le nom de la clinique est requis").max(100),
   slug: z.string().min(3, "Le slug doit contenir au moins 3 caractères").max(50)
     .regex(/^[a-z0-9-]+$/, "Le slug ne peut contenir que des lettres minuscules, chiffres et tirets"),
-  plan: z.enum(["gratuit", "basique", "pro", "entreprise"]).default("gratuit"),
+  plan: z.enum(["essentiel", "pro", "premium", "custom"]).default("essentiel"),
   status: z.enum(["actif", "inactif", "suspensu"]).default("actif"),
 });
 

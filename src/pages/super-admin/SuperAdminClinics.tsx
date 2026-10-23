@@ -64,7 +64,7 @@ import DeleteConfirmDialog from "@/components/dialogs/DeleteConfirmDialog";
 interface Clinic {
   id: string;
   name: string;
-  plan: "free" | "standard" | "pro" | "enterprise";
+  plan: string;
   status: "active" | "suspended" | "pending";
   created_at: string;
   user_count: number;
@@ -184,11 +184,15 @@ const SuperAdminClinics = () => {
     return matchesSearch && matchesStatus && matchesPlan;
   });
 
-  const planConfig = {
-    free: { label: "Gratuit", color: "bg-slate-500" },
-    standard: { label: "Standard", color: "bg-blue-500" },
+  const planConfig: Record<string, { label: string; color: string }> = {
+    essentiel: { label: "Essentiel", color: "bg-slate-500" },
     pro: { label: "Pro", color: "bg-purple-500" },
-    enterprise: { label: "Entreprise", color: "bg-amber-500" },
+    premium: { label: "Premium", color: "bg-blue-500" },
+    custom: { label: "Sur mesure", color: "bg-amber-500" },
+    // legacy (pré-migration)
+    free: { label: "Essentiel", color: "bg-slate-500" },
+    standard: { label: "Essentiel", color: "bg-slate-500" },
+    enterprise: { label: "Sur mesure", color: "bg-amber-500" },
   };
 
   const statusConfig = {
@@ -256,10 +260,10 @@ const SuperAdminClinics = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tous les plans</SelectItem>
-                  <SelectItem value="free">Gratuit</SelectItem>
-                  <SelectItem value="standard">Standard</SelectItem>
+                  <SelectItem value="essentiel">Essentiel</SelectItem>
                   <SelectItem value="pro">Pro</SelectItem>
-                  <SelectItem value="enterprise">Entreprise</SelectItem>
+                  <SelectItem value="premium">Premium</SelectItem>
+                  <SelectItem value="custom">Sur mesure</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -322,7 +326,10 @@ const SuperAdminClinics = () => {
             ) : (
               <div className="space-y-4">
                 {filteredClinics.map((clinic) => {
-                  const planInfo = planConfig[clinic.plan];
+                  const planInfo = planConfig[clinic.plan] ?? {
+                    label: clinic.plan,
+                    color: "bg-slate-500",
+                  };
                   const statusInfo = statusConfig[clinic.status];
                   const StatusIcon = statusInfo.icon;
 
@@ -437,9 +444,8 @@ const SuperAdminClinics = () => {
                         <h3 className="text-lg font-semibold">{selectedClinic.name}</h3>
 
                         <p className="text-sm text-muted-foreground">{selectedClinic.email}</p>
-                        <Badge className={`${planConfig[selectedClinic.plan].color} mt-1`}>
-
-                          {planConfig[selectedClinic.plan].label}
+                        <Badge className={`${(planConfig[selectedClinic.plan] ?? { color: "bg-slate-500" }).color} mt-1`}>
+                          {(planConfig[selectedClinic.plan] ?? { label: selectedClinic.plan }).label}
                         </Badge>
                       </div>
                     </div>

@@ -1,18 +1,27 @@
 import AppLayout from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, Star, Zap, Crown, Building2, Loader2 } from "lucide-react";
+import { Check, Zap, Crown, Building2, Sparkles, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useClinic } from "@/contexts/ClinicContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { CLINIC_PLANS, isClinicPlanId, type ClinicPlanId } from "@/lib/clinic-plans";
+import {
+  BILLING_PERIODS,
+  CLINIC_PLANS,
+  computePlanTotal,
+  formatFcfa,
+  normalizeClinicPlanId,
+  type BillingPeriodMonths,
+  type ClinicPlanId,
+} from "@/lib/clinic-plans";
 import { clinicSettingsService } from "@/services/clinic-settings.service";
 
 const PLAN_ICONS = {
-  free: Star,
+  essentiel: Sparkles,
   pro: Crown,
-  enterprise: Building2,
+  premium: Zap,
+  custom: Building2,
 } as const;
 
 const Subscriptions = () => {
@@ -20,15 +29,15 @@ const Subscriptions = () => {
   const { hasRole } = useAuth();
   const canManage = hasRole("admin") || hasClinicRole("admin");
   const [updatingPlan, setUpdatingPlan] = useState<ClinicPlanId | null>(null);
+  const [billingMonths, setBillingMonths] = useState<BillingPeriodMonths>(1);
 
-  const currentPlanId = isClinicPlanId(activeClinic?.plan ?? "")
-    ? (activeClinic!.plan as ClinicPlanId)
-    : "free";
+  const currentPlanId = normalizeClinicPlanId(activeClinic?.plan);
+  const billing = BILLING_PERIODS.find((p) => p.months === billingMonths)!;
 
   const handleSelectPlan = async (planId: ClinicPlanId) => {
     if (!canManage || !activeClinicId || planId === currentPlanId) return;
-    if (planId === "enterprise") {
-      toast.info("Contactez le support Gesclic pour le plan Entreprise.");
+    if (planId === "custom") {
+      toast.info("Contactez le support Gesclic pour un devis Sur mesure.");
       return;
     }
 
@@ -36,7 +45,13 @@ const Subscriptions = () => {
     try {
       await clinicSettingsService.updateClinicPlan(activeClinicId, planId);
       await refetch();
-      toast.success(`Plan ${CLINIC_PLANS.find((p) => p.id === planId)?.name} activé`);
+      const plan = CLINIC_PLANS.find((p) => p.id === planId);
+      const pricing = computePlanTotal(plan?.monthlyPrice ?? null, billingMonths);
+      const periodNote =
+        pricing && billingMonths > 1
+          ? ` (${formatFcfa(pricing.total)} FCFA / ${billing.label}, −${billing.discountPercent} %)`
+          : "";
+      toast.success(`Plan ${plan?.name} activé${periodNote}`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Erreur lors du changement de plan");
     } finally {
@@ -48,16 +63,40 @@ const Subscriptions = () => {
     <AppLayout title="Abonnements">
       <div className="text-center mb-8">
         <h2 className="text-2xl font-bold text-foreground mb-2">Choisissez votre plan</h2>
-        <p className="text-muted-foreground">
-          Plans alignés sur votre compte : <span className="font-medium">{currentPlanId}</span>
+        <p className="text-muted-foreground mb-6">
+          Plan actuel :{" "}
+          <span className="font-medium text-foreground">
+            {CLINIC_PLANS.find((p) => p.id === currentPlanId)?.name ?? currentPlanId}
+          </span>
         </p>
+
+        <div className="inline-flex flex-wrap items-center justify-center gap-1 p-1 rounded-xl bg-muted/60 border border-border">
+          {BILLING_PERIODS.map((period) => (
+            <button
+              key={period.months}
+              type="button"
+              onClick={() => setBillingMonths(period.months)}
+              className={`px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                billingMonths === period.months
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {period.label}
+              {period.discountPercent > 0 && (
+                <span className="ml-1.5 text-xs text-success">−{period.discountPercent}%</span>
+              )}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {CLINIC_PLANS.map((plan) => {
           const Icon = PLAN_ICONS[plan.id] ?? Zap;
           const isActive = plan.id === currentPlanId;
           const isLoading = updatingPlan === plan.id;
+          const pricing = computePlanTotal(plan.monthlyPrice, billingMonths);
 
           return (
             <div
@@ -71,16 +110,52 @@ const Subscriptions = () => {
                   Populaire
                 </Badge>
               )}
+              {billing.discountPercent > 0 && pricing && (
+                <Badge
+                  variant="outline"
+                  className="absolute -top-3 right-4 border-success/40 text-success bg-background"
+                >
+                  Économisez {formatFcfa(pricing.savings)}
+                </Badge>
+              )}
+
               <div className="text-center mb-6">
-                <div className={`w-12 h-12 mx-auto rounded-xl flex items-center justify-center mb-3 ${plan.popular ? "gradient-hero" : "bg-primary/10"}`}>
-                  <Icon className={`w-6 h-6 ${plan.popular ? "text-primary-foreground" : "text-primary"}`} />
+                <div
+                  className={`w-12 h-12 mx-auto rounded-xl flex items-center justify-center mb-3 ${
+                    plan.popular ? "gradient-hero" : "bg-primary/10"
+                  }`}
+                >
+                  <Icon
+                    className={`w-6 h-6 ${plan.popular ? "text-primary-foreground" : "text-primary"}`}
+                  />
                 </div>
                 <h3 className="text-lg font-bold text-foreground">{plan.name}</h3>
                 <p className="text-xs text-muted-foreground mb-3">{plan.description}</p>
-                <div className="flex items-baseline justify-center gap-1">
-                  <span className="text-2xl sm:text-3xl font-bold text-foreground">{plan.price}</span>
-                  {plan.period && <span className="text-sm text-muted-foreground">FCFA {plan.period}</span>}
-                </div>
+
+                {pricing ? (
+                  <div className="space-y-1">
+                    <div className="flex items-baseline justify-center gap-1">
+                      <span className="text-2xl sm:text-3xl font-bold text-foreground">
+                        {formatFcfa(pricing.total)}
+                      </span>
+                      <span className="text-sm text-muted-foreground">FCFA</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {billingMonths === 1
+                        ? "/ mois"
+                        : `pour ${billing.label} · soit ${formatFcfa(pricing.monthlyEquivalent)} FCFA/mois`}
+                    </p>
+                    {plan.monthlyPrice != null && billingMonths > 1 && (
+                      <p className="text-[11px] text-muted-foreground line-through">
+                        {formatFcfa(plan.monthlyPrice * billingMonths)} FCFA
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-baseline justify-center gap-1">
+                    <span className="text-2xl sm:text-3xl font-bold text-foreground">Sur devis</span>
+                  </div>
+                )}
               </div>
 
               <ul className="space-y-2.5 mb-6 flex-1">
@@ -102,7 +177,7 @@ const Subscriptions = () => {
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : isActive ? (
                   "Plan actuel"
-                ) : plan.id === "enterprise" ? (
+                ) : plan.contactSales ? (
                   "Nous contacter"
                 ) : (
                   `Choisir ${plan.name}`
@@ -123,10 +198,22 @@ const Subscriptions = () => {
         <h3 className="text-lg font-semibold text-foreground mb-4">Questions fréquentes</h3>
         <div className="grid sm:grid-cols-2 gap-6">
           {[
-            { q: "Puis-je changer de plan ?", a: "Oui, les administrateurs peuvent passer de Gratuit à Pro à tout moment." },
-            { q: "Y a-t-il un engagement ?", a: "Non, tous les plans sont sans engagement." },
-            { q: "Comment payer ?", a: "La facturation en ligne sera activée prochainement." },
-            { q: "Plan Entreprise ?", a: "Contactez le support Gesclic pour un devis personnalisé." },
+            {
+              q: "Puis-je changer de plan ?",
+              a: "Oui, les administrateurs peuvent changer de plan à tout moment depuis cette page.",
+            },
+            {
+              q: "Comment fonctionnent les réductions ?",
+              a: "3 mois −10 %, 6 mois −20 %, 12 mois −30 % sur le total payé d’avance.",
+            },
+            {
+              q: "Comment payer ?",
+              a: "La facturation en ligne (Mobile Money / carte) sera branchée prochainement.",
+            },
+            {
+              q: "Plan Sur mesure ?",
+              a: "Contactez le support Gesclic pour un devis adapté à votre réseau de cliniques.",
+            },
           ].map((item) => (
             <div key={item.q}>
               <p className="text-sm font-semibold text-foreground mb-1">{item.q}</p>

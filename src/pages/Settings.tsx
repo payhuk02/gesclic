@@ -25,7 +25,7 @@ import {
   type ClinicProfileSettings,
   type ClinicNotificationSettings,
 } from "@/services/clinic-settings.service";
-import { getClinicPlan } from "@/lib/clinic-plans";
+import { formatFcfa, getClinicPlan } from "@/lib/clinic-plans";
 import {
   applyClinicBrandColor,
   BRAND_COLOR_PRESETS,
@@ -502,8 +502,14 @@ const Settings = () => {
               <CardContent className="space-y-4">
                 <div className="grid sm:grid-cols-3 gap-4">
                   <div className="bg-secondary/30 rounded-lg p-4 text-center">
-                    <p className="text-2xl font-bold text-foreground">{currentPlan.price}</p>
-                    <p className="text-xs text-muted-foreground">{currentPlan.period ? `FCFA ${currentPlan.period}` : currentPlan.period || "—"}</p>
+                    <p className="text-2xl font-bold text-foreground">
+                      {currentPlan.monthlyPrice == null
+                        ? "Sur devis"
+                        : `${formatFcfa(currentPlan.monthlyPrice)} FCFA`}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {currentPlan.monthlyPrice == null ? "—" : "/ mois"}
+                    </p>
                   </div>
                   <div className="bg-secondary/30 rounded-lg p-4">
                     <p className="text-sm font-medium text-foreground mb-2">Inclus</p>
@@ -517,7 +523,7 @@ const Settings = () => {
                   </div>
                   <div className="bg-secondary/30 rounded-lg p-4 flex items-center justify-center">
                     <p className="text-sm text-muted-foreground text-center">
-                      Plan DB : <span className="font-medium text-foreground">{activeClinic?.plan ?? "free"}</span>
+                      Plan DB : <span className="font-medium text-foreground">{activeClinic?.plan ?? "essentiel"}</span>
                     </p>
                   </div>
                 </div>

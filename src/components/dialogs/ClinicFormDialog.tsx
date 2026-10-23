@@ -51,7 +51,7 @@ const ClinicFormDialog = ({ open, onOpenChange, clinic, onSaved }: ClinicFormDia
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     name: "",
-    plan: "free",
+    plan: "essentiel",
     status: "active",
     email: "",
     country: "",
@@ -61,7 +61,7 @@ const ClinicFormDialog = ({ open, onOpenChange, clinic, onSaved }: ClinicFormDia
     if (!open) return;
     setForm({
       name: clinic?.name ?? "",
-      plan: clinic?.plan ?? "free",
+      plan: clinic?.plan ?? "essentiel",
       status: clinic?.status ?? "active",
       email: clinic?.email ?? "",
       country: clinic?.country ?? "",
@@ -183,10 +183,10 @@ const ClinicFormDialog = ({ open, onOpenChange, clinic, onSaved }: ClinicFormDia
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="free">Gratuit</SelectItem>
-                  <SelectItem value="standard">Standard</SelectItem>
+                  <SelectItem value="essentiel">Essentiel</SelectItem>
                   <SelectItem value="pro">Pro</SelectItem>
-                  <SelectItem value="enterprise">Entreprise</SelectItem>
+                  <SelectItem value="premium">Premium</SelectItem>
+                  <SelectItem value="custom">Sur mesure</SelectItem>
                 </SelectContent>
               </Select>
             </div>

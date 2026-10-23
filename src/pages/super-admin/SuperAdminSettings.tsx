@@ -41,7 +41,7 @@ const SuperAdminSettings = () => {
     maintenanceMode: false,
     registrationEnabled: true,
     requireEmailVerification: true,
-    defaultPlan: "free",
+    defaultPlan: "essentiel",
 
   });
 
@@ -183,9 +183,10 @@ const SuperAdminSettings = () => {
                     onChange={(e) => setSettings({ ...settings, defaultPlan: e.target.value })}
                     className="mt-1 w-full p-2 border border-border rounded-lg bg-background"
                   >
-                    <option value="free">Gratuit</option>
-                    <option value="standard">Standard</option>
+                    <option value="essentiel">Essentiel</option>
                     <option value="pro">Pro</option>
+                    <option value="premium">Premium</option>
+                    <option value="custom">Sur mesure</option>
                   </select>
                 </div>
                 <Button onClick={handleSave} className="gradient-hero border-0">

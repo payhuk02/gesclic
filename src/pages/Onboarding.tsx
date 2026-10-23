@@ -27,6 +27,12 @@ import { useClinic, type AppRole } from "@/contexts/ClinicContext";
 import { useInvitations } from "@/hooks/useInvitations";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import {
+  CLINIC_PLANS,
+  formatFcfa,
+  normalizeClinicPlanId,
+  type ClinicPlanId,
+} from "@/lib/clinic-plans";
 
 type StepId = "welcome" | "clinic" | "team" | "plan";
 
@@ -42,54 +48,6 @@ const ROLES: { value: AppRole; label: string }[] = [
   { value: "medecin", label: "Médecin" },
   { value: "secretaire", label: "Secrétaire" },
   { value: "infirmier", label: "Infirmier(ère)" },
-];
-
-interface Plan {
-  id: string;
-  name: string;
-  price: string;
-  priceSuffix: string;
-  description: string;
-  features: string[];
-  highlight?: boolean;
-  cta: "select" | "contact";
-}
-
-const PLANS: Plan[] = [
-  {
-    id: "free",
-    name: "Découverte",
-    price: "0€",
-    priceSuffix: "/mois",
-    description: "Pour tester la plateforme sans engagement.",
-    features: ["Jusqu'à 2 utilisateurs", "50 patients", "Rendez-vous et dossiers de base", "Support communautaire"],
-    cta: "select",
-  },
-  {
-    id: "pro",
-    name: "Pro",
-    price: "49€",
-    priceSuffix: "/utilisateur/mois",
-    description: "Pour les cliniques en croissance.",
-    features: [
-      "Utilisateurs et patients illimités",
-      "Ordonnances, laboratoire, pharmacie",
-      "Assistant IA médical",
-      "Rapports et exports",
-      "Support prioritaire",
-    ],
-    highlight: true,
-    cta: "select",
-  },
-  {
-    id: "enterprise",
-    name: "Enterprise",
-    price: "Sur devis",
-    priceSuffix: "",
-    description: "Groupes hospitaliers, multi-sites, conformité renforcée.",
-    features: ["Instance dédiée", "SSO/SAML, MFA obligatoire", "Audit RGPD/HDS", "SLA 99.9%", "CSM dédié"],
-    cta: "contact",
-  },
 ];
 
 interface InviteDraft { id: string; email: string; role: AppRole }
@@ -110,14 +68,14 @@ const Onboarding = () => {
   const [invites, setInvites] = useState<InviteDraft[]>([
     { id: crypto.randomUUID(), email: "", role: "medecin" },
   ]);
-  const [selectedPlan, setSelectedPlan] = useState<string>("free");
+  const [selectedPlan, setSelectedPlan] = useState<ClinicPlanId>("essentiel");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (activeClinic) {
       setClinicName(activeClinic.name ?? "");
       setLogoUrl(activeClinic.logo_url ?? null);
-      setSelectedPlan(activeClinic.plan ?? "free");
+      setSelectedPlan(normalizeClinicPlanId(activeClinic.plan));
     }
   }, [activeClinic]);
 
@@ -202,8 +160,11 @@ const Onboarding = () => {
 
   const savePlan = async () => {
     if (!activeClinicId) return true;
-    // Enterprise stays on current plan (contact sales)
-    const planToSave = selectedPlan === "enterprise" ? activeClinic?.plan ?? "free" : selectedPlan;
+    // Sur mesure: keep current plan until sales closes the deal
+    const planToSave =
+      selectedPlan === "custom"
+        ? normalizeClinicPlanId(activeClinic?.plan)
+        : selectedPlan;
     const { error } = await supabase.from("clinics").update({ plan: planToSave }).eq("id", activeClinicId);
     if (error) {
       toast.error("Erreur enregistrement du plan");
@@ -508,8 +469,12 @@ const Onboarding = () => {
                   Vous pouvez changer de plan à tout moment depuis les paramètres. Aucun paiement n'est requis maintenant.
                 </p>
                 <div className="grid gap-3">
-                  {PLANS.map((p) => {
+                  {CLINIC_PLANS.map((p) => {
                     const isSelected = selectedPlan === p.id;
+                    const priceLabel =
+                      p.monthlyPrice == null
+                        ? "Sur devis"
+                        : `${formatFcfa(p.monthlyPrice)} FCFA`;
                     return (
                       <button
                         key={p.id}
@@ -525,16 +490,16 @@ const Onboarding = () => {
                         <div className="flex items-start justify-between gap-3 mb-2">
                           <div className="flex items-center gap-2">
                             <h3 className="font-semibold">{p.name}</h3>
-                            {p.highlight && (
+                            {p.popular && (
                               <Badge className="bg-primary/10 text-primary border-0 text-[10px]">
                                 Recommandé
                               </Badge>
                             )}
                           </div>
                           <div className="text-right">
-                            <div className="font-bold">{p.price}</div>
-                            {p.priceSuffix && (
-                              <div className="text-xs text-muted-foreground">{p.priceSuffix}</div>
+                            <div className="font-bold">{priceLabel}</div>
+                            {p.monthlyPrice != null && (
+                              <div className="text-xs text-muted-foreground">/ mois</div>
                             )}
                           </div>
                         </div>
@@ -547,12 +512,12 @@ const Onboarding = () => {
                             </li>
                           ))}
                         </ul>
-                        {p.cta === "contact" && isSelected && (
+                        {p.contactSales && isSelected && (
                           <a
-                            href="mailto:sales@gesclic.app?subject=Demande%20plan%20Enterprise"
+                            href="mailto:sales@gesclic.app?subject=Demande%20plan%20Sur%20mesure"
                             className="inline-flex mt-3 text-sm text-primary font-medium hover:underline"
                           >
-                            Contacter l'équipe commerciale →
+                            Contacter l&apos;équipe commerciale →
                           </a>
                         )}
                       </button>
