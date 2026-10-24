@@ -51,7 +51,7 @@ const SecurityComplianceSection = () => {
           <Badge variant="outline" className="mb-3 px-3.5 py-1 text-success border-success/30 bg-success/5">
             <ShieldCheck className="w-3.5 h-3.5 mr-1.5" /> Sécurité & Conformité Données de Santé
           </Badge>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-foreground tracking-tight mb-4">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold text-foreground tracking-tight mb-4">
             La sécurité de vos données médicales est notre priorité absolue
           </h2>
           <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">

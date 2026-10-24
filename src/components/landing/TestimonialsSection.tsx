@@ -17,7 +17,7 @@ const TestimonialsSection = () => {
           viewport={{ once: true }}
           className="text-center mb-12 sm:mb-16"
         >
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-3 sm:mb-4">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-heading font-bold text-foreground mb-3 sm:mb-4">
             Ils nous font confiance
           </h2>
           <p className="text-base sm:text-lg text-muted-foreground">
@@ -40,7 +40,7 @@ const TestimonialsSection = () => {
                   <Star key={j} className="w-3 h-3 sm:w-4 sm:h-4 fill-warning text-warning" />
                 ))}
               </div>
-              <p className="text-foreground text-xs sm:text-sm leading-relaxed mb-3 sm:mb-4">"{t.text}"</p>
+              <p className="text-foreground font-serif italic text-sm sm:text-base leading-relaxed mb-3 sm:mb-4">"{t.text}"</p>
               <div>
                 <p className="font-semibold text-foreground text-xs sm:text-sm">{t.name}</p>
                 <p className="text-[10px] sm:text-xs text-muted-foreground">{t.role}</p>

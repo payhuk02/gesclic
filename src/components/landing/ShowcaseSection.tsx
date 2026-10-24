@@ -121,7 +121,7 @@ const ShowcaseSection = () => {
           <Badge variant="outline" className="mb-3 px-3 py-1 text-primary border-primary/20 bg-primary/5">
             <Zap className="w-3.5 h-3.5 mr-1" /> Expérience Praticien & Patient
           </Badge>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-foreground tracking-tight mb-4">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold text-foreground tracking-tight mb-4">
             Une suite clinique conçue pour l'excellence
           </h2>
           <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">

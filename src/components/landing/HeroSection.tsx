@@ -118,10 +118,10 @@ const HeroSection = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.15 }}
-          className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tight text-white leading-[1.15] max-w-5xl mb-6 sm:mb-8 drop-shadow-[0_4px_16px_rgba(0,0,0,0.85)]"
+          className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-heading font-bold tracking-tight text-white leading-[1.1] max-w-5xl mb-6 sm:mb-8 drop-shadow-[0_4px_16px_rgba(0,0,0,0.85)]"
         >
           La gestion médicale{" "}
-          <span className="bg-gradient-to-r from-sky-300 via-cyan-200 to-teal-300 bg-clip-text text-transparent drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]">
+          <span className="font-serif italic bg-gradient-to-r from-sky-300 via-cyan-200 to-teal-300 bg-clip-text text-transparent drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]">
             intelligente & unifiée
           </span>{" "}
           pour votre clinique

@@ -51,7 +51,7 @@ const FAQSection = () => {
           viewport={{ once: true }}
           className="text-center mb-10 sm:mb-12"
         >
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-3 sm:mb-4">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-heading font-bold text-foreground mb-3 sm:mb-4">
             Questions fréquentes
           </h2>
           <p className="text-base sm:text-lg text-muted-foreground">

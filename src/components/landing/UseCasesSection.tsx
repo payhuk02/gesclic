@@ -74,7 +74,7 @@ const UseCasesSection = () => {
           <Badge variant="outline" className="mb-3 px-3 py-1 text-primary border-primary/20 bg-primary/5">
             Solutions adaptées
           </Badge>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-foreground tracking-tight mb-4">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold text-foreground tracking-tight mb-4">
             Une solution pensée pour chaque profil d'établissement
           </h2>
           <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">

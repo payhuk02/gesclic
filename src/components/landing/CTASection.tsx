@@ -14,7 +14,7 @@ const CTASection = () => (
       >
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.1),transparent)] pointer-events-none" />
         <Heart className="w-10 h-10 sm:w-12 sm:h-12 text-primary-foreground/30 fill-primary-foreground/10 mx-auto mb-4 sm:mb-6" />
-        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-primary-foreground mb-3 sm:mb-4 relative">
+        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-heading font-bold text-primary-foreground mb-3 sm:mb-4 relative">
           Prêt à moderniser votre clinique ?
         </h2>
         <p className="text-base sm:text-lg text-primary-foreground/80 mb-6 sm:mb-8 max-w-2xl mx-auto relative px-4">

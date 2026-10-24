@@ -57,7 +57,7 @@ const StatsSection = () => {
           <span className="text-xs sm:text-sm font-semibold tracking-wider uppercase text-primary mb-2 block">
             Impact clinique mesuré
           </span>
-          <h2 className="text-2xl sm:text-3xl font-bold text-foreground">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-heading font-bold text-foreground">
             La référence technologique de la santé en Afrique
           </h2>
         </motion.div>
@@ -78,7 +78,7 @@ const StatsSection = () => {
                 </div>
               </div>
               <div>
-                <p className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-foreground tracking-tight mb-1 tabular-nums">
+                <p className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold text-foreground tracking-tight mb-1 tabular-nums">
                   {stat.value}
                 </p>
                 <p className="text-xs sm:text-sm font-semibold text-foreground mb-1 leading-snug">

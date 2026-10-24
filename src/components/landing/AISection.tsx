@@ -101,7 +101,7 @@ const AISection = () => {
               <BrainCircuit className="w-3.5 h-3.5 mr-1.5" /> Intelligence Artificielle Médicale
             </Badge>
 
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-foreground tracking-tight leading-tight">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold text-foreground tracking-tight leading-tight">
               L'IA au service de votre jugement clinique, pas à sa place
             </h2>
 

@@ -12,7 +12,7 @@ const LandingNavbar = () => {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2.5 font-bold text-xl text-foreground">
           <img src={logo} alt="Gesclic" className="h-8 w-auto object-contain" />
-          <span className="tracking-tight">Gesclic</span>
+          <span className="font-heading text-2xl font-bold tracking-tight">Gesclic</span>
         </Link>
 
         <div className="hidden lg:flex items-center gap-6 xl:gap-8">

@@ -26,8 +26,8 @@ const PricingSection = () => {
           viewport={{ once: true }}
           className="text-center mb-10 sm:mb-12"
         >
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-2">
-            Tarifs
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold text-foreground mb-3">
+            Tarifs & Abonnements
           </h2>
           <p className="text-base sm:text-lg text-muted-foreground mb-2">Simple et transparent</p>
           <p className="text-sm text-muted-foreground px-4 mb-4">
@@ -64,7 +64,7 @@ const PricingSection = () => {
                     Recommandé
                   </div>
                 )}
-                <h3 className="font-bold text-base sm:text-lg text-foreground">{plan.name}</h3>
+                <h3 className="font-heading font-bold text-lg sm:text-xl text-foreground">{plan.name}</h3>
                 <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">{plan.description}</p>
 
                 <div className="mb-4 sm:mb-6 min-h-[5.5rem]">
