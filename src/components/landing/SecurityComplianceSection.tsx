@@ -67,21 +67,21 @@ const SecurityComplianceSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.08, duration: 0.5 }}
-              className="bg-card rounded-2xl p-6 border border-border hover:border-primary/30 shadow-card hover:shadow-elevated transition-all flex flex-col justify-between"
+              className="bg-card rounded-2xl p-6 border border-border hover:border-primary/30 shadow-card hover:shadow-elevated transition-all flex flex-col justify-between items-center text-center group"
             >
-              <div>
-                <div className="mb-4 text-emerald-600 dark:text-emerald-400">
-                  <sec.icon className="w-7 h-7" strokeWidth={1.75} />
+              <div className="flex flex-col items-center w-full">
+                <div className="mb-4 text-emerald-600 dark:text-emerald-400 flex justify-center">
+                  <sec.icon className="w-8 h-8 group-hover:scale-110 transition-transform duration-300" strokeWidth={1.75} />
                 </div>
-                <h3 className="text-base sm:text-lg font-bold text-foreground mb-2">
+                <h3 className="text-base sm:text-lg font-bold text-foreground mb-2 text-center">
                   {sec.title}
                 </h3>
-                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed text-center">
                   {sec.desc}
                 </p>
               </div>
 
-              <div className="pt-4 mt-4 border-t border-border flex items-center gap-1.5 text-xs font-medium text-success">
+              <div className="pt-4 mt-4 border-t border-border flex items-center justify-center gap-1.5 text-xs font-medium text-success w-full">
                 <CheckCircle className="w-4 h-4" />
                 <span>Norme active & vérifiée</span>
               </div>

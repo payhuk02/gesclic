@@ -114,13 +114,13 @@ const AISection = () => {
               {aiCapabilities.map((cap) => (
                 <div
                   key={cap.title}
-                  className="bg-card/70 backdrop-blur-sm rounded-2xl p-4 border border-border hover:border-primary/40 transition-all shadow-sm group"
+                  className="bg-card/70 backdrop-blur-sm rounded-2xl p-4 sm:p-5 border border-border hover:border-primary/40 transition-all shadow-sm group flex flex-col items-center text-center"
                 >
-                  <div className="text-primary mb-3">
-                    <cap.icon className="w-6 h-6 group-hover:scale-110 transition-transform duration-300" strokeWidth={1.75} />
+                  <div className="text-primary mb-3 flex justify-center">
+                    <cap.icon className="w-7 h-7 group-hover:scale-110 transition-transform duration-300" strokeWidth={1.75} />
                   </div>
-                  <h4 className="font-semibold text-foreground text-sm mb-1.5">{cap.title}</h4>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{cap.desc}</p>
+                  <h4 className="font-semibold text-foreground text-sm sm:text-base mb-1.5 text-center">{cap.title}</h4>
+                  <p className="text-xs text-muted-foreground leading-relaxed text-center">{cap.desc}</p>
                 </div>
               ))}
             </div>
