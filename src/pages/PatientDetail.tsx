@@ -13,6 +13,7 @@ import {
   AlertTriangle, User, FileText, CreditCard, Pill,
   Clock, Loader2,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const PatientDetail = () => {
   const { id } = useParams<{ id: string }>();

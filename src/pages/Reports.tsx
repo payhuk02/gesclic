@@ -12,6 +12,7 @@ import { useDoctors } from "@/hooks/useDoctors";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TrendingUp, Users, Calendar, CreditCard, Activity } from "lucide-react";
 import ExportButtons from "@/components/ExportButtons";
+import { cn } from "@/lib/utils";
 
 const COLORS = [
   "hsl(var(--primary))", "hsl(var(--accent))", "hsl(var(--destructive))",
