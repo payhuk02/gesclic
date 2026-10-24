@@ -81,13 +81,15 @@ const PatientDetail = () => {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         {[
-          { icon: Calendar, label: "Rendez-vous", value: patientAppointments.length, color: "text-primary bg-primary/10" },
-          { icon: FileText, label: "Dossiers", value: patientRecords.length, color: "text-accent-foreground bg-accent/10" },
-          { icon: Pill, label: "Ordonnances", value: patientPrescriptions.length, color: "text-warning bg-warning/10" },
-          { icon: CreditCard, label: "Paiements", value: patientPayments.length, color: "text-success bg-success/10" },
+          { icon: Calendar, label: "Rendez-vous", value: patientAppointments.length, color: "text-primary bg-primary/10 border-primary/20" },
+          { icon: FileText, label: "Dossiers", value: patientRecords.length, color: "text-blue-600 dark:text-blue-400 bg-blue-500/10 border-blue-500/20" },
+          { icon: Pill, label: "Ordonnances", value: patientPrescriptions.length, color: "text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20" },
+          { icon: CreditCard, label: "Paiements", value: patientPayments.length, color: "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20" },
         ].map((s) => (
-          <div key={s.label} className="bg-card rounded-xl p-4 border border-border text-center">
-            <s.icon className={`w-6 h-6 mx-auto mb-2 ${s.color.split(" ")[0]}`} />
+          <div key={s.label} className="bg-card rounded-xl p-4 border border-border text-center flex flex-col items-center">
+            <div className={`w-10 h-10 rounded-xl border flex items-center justify-center mb-2 shadow-xs ${s.color}`}>
+              <s.icon className="w-5 h-5" strokeWidth={1.75} />
+            </div>
             <p className="text-2xl font-bold text-foreground">{s.value}</p>
             <p className="text-xs text-muted-foreground">{s.label}</p>
           </div>

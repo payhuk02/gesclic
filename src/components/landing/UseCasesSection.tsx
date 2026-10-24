@@ -94,8 +94,8 @@ const UseCasesSection = () => {
             >
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-                    <uc.icon className="w-6 h-6" />
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-b from-primary/15 to-primary/5 border border-primary/20 flex items-center justify-center text-primary shadow-sm group-hover:scale-105 transition-all">
+                    <uc.icon className="w-6 h-6" strokeWidth={1.75} />
                   </div>
                   <span className={`text-xs font-semibold px-3 py-1 rounded-full border ${uc.tagColor}`}>
                     {uc.highlight}

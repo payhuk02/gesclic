@@ -31,7 +31,7 @@ const Patients = () => {
     <AppLayout title="Patients">
       <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4 sm:mb-6">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" strokeWidth={1.75} />
           <Input placeholder="Rechercher un patient par nom ou téléphone..." className="pl-10 text-sm" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <AddPatientDialog onAdd={handleAddPatient} />
@@ -83,7 +83,7 @@ const Patients = () => {
                   onEdit={(form) => handleEditPatient(p.id, form)}
                   trigger={
                     <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8 text-muted-foreground hover:text-foreground">
-                      <Pencil className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                      <Pencil className="w-3.5 h-3.5" strokeWidth={1.75} />
                     </Button>
                   }
                 />
@@ -105,11 +105,11 @@ const Patients = () => {
                 </div>
                 <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
                   <div className="flex items-center gap-1.5 sm:gap-2 text-muted-foreground">
-                    <Phone className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                    <Phone className="w-3.5 h-3.5" strokeWidth={1.75} />
                     <span className="truncate">{p.phone}</span>
                   </div>
                   <div className="flex items-center gap-1.5 sm:gap-2 text-muted-foreground">
-                    <Mail className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                    <Mail className="w-3.5 h-3.5" strokeWidth={1.75} />
                     <span className="truncate">{p.email}</span>
                   </div>
                 </div>

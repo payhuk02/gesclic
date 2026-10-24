@@ -70,17 +70,17 @@ const Reports = () => {
   const avgPerPatient = patients.length > 0 ? Math.round(paidRevenue / patients.length) : 0;
 
   const stats = [
-    { label: "Revenus totaux", value: `${(totalRevenue / 1000).toFixed(0)}K FCFA`, icon: TrendingUp, color: "text-primary bg-primary/10" },
-    { label: "Patients", value: patients.length, icon: Users, color: "text-accent-foreground bg-accent/10" },
-    { label: "Rendez-vous", value: appointments.length, icon: Calendar, color: "text-warning bg-warning/10" },
-    { label: "Moyenne/patient", value: `${(avgPerPatient / 1000).toFixed(0)}K`, icon: CreditCard, color: "text-destructive bg-destructive/10" },
+    { label: "Revenus totaux", value: `${(totalRevenue / 1000).toFixed(0)}K FCFA`, icon: TrendingUp, color: "text-primary bg-primary/10 border-primary/20" },
+    { label: "Patients", value: patients.length, icon: Users, color: "text-blue-600 dark:text-blue-400 bg-blue-500/10 border-blue-500/20" },
+    { label: "Rendez-vous", value: appointments.length, icon: Calendar, color: "text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20" },
+    { label: "Moyenne/patient", value: `${(avgPerPatient / 1000).toFixed(0)}K`, icon: CreditCard, color: "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20" },
   ];
 
   return (
     <AppLayout title="Rapports & Statistiques">
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between gap-4">
-          <div className="flex items-center gap-2"><Activity className="w-4 h-4 sm:w-5 sm:h-5 text-primary" /><h2 className="text-base sm:text-lg font-semibold">Tableau analytique</h2></div>
+          <div className="flex items-center gap-2"><Activity className="w-4 h-4 sm:w-5 sm:h-5 text-primary" strokeWidth={1.75} /><h2 className="text-base sm:text-lg font-semibold">Tableau analytique</h2></div>
           <div className="flex gap-2 sm:gap-3 items-center">
             <Select value={period} onValueChange={setPeriod}>
               <SelectTrigger className="w-32 sm:w-40"><SelectValue /></SelectTrigger>
@@ -97,8 +97,8 @@ const Reports = () => {
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((s, i) => (
-            <motion.div key={s.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} className="bg-card rounded-xl border border-border p-4">
-              <div className="flex items-center gap-3"><div className={`p-2 rounded-lg ${s.color}`}><s.icon className="w-5 h-5" /></div><div><p className="text-xs text-muted-foreground">{s.label}</p><p className="text-xl font-bold">{s.value}</p></div></div>
+            <motion.div key={s.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} className="bg-card rounded-xl border border-border p-4 shadow-xs">
+              <div className="flex items-center gap-3"><div className={`p-2.5 rounded-xl border shadow-xs ${s.color}`}><s.icon className="w-5 h-5" strokeWidth={1.75} /></div><div><p className="text-xs text-muted-foreground">{s.label}</p><p className="text-xl font-bold">{s.value}</p></div></div>
             </motion.div>
           ))}
         </div>

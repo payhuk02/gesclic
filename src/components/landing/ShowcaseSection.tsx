@@ -184,7 +184,7 @@ const ShowcaseSection = () => {
               <div className="grid sm:grid-cols-2 gap-3 pt-2">
                 {current.features.map((feat) => (
                   <div key={feat} className="flex items-start gap-2 text-xs sm:text-sm">
-                    <CheckCircle2 className="w-4 h-4 text-success flex-shrink-0 mt-0.5" />
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" strokeWidth={1.75} />
                     <span className="text-foreground">{feat}</span>
                   </div>
                 ))}
@@ -193,8 +193,8 @@ const ShowcaseSection = () => {
               {/* Key Metric & CTA */}
               <div className="pt-4 border-t border-border flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center">
-                    <ShieldCheck className="w-6 h-6 text-success" />
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-b from-primary/15 to-primary/5 border border-primary/20 flex items-center justify-center shadow-sm">
+                    <ShieldCheck className="w-6 h-6 text-primary" strokeWidth={1.75} />
                   </div>
                   <div>
                     <p className="text-xl sm:text-2xl font-bold text-foreground tabular-nums">

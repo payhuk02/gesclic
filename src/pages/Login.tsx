@@ -156,7 +156,7 @@ const Login = () => {
                 <div>
                   <Label htmlFor="email">Email</Label>
                   <div className="relative mt-1.5">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" strokeWidth={1.75} />
                     <Input
                       id="email"
                       type="email"
@@ -171,7 +171,7 @@ const Login = () => {
                 <div>
                   <Label htmlFor="password">Mot de passe</Label>
                   <div className="relative mt-1.5">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" strokeWidth={1.75} />
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
@@ -186,7 +186,7 @@ const Login = () => {
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
                     >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {showPassword ? <EyeOff className="w-4 h-4" strokeWidth={1.75} /> : <Eye className="w-4 h-4" strokeWidth={1.75} />}
                     </button>
                   </div>
                 </div>

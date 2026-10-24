@@ -64,7 +64,7 @@ const Register = () => {
               <div>
                 <Label htmlFor="firstName">Prénom</Label>
                 <div className="relative mt-1.5">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" strokeWidth={1.75} />
                   <Input id="firstName" placeholder="Amina" className="pl-10" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
                 </div>
               </div>
@@ -76,24 +76,24 @@ const Register = () => {
             <div>
               <Label htmlFor="clinic">Nom de l'établissement</Label>
               <div className="relative mt-1.5">
-                <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" strokeWidth={1.75} />
                 <Input id="clinic" placeholder="Clinique Santé Plus" className="pl-10" value={clinicName} onChange={(e) => setClinicName(e.target.value)} />
               </div>
             </div>
             <div>
               <Label htmlFor="email">Email professionnel</Label>
               <div className="relative mt-1.5">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" strokeWidth={1.75} />
                 <Input id="email" type="email" placeholder="contact@clinique.com" className="pl-10" value={email} onChange={(e) => setEmail(e.target.value)} required />
               </div>
             </div>
             <div>
               <Label htmlFor="password">Mot de passe</Label>
               <div className="relative mt-1.5">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" strokeWidth={1.75} />
                 <Input id="password" type={showPassword ? "text" : "password"} placeholder="Min. 6 caractères" className="pl-10 pr-10" value={password} onChange={(e) => setPassword(e.target.value)} required />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? <EyeOff className="w-4 h-4" strokeWidth={1.75} /> : <Eye className="w-4 h-4" strokeWidth={1.75} />}
                 </button>
               </div>
             </div>

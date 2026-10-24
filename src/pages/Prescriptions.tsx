@@ -45,8 +45,8 @@ const Prescriptions = () => {
             <div key={rx.id} className="bg-card rounded-xl p-5 shadow-card border border-border">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <FileText className="w-5 h-5 text-primary" />
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-xs">
+                    <FileText className="w-5 h-5" strokeWidth={1.75} />
                   </div>
                   <div>
                     <p className="font-semibold text-foreground">{rx.patient_name}</p>
@@ -54,7 +54,7 @@ const Prescriptions = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Badge variant="outline" className={rx.status === "active" ? "bg-success/10 text-success border-success/20" : "bg-muted text-muted-foreground"}>
+                  <Badge variant="outline" className={rx.status === "active" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20" : "bg-muted text-muted-foreground"}>
                     {rx.status === "active" ? "Active" : "Terminée"}
                   </Badge>
                   <AddPrescriptionDialog
@@ -64,7 +64,7 @@ const Prescriptions = () => {
                     doctors={doctors.map((d) => ({ id: d.id, name: d.name }))}
                     trigger={
                       <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
-                        <Pencil className="w-3.5 h-3.5" />
+                        <Pencil className="w-3.5 h-3.5" strokeWidth={1.75} />
                       </Button>
                     }
                   />

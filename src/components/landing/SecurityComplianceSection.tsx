@@ -70,8 +70,8 @@ const SecurityComplianceSection = () => {
               className="bg-card rounded-2xl p-6 border border-border hover:border-primary/30 shadow-card hover:shadow-elevated transition-all flex flex-col justify-between"
             >
               <div>
-                <div className="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center text-success mb-4">
-                  <sec.icon className="w-6 h-6" />
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-b from-emerald-500/15 to-emerald-500/5 border border-emerald-500/25 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-4 shadow-sm group-hover:scale-105 group-hover:border-emerald-500/50 transition-all duration-300">
+                  <sec.icon className="w-6 h-6" strokeWidth={1.75} />
                 </div>
                 <h3 className="text-base sm:text-lg font-bold text-foreground mb-2">
                   {sec.title}

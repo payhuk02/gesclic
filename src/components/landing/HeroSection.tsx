@@ -88,7 +88,7 @@ const HeroSection = () => {
         aria-label="Image précédente"
         className="absolute left-3 sm:left-6 lg:left-8 top-1/2 -translate-y-1/2 z-30 p-2.5 sm:p-3 rounded-full bg-black/30 hover:bg-black/60 border border-white/20 text-white backdrop-blur-md transition-all duration-200 hover:scale-110 active:scale-95 shadow-lg"
       >
-        <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+        <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={1.75} />
       </button>
 
       <button
@@ -96,7 +96,7 @@ const HeroSection = () => {
         aria-label="Image suivante"
         className="absolute right-3 sm:right-6 lg:right-8 top-1/2 -translate-y-1/2 z-30 p-2.5 sm:p-3 rounded-full bg-black/30 hover:bg-black/60 border border-white/20 text-white backdrop-blur-md transition-all duration-200 hover:scale-110 active:scale-95 shadow-lg"
       >
-        <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
+        <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={1.75} />
       </button>
 
       {/* Main Centered Content */}
@@ -109,7 +109,7 @@ const HeroSection = () => {
           className="inline-flex items-center gap-2 rounded-full bg-slate-950/60 hover:bg-slate-950/75 backdrop-blur-md border border-white/25 px-4 py-1.5 text-xs sm:text-sm font-semibold text-white mb-6 sm:mb-8 shadow-xl transition-all"
         >
           <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-          <Shield className="w-4 h-4 text-sky-400" />
+          <Shield className="w-4 h-4 text-sky-400" strokeWidth={1.75} />
           <span>Plateforme médicale nouvelle génération certifiée pour l'Afrique</span>
         </motion.div>
 

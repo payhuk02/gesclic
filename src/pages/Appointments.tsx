@@ -233,7 +233,7 @@ const Appointments = () => {
                                         {creatingVideoFor === a.id ? (
                                           <Loader2 className="w-3.5 h-3.5 animate-spin" />
                                         ) : (
-                                          <Video className="w-3.5 h-3.5" />
+                                          <Video className="w-3.5 h-3.5" strokeWidth={1.75} />
                                         )}
                                       </Button>
                                     )
@@ -245,7 +245,7 @@ const Appointments = () => {
                                     doctors={doctors.map(d => ({ id: d.id, name: d.name, specialty: d.specialty }))}
                                     trigger={
                                       <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
-                                        <Pencil className="w-3.5 h-3.5" />
+                                        <Pencil className="w-3.5 h-3.5" strokeWidth={1.75} />
                                       </Button>
                                     }
                                   />

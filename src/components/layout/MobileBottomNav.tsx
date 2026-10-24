@@ -1,9 +1,10 @@
 import { Link, useLocation } from "react-router-dom";
 import {
-  LayoutDashboard, Calendar, Users, Video, Menu, X, LogOut, Heart, Bot,
+  LayoutDashboard, Calendar, Users, Video, Menu, X, LogOut, Bot,
   FileText, FileEdit, CreditCard, FlaskConical, Pill, BarChart3,
   Shield, Puzzle, Key, Workflow, Globe, UserCog, Crown, Settings
 } from "lucide-react";
+import logo from "@/assets/Logo_Gesclic.png";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useState } from "react";
@@ -90,7 +91,7 @@ const MobileBottomNav = () => {
                     : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                 )}
               >
-                <item.icon className="w-5 h-5 transition-transform duration-200" />
+                <item.icon className="w-5 h-5 transition-transform duration-200" strokeWidth={1.75} />
                 <span className="text-[11px] font-medium leading-tight">{item.label}</span>
               </Link>
             );
@@ -105,7 +106,7 @@ const MobileBottomNav = () => {
             )}
             aria-label="Menu complet"
           >
-            <Menu className="w-5 h-5 transition-transform duration-200" />
+            <Menu className="w-5 h-5 transition-transform duration-200" strokeWidth={1.75} />
             <span className="text-[11px] font-medium leading-tight">Menu</span>
           </button>
         </div>
@@ -122,7 +123,7 @@ const MobileBottomNav = () => {
         )}
         aria-label="Assistant IA"
       >
-        <Bot className="w-6 h-6" />
+        <Bot className="w-6 h-6" strokeWidth={1.75} />
       </button>
 
       {/* Full Menu Sidebar Overlay */}
@@ -143,16 +144,16 @@ const MobileBottomNav = () => {
         >
           {/* Header */}
           <div className="h-16 flex items-center justify-between px-4 border-b border-sidebar-border flex-shrink-0">
-            <Link to="/dashboard" className="flex items-center gap-2 font-bold text-lg" onClick={() => setSidebarOpen(false)}>
-              <Heart className="w-6 h-6 text-primary fill-primary" />
-              <span>Gesclic</span>
+            <Link to="/dashboard" className="flex items-center gap-2.5 font-bold text-lg" onClick={() => setSidebarOpen(false)}>
+              <img src={logo} alt="Gesclic" className="h-8 w-auto object-contain shrink-0" />
+              <span className="font-heading font-semibold text-foreground tracking-tight">Gesclic</span>
             </Link>
             <button
               onClick={() => setSidebarOpen(false)}
               className="p-2 rounded-lg hover:bg-sidebar-accent transition-colors"
               aria-label="Fermer"
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5" strokeWidth={1.75} />
             </button>
           </div>
 
@@ -173,7 +174,7 @@ const MobileBottomNav = () => {
                         : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                     )}
                   >
-                    <item.icon className="w-5 h-5 flex-shrink-0" />
+                    <item.icon className="w-5 h-5 flex-shrink-0" strokeWidth={1.75} />
                     <span>{item.label}</span>
                   </Link>
                 );
@@ -185,7 +186,7 @@ const MobileBottomNav = () => {
                 onClick={handleLogout}
                 className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent transition-colors w-full"
               >
-                <LogOut className="w-5 h-5 flex-shrink-0" />
+                <LogOut className="w-5 h-5 flex-shrink-0" strokeWidth={1.75} />
                 <span>Déconnexion</span>
               </button>
             </div>

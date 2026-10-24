@@ -158,21 +158,21 @@ const SuperAdminDashboard = () => {
     trend?: "up" | "down";
 
   }) => (
-    <Card>
+    <Card className="border border-border shadow-xs">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
-        <Icon className="h-4 w-4 text-muted-foreground" />
+        <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-xs">
+          <Icon className="h-4 w-4" strokeWidth={1.75} />
+        </div>
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-
+        <div className="text-2xl font-bold tracking-tight">{value}</div>
         {change !== undefined && (
-          <p className={cn("text-xs mt-1", trend === "up" ? "text-success" : "text-destructive")}>
-            {trend === "up" ? <ArrowUpRight className="inline w-3 h-3 mr-1" /> : <ArrowDownRight className="inline w-3 h-3 mr-1" />}
+          <p className={cn("text-xs mt-1 flex items-center font-medium", trend === "up" ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400")}>
+            {trend === "up" ? <ArrowUpRight className="inline w-3.5 h-3.5 mr-1" strokeWidth={2} /> : <ArrowDownRight className="inline w-3.5 h-3.5 mr-1" strokeWidth={2} />}
             {change}% vs mois dernier
           </p>
         )}
-
       </CardContent>
     </Card>
   );
@@ -305,8 +305,8 @@ const SuperAdminDashboard = () => {
               <div className="space-y-4">
                 {recentActivity.map((activity) => (
                   <div key={activity.id} className="flex items-start gap-3">
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <Building2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0 text-primary shadow-xs">
+                      <Building2 className="w-4 h-4" strokeWidth={1.75} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-foreground">{activity.clinicName}</p>
@@ -328,7 +328,7 @@ const SuperAdminDashboard = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5" />
+                <TrendingUp className="w-5 h-5 text-primary" strokeWidth={1.75} />
 
                 Cliniques Performentes
               </CardTitle>

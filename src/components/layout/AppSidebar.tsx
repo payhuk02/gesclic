@@ -97,7 +97,7 @@ const SidebarNav = ({ onNavigate }: { onNavigate?: () => void }) => {
                   : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
               )}
             >
-              <item.icon className="w-5 h-5 flex-shrink-0" />
+              <item.icon className="w-5 h-5 flex-shrink-0" strokeWidth={1.75} />
               <span>{item.label}</span>
             </Link>
           );
@@ -249,7 +249,7 @@ const AppSidebar = () => {
               )}
               title={collapsed ? item.label : undefined}
             >
-              <item.icon className="w-5 h-5 flex-shrink-0" />
+              <item.icon className="w-5 h-5 flex-shrink-0" strokeWidth={1.75} />
               {!collapsed && <span>{item.label}</span>}
             </Link>
           );

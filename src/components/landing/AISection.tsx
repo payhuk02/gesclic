@@ -114,10 +114,10 @@ const AISection = () => {
               {aiCapabilities.map((cap) => (
                 <div
                   key={cap.title}
-                  className="bg-card/70 backdrop-blur-sm rounded-2xl p-4 border border-border hover:border-primary/40 transition-all shadow-sm"
+                  className="bg-card/70 backdrop-blur-sm rounded-2xl p-4 border border-border hover:border-primary/40 transition-all shadow-sm group"
                 >
-                  <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary mb-2.5">
-                    <cap.icon className="w-5 h-5" />
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 border border-primary/20 flex items-center justify-center text-primary mb-3 shadow-sm group-hover:scale-105 transition-all">
+                    <cap.icon className="w-5 h-5" strokeWidth={1.75} />
                   </div>
                   <h4 className="font-semibold text-foreground text-sm mb-1.5">{cap.title}</h4>
                   <p className="text-xs text-muted-foreground leading-relaxed">{cap.desc}</p>
