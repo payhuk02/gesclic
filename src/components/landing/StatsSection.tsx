@@ -60,16 +60,13 @@ const StatsSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.08, duration: 0.5 }}
-              className="bg-card rounded-2xl p-4 sm:p-5 border border-border shadow-sm hover:shadow-md hover:border-primary/40 transition-all duration-300 flex flex-col justify-between group"
+              className="bg-card rounded-2xl p-5 sm:p-6 border border-border shadow-sm hover:shadow-md hover:border-primary/40 transition-all duration-300 flex flex-col items-center text-center justify-between group"
             >
-              <div className="flex items-center gap-3 mb-3">
-                {/* Unified Enterprise Medical Icon Container */}
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-b from-primary/15 to-primary/5 border border-primary/20 flex items-center justify-center text-primary group-hover:scale-105 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300 shadow-sm">
-                  <stat.icon className="w-5 h-5" strokeWidth={1.75} />
-                </div>
+              <div className="flex items-center justify-center mb-4 text-primary">
+                <stat.icon className="w-8 h-8 text-primary group-hover:scale-110 transition-transform duration-300" strokeWidth={1.75} />
               </div>
-              <div>
-                <p className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold text-foreground tracking-tight mb-1 tabular-nums">
+              <div className="flex flex-col items-center w-full">
+                <p className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold text-foreground tracking-tight mb-2 tabular-nums">
                   {stat.value}
                 </p>
                 <p className="text-xs sm:text-sm font-semibold text-foreground mb-1 leading-snug">

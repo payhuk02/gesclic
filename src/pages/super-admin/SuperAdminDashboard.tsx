@@ -161,9 +161,7 @@ const SuperAdminDashboard = () => {
     <Card className="border border-border shadow-xs">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
-        <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-xs">
-          <Icon className="h-4 w-4" strokeWidth={1.75} />
-        </div>
+        <Icon className="h-5 w-5 text-primary" strokeWidth={1.75} />
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold tracking-tight">{value}</div>
@@ -305,9 +303,7 @@ const SuperAdminDashboard = () => {
               <div className="space-y-4">
                 {recentActivity.map((activity) => (
                   <div key={activity.id} className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0 text-primary shadow-xs">
-                      <Building2 className="w-4 h-4" strokeWidth={1.75} />
-                    </div>
+                    <Building2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" strokeWidth={1.75} />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-foreground">{activity.clinicName}</p>
                       <p className="text-xs text-muted-foreground">{activity.description}</p>

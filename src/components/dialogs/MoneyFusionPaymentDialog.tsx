@@ -154,9 +154,7 @@ export function MoneyFusionPaymentDialog({
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
           <div className="flex items-center gap-2 mb-1">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-              <PlanIcon className="w-5 h-5" />
-            </div>
+            <PlanIcon className="w-6 h-6 text-primary shrink-0" strokeWidth={1.75} />
             <DialogTitle className="text-xl">Paiement d'abonnement</DialogTitle>
           </div>
           <DialogDescription>

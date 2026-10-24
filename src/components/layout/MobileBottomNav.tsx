@@ -87,8 +87,8 @@ const MobileBottomNav = () => {
                 className={cn(
                   "flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all duration-200 min-w-[60px]",
                   active
-                    ? "text-primary bg-primary/10 scale-105"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                    ? "text-primary font-semibold scale-105"
+                    : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 <item.icon className="w-5 h-5 transition-transform duration-200" strokeWidth={1.75} />

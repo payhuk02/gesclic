@@ -55,23 +55,17 @@ const Pharmacy = () => {
     <AppLayout title="Pharmacie">
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
         <div className="bg-card rounded-xl p-4 shadow-xs border border-border">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-3 shadow-xs">
-            <Pill className="w-5 h-5 text-primary" strokeWidth={1.75} />
-          </div>
+          <Pill className="w-6 h-6 text-primary mb-3" strokeWidth={1.75} />
           <p className="text-2xl font-bold text-foreground">{items.length}</p>
           <p className="text-xs text-muted-foreground">Produits en inventaire</p>
         </div>
         <div className="bg-card rounded-xl p-4 shadow-xs border border-border">
-          <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center mb-3 shadow-xs">
-            <AlertTriangle className="w-5 h-5 text-rose-600 dark:text-rose-400" strokeWidth={1.75} />
-          </div>
+          <AlertTriangle className="w-6 h-6 text-rose-600 dark:text-rose-400 mb-3" strokeWidth={1.75} />
           <p className="text-2xl font-bold text-foreground">{lowStock.length}</p>
           <p className="text-xs text-muted-foreground">Rupture de stock</p>
         </div>
         <div className="bg-card rounded-xl p-4 shadow-xs border border-border">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-3 shadow-xs">
-            <Package className="w-5 h-5 text-emerald-600 dark:text-emerald-400" strokeWidth={1.75} />
-          </div>
+          <Package className="w-6 h-6 text-emerald-600 dark:text-emerald-400 mb-3" strokeWidth={1.75} />
           <p className="text-2xl font-bold text-foreground">{totalValue.toLocaleString()}</p>
           <p className="text-xs text-muted-foreground">Valeur stock (FCFA)</p>
         </div>

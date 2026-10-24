@@ -69,10 +69,10 @@ const Dashboard = () => {
 
 
   const statCards = [
-    { label: "RDV aujourd'hui", value: `${todayAppts.length}`, icon: Calendar, color: "text-sky-500 bg-sky-500/10 border-sky-500/20" },
-    { label: "Patients actifs", value: `${stats.totalPatients}`, icon: Users, color: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20" },
-    { label: "Revenus (payés)", value: `${(stats.totalRevenue / 1000).toFixed(0)}K`, icon: TrendingUp, color: "text-primary bg-primary/10 border-primary/20" },
-    { label: "Impayés", value: `${(stats.pendingPayments / 1000).toFixed(0)}K`, icon: CreditCard, color: "text-amber-500 bg-amber-500/10 border-amber-500/20" },
+    { label: "RDV aujourd'hui", value: `${todayAppts.length}`, icon: Calendar, color: "text-sky-500" },
+    { label: "Patients actifs", value: `${stats.totalPatients}`, icon: Users, color: "text-emerald-500" },
+    { label: "Revenus (payés)", value: `${(stats.totalRevenue / 1000).toFixed(0)}K`, icon: TrendingUp, color: "text-primary" },
+    { label: "Impayés", value: `${(stats.pendingPayments / 1000).toFixed(0)}K`, icon: CreditCard, color: "text-amber-500" },
   ];
 
   const upcomingAppts = []; // Would be filtered from appointments data
@@ -108,7 +108,7 @@ const Dashboard = () => {
         {statCards.map((stat, i) => (
           <motion.div key={stat.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} className="bg-card rounded-xl p-3 sm:p-5 shadow-card border border-border">
             <div className="flex items-center justify-between mb-2 sm:mb-3">
-              <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center border ${stat.color} shadow-sm`}><stat.icon className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={1.75} /></div>
+              <stat.icon className={cn("w-5 h-5 sm:w-6 sm:h-6", stat.color)} strokeWidth={1.75} />
             </div>
             <p className="text-xl sm:text-2xl font-bold text-foreground">{stat.value}</p>
             <p className="text-xs sm:text-sm text-muted-foreground">{stat.label}</p>

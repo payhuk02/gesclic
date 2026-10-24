@@ -314,9 +314,7 @@ const SuperAdminSecurity = () => {
                         className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
                       >
                         <div className="flex items-center gap-4 flex-1">
-                          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                            <Monitor className="w-5 h-5 text-primary" />
-                          </div>
+                          <Monitor className="w-6 h-6 text-primary shrink-0" strokeWidth={1.75} />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
                               <h3 className="font-semibold text-foreground">{session.user}</h3>
@@ -421,9 +419,7 @@ const SuperAdminSecurity = () => {
                         key={event.id}
                         className="flex flex-col sm:flex-row sm:items-start gap-4 p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
                       >
-                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <AlertTriangle className="w-5 h-5 text-primary" />
-                        </div>
+                        <AlertTriangle className="w-6 h-6 text-primary flex-shrink-0 mt-1" strokeWidth={1.75} />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1 flex-wrap">
                             <Badge className={severityInfo.color}>

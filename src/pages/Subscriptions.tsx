@@ -233,16 +233,10 @@ const Subscriptions = () => {
               )}
 
               <div className="text-center mb-6">
-                <div
-                  className={`w-12 h-12 mx-auto rounded-xl flex items-center justify-center mb-3 border shadow-sm ${
-                    plan.popular ? "gradient-hero border-transparent text-white" : "bg-gradient-to-b from-primary/15 to-primary/5 border-primary/20 text-primary"
-                  }`}
-                >
-                  <Icon
-                    className="w-6 h-6"
-                    strokeWidth={1.75}
-                  />
-                </div>
+                <Icon
+                  className="w-8 h-8 mx-auto mb-3 text-primary"
+                  strokeWidth={1.75}
+                />
                 <h3 className="text-lg font-bold text-foreground">{plan.name}</h3>
                 <p className="text-xs text-muted-foreground mb-4">{plan.description}</p>
 

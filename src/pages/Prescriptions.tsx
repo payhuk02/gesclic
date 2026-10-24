@@ -45,9 +45,7 @@ const Prescriptions = () => {
             <div key={rx.id} className="bg-card rounded-xl p-5 shadow-card border border-border">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-xs">
-                    <FileText className="w-5 h-5" strokeWidth={1.75} />
-                  </div>
+                  <FileText className="w-6 h-6 text-primary shrink-0" strokeWidth={1.75} />
                   <div>
                     <p className="font-semibold text-foreground">{rx.patient_name}</p>
                     <p className="text-sm text-muted-foreground">{rx.doctor_name} — {rx.date}</p>

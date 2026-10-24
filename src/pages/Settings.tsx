@@ -355,11 +355,11 @@ const Settings = () => {
           <form onSubmit={handleSaveClinic} className="bg-card rounded-xl p-6 border border-border space-y-6">
             <h3 className="text-lg font-semibold text-foreground">Profil de la clinique</h3>
             <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-primary/10 flex items-center justify-center overflow-hidden shrink-0">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl border-2 border-dashed border-border/80 bg-muted/20 flex items-center justify-center overflow-hidden shrink-0">
                 {logoUrl ? (
                   <img src={logoUrl} alt="Logo clinique" className="w-full h-full object-cover" />
                 ) : (
-                  <Building2 className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+                  <Building2 className="w-8 h-8 sm:w-10 sm:h-10 text-muted-foreground" strokeWidth={1.75} />
                 )}
               </div>
               {canManage && (

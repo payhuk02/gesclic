@@ -47,28 +47,22 @@ const Payments = () => {
 
       <div className="grid sm:grid-cols-3 gap-4 mb-8">
         <div className="bg-card rounded-xl p-5 shadow-xs border border-border">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shadow-xs">
-              <CheckCircle className="w-5 h-5" strokeWidth={1.75} />
-            </div>
+          <div className="flex items-center gap-2.5 mb-2">
+            <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400" strokeWidth={1.75} />
             <span className="text-sm text-muted-foreground font-medium">Payés</span>
           </div>
           <p className="text-2xl font-bold text-foreground">{totalPaid.toLocaleString()} FCFA</p>
         </div>
         <div className="bg-card rounded-xl p-5 shadow-xs border border-border">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-400 shadow-xs">
-              <Clock className="w-5 h-5" strokeWidth={1.75} />
-            </div>
+          <div className="flex items-center gap-2.5 mb-2">
+            <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400" strokeWidth={1.75} />
             <span className="text-sm text-muted-foreground font-medium">En attente</span>
           </div>
           <p className="text-2xl font-bold text-foreground">{totalPending.toLocaleString()} FCFA</p>
         </div>
         <div className="bg-card rounded-xl p-5 shadow-xs border border-border">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-xs">
-              <TrendingUp className="w-5 h-5" strokeWidth={1.75} />
-            </div>
+          <div className="flex items-center gap-2.5 mb-2">
+            <TrendingUp className="w-5 h-5 text-primary" strokeWidth={1.75} />
             <span className="text-sm text-muted-foreground font-medium">Total facturé</span>
           </div>
           <p className="text-2xl font-bold text-foreground">{(totalPaid + totalPending).toLocaleString()} FCFA</p>

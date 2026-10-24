@@ -101,9 +101,7 @@ const MedicalRecords = () => {
             return (
               <div key={record.id} className="bg-card rounded-xl shadow-card border border-border overflow-hidden">
                 <button onClick={() => setExpanded(isExpanded ? null : record.id)} className="w-full flex items-center gap-4 p-5 text-left hover:bg-secondary/20 transition-colors">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-primary/10 border border-primary/20 text-primary shadow-xs">
-                    <Stethoscope className="w-5 h-5" strokeWidth={1.75} />
-                  </div>
+                  <Stethoscope className="w-6 h-6 text-primary shrink-0" strokeWidth={1.75} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-semibold text-foreground">{record.patient_name}</p>

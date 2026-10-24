@@ -97,13 +97,13 @@ const Laboratory = () => {
     <AppLayout title="Laboratoire">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
         {[
-          { label: "Total analyses", value: stats.total, icon: FlaskConical, color: "text-primary bg-primary/10 border-primary/20" },
-          { label: "En attente", value: stats.pending, icon: Clock, color: "text-muted-foreground bg-muted border-border" },
-          { label: "En cours", value: stats.inProgress, icon: Loader2, color: "text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20" },
-          { label: "Terminées", value: stats.completed, icon: CheckCircle, color: "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20" },
+          { label: "Total analyses", value: stats.total, icon: FlaskConical, color: "text-primary" },
+          { label: "En attente", value: stats.pending, icon: Clock, color: "text-muted-foreground" },
+          { label: "En cours", value: stats.inProgress, icon: Loader2, color: "text-amber-600 dark:text-amber-400" },
+          { label: "Terminées", value: stats.completed, icon: CheckCircle, color: "text-emerald-600 dark:text-emerald-400" },
         ].map((s) => (
           <div key={s.label} className="bg-card rounded-xl p-4 shadow-xs border border-border">
-            <div className={`w-9 h-9 rounded-lg border flex items-center justify-center mb-2 shadow-xs ${s.color}`}><s.icon className="w-4 h-4" strokeWidth={1.75} /></div>
+            <s.icon className={`w-5 h-5 mb-2 ${s.color}`} strokeWidth={1.75} />
             <p className="text-2xl font-bold text-foreground">{s.value}</p>
             <p className="text-xs text-muted-foreground">{s.label}</p>
           </div>

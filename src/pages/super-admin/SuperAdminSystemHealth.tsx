@@ -187,9 +187,7 @@ const SuperAdminSystemHealth = () => {
                   return (
                     <div key={service.name} className="flex items-center justify-between p-3 border border-border rounded-lg">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                          <Server className="w-4 h-4 text-primary" />
-                        </div>
+                        <Server className="w-5 h-5 text-primary shrink-0" strokeWidth={1.75} />
                         <div>
                           <p className="font-medium text-foreground">{service.name}</p>
                           <p className="text-xs text-muted-foreground">Uptime: {service.uptime}</p>

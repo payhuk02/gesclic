@@ -134,10 +134,7 @@ const FeaturesSection = () => {
               >
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    {/* Engineered Icon Container with High-Precision Stroke */}
-                    <div className="w-11 h-11 rounded-xl bg-gradient-to-b from-primary/10 to-primary/5 border border-primary/20 flex items-center justify-center text-primary group-hover:scale-105 group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-all duration-300 shadow-sm">
-                      <Icon className="w-5 h-5" strokeWidth={1.75} />
-                    </div>
+                    <Icon className="w-6 h-6 text-primary group-hover:scale-110 transition-transform duration-300" strokeWidth={1.75} />
                     <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md bg-muted text-muted-foreground group-hover:text-primary transition-colors">
                       {feature.category}
                     </span>

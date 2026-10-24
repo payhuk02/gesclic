@@ -289,9 +289,7 @@ const SuperAdminAuditLogs = () => {
                         onClick={() => setExpandedLog(isExpanded ? null : log.id)}
                       >
                         <div className="flex items-center gap-4 flex-1">
-                          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                            <CategoryIcon className="w-5 h-5 text-primary" />
-                          </div>
+                          <CategoryIcon className="w-6 h-6 text-primary flex-shrink-0" strokeWidth={1.75} />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1 flex-wrap">
                               <Badge className={categoryInfo.color}>

@@ -193,9 +193,7 @@ const ShowcaseSection = () => {
               {/* Key Metric & CTA */}
               <div className="pt-4 border-t border-border flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-b from-primary/15 to-primary/5 border border-primary/20 flex items-center justify-center shadow-sm">
-                    <ShieldCheck className="w-6 h-6 text-primary" strokeWidth={1.75} />
-                  </div>
+                  <ShieldCheck className="w-8 h-8 text-primary" strokeWidth={1.75} />
                   <div>
                     <p className="text-xl sm:text-2xl font-bold text-foreground tabular-nums">
                       {current.metrics.value}

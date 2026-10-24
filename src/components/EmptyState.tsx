@@ -15,11 +15,8 @@ interface EmptyStateProps {
 const EmptyState = ({ icon: Icon, title, description, tips, action, secondary, className, compact }: EmptyStateProps) => {
   return (
     <div className={cn("flex flex-col items-center justify-center text-center px-6", compact ? "py-10" : "py-16", className)}>
-      <div className="relative mb-5">
-        <div className="absolute inset-0 blur-2xl gradient-hero opacity-20 rounded-full" aria-hidden />
-        <div className="relative w-16 h-16 rounded-2xl gradient-hero flex items-center justify-center shadow-elevated">
-          <Icon className="w-7 h-7 text-primary-foreground" strokeWidth={1.75} />
-        </div>
+      <div className="flex items-center justify-center mb-4 text-primary">
+        <Icon className="w-10 h-10 text-primary" strokeWidth={1.75} />
       </div>
       <h3 className="text-lg font-semibold text-foreground mb-1.5">{title}</h3>
       {description && (
