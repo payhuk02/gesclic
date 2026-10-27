@@ -25,7 +25,7 @@ import {
   type ClinicProfileSettings,
   type ClinicNotificationSettings,
 } from "@/services/clinic-settings.service";
-import { formatFcfa, getClinicPlan } from "@/lib/clinic-plans";
+import { formatFcfa, getClinicPlan, getTrialDaysRemaining } from "@/lib/clinic-plans";
 import {
   applyClinicBrandColor,
   BRAND_COLOR_PRESETS,
@@ -35,7 +35,7 @@ import {
 } from "@/lib/clinic-branding";
 
 const Settings = () => {
-  const { activeClinicId, activeClinic, hasClinicRole, refetch, loading: clinicLoading } = useClinic();
+  const { activeClinicId, activeClinic, hasClinicRole, refetch, loading: clinicLoading, effectivePlan, trialActive } = useClinic();
   const { user, profile, hasRole, refetchProfile } = useAuth();
   const canManage = hasRole("admin") || hasClinicRole("admin");
 
@@ -245,7 +245,7 @@ const Settings = () => {
     }
   };
 
-  const currentPlan = getClinicPlan(activeClinic?.plan);
+  const currentPlan = getClinicPlan(effectivePlan);
   const inputsDisabled = !canManage || saving || uploadingLogo;
 
   const Toggle = ({
@@ -496,7 +496,7 @@ const Settings = () => {
                     <CardDescription>Abonnement de la clinique active</CardDescription>
                   </div>
                   <Badge className="bg-primary/10 text-primary border-primary/20 text-sm px-4 py-1" variant="outline">
-                    {currentPlan.name}
+                    {trialActive ? "Essai Pro" : currentPlan.name}
                   </Badge>
                 </div>
               </CardHeader>
@@ -524,7 +524,9 @@ const Settings = () => {
                   </div>
                   <div className="bg-secondary/30 rounded-lg p-4 flex items-center justify-center">
                     <p className="text-sm text-muted-foreground text-center">
-                      Plan DB : <span className="font-medium text-foreground">{activeClinic?.plan ?? "essentiel"}</span>
+                      {trialActive
+                        ? `Essai : ${getTrialDaysRemaining(activeClinic?.trial_ends_at)} jour(s) restant(s)`
+                        : <>Plan : <span className="font-medium text-foreground">{currentPlan.name}</span></>}
                     </p>
                   </div>
                 </div>

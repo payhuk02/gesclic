@@ -66,7 +66,7 @@ const Register = () => {
           </Link>
 
           <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-2">Créer un compte</h2>
-          <p className="text-muted-foreground mb-6 sm:mb-8">Inscrivez votre établissement en quelques minutes.</p>
+          <p className="text-muted-foreground mb-6 sm:mb-8">Inscrivez votre établissement. 7 jours d&apos;essai Pro, sans carte bancaire.</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -107,7 +107,7 @@ const Register = () => {
               </div>
             </div>
             <Button type="submit" className="w-full gradient-hero border-0 text-base h-11" disabled={loading}>
-              {loading ? "Création..." : "Créer mon compte gratuit"}
+              {loading ? "Création..." : "Démarrer l'essai de 7 jours"}
             </Button>
           </form>
 

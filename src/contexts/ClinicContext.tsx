@@ -1,6 +1,7 @@
-import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { effectiveClinicPlan, isPaidSubscriptionActive, isTrialActive, type ClinicPlanId } from "@/lib/clinic-plans";
 
 export type AppRole = "admin" | "medecin" | "secretaire" | "infirmier";
 
@@ -14,6 +15,8 @@ export interface ClinicMembership {
     plan: string;
     status: string;
     logo_url: string | null;
+    trial_ends_at: string | null;
+    subscription_ends_at: string | null;
   };
 }
 
@@ -26,6 +29,8 @@ interface ClinicContextType {
   setActiveClinicId: (id: string) => void;
   refetch: () => Promise<void>;
   hasClinicRole: (role: AppRole) => boolean;
+  effectivePlan: ClinicPlanId;
+  trialActive: boolean;
 }
 
 const ClinicContext = createContext<ClinicContextType | undefined>(undefined);
@@ -47,7 +52,7 @@ export const ClinicProvider = ({ children }: { children: ReactNode }) => {
     }
     const { data, error } = await supabase
       .from("clinic_members")
-      .select("clinic_id, role, clinic:clinics(id, name, slug, plan, status, logo_url)")
+      .select("clinic_id, role, clinic:clinics(id, name, slug, plan, status, logo_url, trial_ends_at, subscription_ends_at)")
       .eq("user_id", user.id)
       .eq("is_active", true);
 
@@ -60,6 +65,15 @@ export const ClinicProvider = ({ children }: { children: ReactNode }) => {
 
     const list = (data || []).filter((m: any) => m.clinic) as ClinicMembership[];
     setMemberships(list);
+
+    for (const m of list) {
+      const c = m.clinic;
+      const effective = effectiveClinicPlan(c);
+      if (effective === "essentiel" && c.plan !== "essentiel" && (c.trial_ends_at || c.subscription_ends_at)) {
+        c.plan = "essentiel";
+        void supabase.from("clinics").update({ plan: "essentiel" }).eq("id", c.id);
+      }
+    }
 
     const stored = localStorage.getItem(STORAGE_KEY);
     const validStored = stored && list.some((m) => m.clinic_id === stored) ? stored : null;
@@ -84,6 +98,8 @@ export const ClinicProvider = ({ children }: { children: ReactNode }) => {
   const activeClinic = activeMembership?.clinic ?? null;
   const activeRole = activeMembership?.role ?? null;
   const hasClinicRole = (role: AppRole) => activeRole === role;
+  const effectivePlan = useMemo(() => effectiveClinicPlan(activeClinic ?? {}), [activeClinic]);
+  const trialActive = isTrialActive(activeClinic?.trial_ends_at) && !isPaidSubscriptionActive(activeClinic?.subscription_ends_at);
 
   return (
     <ClinicContext.Provider
@@ -96,6 +112,8 @@ export const ClinicProvider = ({ children }: { children: ReactNode }) => {
         setActiveClinicId,
         refetch: fetchMemberships,
         hasClinicRole,
+        effectivePlan,
+        trialActive,
       }}
     >
       {children}

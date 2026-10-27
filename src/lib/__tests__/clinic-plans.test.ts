@@ -1,8 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import {
   computePlanTotal,
+  effectiveClinicPlan,
   formatPlanPriceLines,
   getBillingPeriod,
+  isTrialActive,
+  TRIAL_DAYS,
 } from '../clinic-plans';
 
 describe('computePlanTotal', () => {
@@ -63,5 +66,23 @@ describe('formatPlanPriceLines', () => {
     expect(lines.detail).toMatch(/soit ~/);
     expect(lines.detail).toMatch(/Trimestriel/);
     expect(lines.detail).toMatch(/−10 %/);
+  });
+});
+
+describe('trial period', () => {
+  it('is 7 days', () => {
+    expect(TRIAL_DAYS).toBe(7);
+  });
+
+  it('grants Pro while the trial is active', () => {
+    const ends = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
+    expect(isTrialActive(ends)).toBe(true);
+    expect(effectiveClinicPlan({ plan: 'essentiel', trial_ends_at: ends })).toBe('pro');
+  });
+
+  it('falls back to Essentiel after trial without a paid subscription', () => {
+    const ends = new Date(Date.now() - 60_000).toISOString();
+    expect(isTrialActive(ends)).toBe(false);
+    expect(effectiveClinicPlan({ plan: 'pro', trial_ends_at: ends })).toBe('essentiel');
   });
 });

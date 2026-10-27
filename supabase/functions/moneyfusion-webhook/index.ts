@@ -87,10 +87,17 @@ Deno.serve(async (req: Request) => {
         console.error("[MoneyFusion Webhook] Erreur mise à jour paiement:", updatePaymentError);
       }
 
-      // 2. Update clinic plan
+      // 2. Update clinic plan (paid period starts now)
+      const months = Math.max(1, Number(payment.billing_months) || 1);
+      const subscriptionEnds = new Date();
+      subscriptionEnds.setMonth(subscriptionEnds.getMonth() + months);
       const { error: updateClinicError } = await supabaseAdmin
         .from("clinics")
-        .update({ plan: payment.plan })
+        .update({
+          plan: payment.plan,
+          subscription_ends_at: subscriptionEnds.toISOString(),
+          trial_ends_at: null,
+        })
         .eq("id", payment.clinic_id);
 
       if (updateClinicError) {

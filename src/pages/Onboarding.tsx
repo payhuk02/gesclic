@@ -68,7 +68,7 @@ const Onboarding = () => {
   const [invites, setInvites] = useState<InviteDraft[]>([
     { id: crypto.randomUUID(), email: "", role: "medecin" },
   ]);
-  const [selectedPlan, setSelectedPlan] = useState<ClinicPlanId>("essentiel");
+  const [selectedPlan, setSelectedPlan] = useState<ClinicPlanId>("pro");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -160,6 +160,10 @@ const Onboarding = () => {
 
   const savePlan = async () => {
     if (!activeClinicId) return true;
+    // Keep the 7-day Pro trial; paid upgrades happen on /subscriptions.
+    if (activeClinic?.trial_ends_at && new Date(activeClinic.trial_ends_at) > new Date()) {
+      return true;
+    }
     // Sur mesure: keep current plan until sales closes the deal
     const planToSave =
       selectedPlan === "custom"
@@ -310,13 +314,13 @@ const Onboarding = () => {
                   Bienvenue{firstName && `, ${firstName}`} 👋
                 </h1>
                 <p className="text-muted-foreground max-w-md mx-auto mb-8">
-                  Configurons ensemble votre clinique en moins de 2 minutes. Vous pourrez tout modifier plus tard depuis les paramètres.
+                  Configurons ensemble votre clinique en moins de 2 minutes. Vous démarrez avec 7 jours d&apos;essai Pro, sans carte bancaire.
                 </p>
                 <div className="grid sm:grid-cols-3 gap-3 mb-8 text-left">
                   {[
                     { icon: Building2, label: "Votre clinique", desc: "Nom et logo" },
                     { icon: UserPlus, label: "Votre équipe", desc: "Invitez vos collaborateurs" },
-                    { icon: Sparkles, label: "Votre plan", desc: "Choisissez ce qui vous convient" },
+                    { icon: Sparkles, label: "Votre plan", desc: "7 jours d'essai Pro inclus" },
                   ].map((item) => (
                     <div key={item.label} className="rounded-lg border border-border p-3">
                       <item.icon className="w-4 h-4 text-primary mb-2" />
@@ -466,7 +470,7 @@ const Onboarding = () => {
               <div>
                 <h1 className="text-2xl font-bold mb-2">Choisissez votre plan</h1>
                 <p className="text-muted-foreground mb-6">
-                  Vous pouvez changer de plan à tout moment depuis les paramètres. Aucun paiement n'est requis maintenant.
+                  7 jours d&apos;essai Pro sont inclus, sans carte bancaire. Vous pourrez souscrire ensuite depuis Abonnements.
                 </p>
                 <div className="grid gap-3">
                   {CLINIC_PLANS.map((p) => {

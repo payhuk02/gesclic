@@ -26,7 +26,6 @@ import {
   computePlanTotal,
   formatFcfa,
   formatPlanPriceLines,
-  normalizeClinicPlanId,
   type BillingPeriodMonths,
   type ClinicPlanId,
 } from "@/lib/clinic-plans";
@@ -53,7 +52,7 @@ interface PaymentHistoryItem {
 }
 
 const Subscriptions = () => {
-  const { activeClinicId, activeClinic, hasClinicRole, refetch } = useClinic();
+  const { activeClinicId, activeClinic, hasClinicRole, refetch, effectivePlan } = useClinic();
   const { hasRole, profile } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -65,7 +64,7 @@ const Subscriptions = () => {
   const [paymentHistory, setPaymentHistory] = useState<PaymentHistoryItem[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
-  const currentPlanId = normalizeClinicPlanId(activeClinic?.plan);
+  const currentPlanId = effectivePlan;
   const billing = getBillingSafe(billingMonths);
 
   // Fetch payment history when activeClinicId changes
@@ -185,7 +184,7 @@ const Subscriptions = () => {
         <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Tarifs</h2>
         <p className="text-muted-foreground text-sm sm:text-base mb-1">Simple et transparent</p>
         <p className="text-sm text-muted-foreground mb-4">
-          Tarifs en FCFA, par clinique. Engagement long = réduction. Plan actuel :{" "}
+          Tarifs en FCFA, par clinique. 7 jours d&apos;essai Pro sans carte. Engagement long = réduction. Plan actuel :{" "}
           <span className="font-medium text-foreground">
             {CLINIC_PLANS.find((p) => p.id === currentPlanId)?.name ?? currentPlanId}
           </span>

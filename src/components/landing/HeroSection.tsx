@@ -167,6 +167,9 @@ const HeroSection = () => {
             </Link>
           </Button>
         </motion.div>
+        <p className="mt-5 text-sm text-white/80 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+          Essai Pro 7 jours · sans carte bancaire
+        </p>
       </div>
 
       {/* Discreet Minimalist Carousel Slide Indicators at bottom */}

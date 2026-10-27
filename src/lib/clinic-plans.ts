@@ -1,5 +1,8 @@
 export type ClinicPlanId = 'essentiel' | 'pro' | 'premium' | 'custom';
 
+/** Self-serve Pro trial length (must match SQL handle_new_user). */
+export const TRIAL_DAYS = 7;
+
 /** Billing commitment in months */
 export type BillingPeriodMonths = 1 | 3 | 6 | 12;
 
@@ -120,6 +123,39 @@ export function normalizeClinicPlanId(value: string | null | undefined): ClinicP
   if (!value) return 'essentiel';
   if (isClinicPlanId(value)) return value;
   return LEGACY_PLAN_MAP[value] ?? 'essentiel';
+}
+
+export function getTrialDaysRemaining(trialEndsAt: string | null | undefined): number | null {
+  if (!trialEndsAt) return null;
+  const ms = new Date(trialEndsAt).getTime() - Date.now();
+  if (Number.isNaN(ms)) return null;
+  if (ms <= 0) return 0;
+  return Math.ceil(ms / (24 * 60 * 60 * 1000));
+}
+
+export function isTrialActive(trialEndsAt: string | null | undefined): boolean {
+  const days = getTrialDaysRemaining(trialEndsAt);
+  return days !== null && days > 0;
+}
+
+export function isPaidSubscriptionActive(subscriptionEndsAt: string | null | undefined): boolean {
+  if (!subscriptionEndsAt) return false;
+  const t = new Date(subscriptionEndsAt).getTime();
+  return !Number.isNaN(t) && t > Date.now();
+}
+
+/** Plan actually granted: Pro during trial, stored plan while paid, Essentiel after expiry. */
+export function effectiveClinicPlan(clinic: {
+  plan?: string | null;
+  trial_ends_at?: string | null;
+  subscription_ends_at?: string | null;
+}): ClinicPlanId {
+  if (isPaidSubscriptionActive(clinic.subscription_ends_at)) {
+    return normalizeClinicPlanId(clinic.plan);
+  }
+  if (isTrialActive(clinic.trial_ends_at)) return 'pro';
+  if (clinic.trial_ends_at || clinic.subscription_ends_at) return 'essentiel';
+  return normalizeClinicPlanId(clinic.plan);
 }
 
 export function isClinicPlanId(value: string): value is ClinicPlanId {

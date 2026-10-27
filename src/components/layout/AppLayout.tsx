@@ -1,4 +1,5 @@
 import { ReactNode, useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import AppSidebar from "./AppSidebar";
 import MobileBottomNav from "./MobileBottomNav";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -6,10 +7,14 @@ import { Search } from "lucide-react";
 import GlobalSearch from "@/components/GlobalSearch";
 import NotificationBell from "@/components/NotificationBell";
 import ClinicSwitcher from "@/components/layout/ClinicSwitcher";
+import { useClinic } from "@/contexts/ClinicContext";
+import { getTrialDaysRemaining } from "@/lib/clinic-plans";
 
 const AppLayout = ({ children, title }: { children: ReactNode; title: string }) => {
   const isMobile = useIsMobile();
   const [searchOpen, setSearchOpen] = useState(false);
+  const { trialActive, activeClinic } = useClinic();
+  const trialDaysLeft = getTrialDaysRemaining(activeClinic?.trial_ends_at);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -48,6 +53,16 @@ const AppLayout = ({ children, title }: { children: ReactNode; title: string }) 
             <NotificationBell />
           </div>
         </header>
+        {trialActive && trialDaysLeft !== null && (
+          <div className="mx-4 sm:mx-6 mt-4 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <p className="text-foreground">
+              Essai Pro : <span className="font-semibold">{trialDaysLeft} jour{trialDaysLeft > 1 ? "s" : ""}</span> restant{trialDaysLeft > 1 ? "s" : ""}.
+            </p>
+            <Link to="/subscriptions" className="text-primary font-medium hover:underline shrink-0">
+              Choisir un abonnement
+            </Link>
+          </div>
+        )}
         <main className="p-4 sm:p-6">{children}</main>
       </div>
       <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />

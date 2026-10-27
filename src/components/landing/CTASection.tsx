@@ -20,7 +20,7 @@ const CTASection = () => (
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs font-semibold mb-6 shadow-sm">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
           <ShieldCheck className="w-3.5 h-3.5 text-sky-200" strokeWidth={1.75} />
-          <span>Déploiement en 5 minutes • Essai 14 jours sans carte bancaire</span>
+          <span>Déploiement en 5 minutes • Essai 7 jours sans carte bancaire</span>
         </div>
 
         <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold text-white mb-4 relative max-w-3xl mx-auto leading-tight drop-shadow-sm">

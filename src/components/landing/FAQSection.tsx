@@ -9,7 +9,7 @@ import {
 const faqs = [
   {
     q: "Comment fonctionne l'essai gratuit ?",
-    a: "Vous pouvez tester Gesclic gratuitement pendant 14 jours avec toutes les fonctionnalités du plan Pro. Aucune carte bancaire n'est requise. À la fin de l'essai, vous pouvez choisir le plan qui vous convient ou rester sur le plan gratuit.",
+    a: "Vous pouvez tester Gesclic gratuitement pendant 7 jours avec toutes les fonctionnalités du plan Pro. Aucune carte bancaire n'est requise. À la fin de l'essai, vous pouvez choisir le plan qui vous convient ou rester sur le plan Essentiel.",
   },
   {
     q: "Quels moyens de paiement sont acceptés ?",

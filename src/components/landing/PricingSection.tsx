@@ -31,7 +31,7 @@ const PricingSection = () => {
           </h2>
           <p className="text-base sm:text-lg text-muted-foreground mb-2">Simple et transparent</p>
           <p className="text-sm text-muted-foreground px-4 mb-4">
-            Tarifs en FCFA, par clinique. Engagement long = réduction.
+            Tarifs en FCFA, par clinique. 7 jours d&apos;essai Pro, sans carte. Engagement long = réduction.
           </p>
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-muted/60 border border-border text-xs text-muted-foreground mb-6">
             <span className="font-medium text-foreground">Règlement en ligne immédiat :</span>

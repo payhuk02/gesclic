@@ -193,10 +193,16 @@ export class ClinicSettingsService {
     }
   }
 
-  async updateClinicPlan(clinicId: string, plan: string): Promise<void> {
+  async updateClinicPlan(clinicId: string, plan: string, billingMonths = 1): Promise<void> {
+    const ends = new Date();
+    ends.setMonth(ends.getMonth() + Math.max(1, billingMonths));
     const { error } = await supabase
       .from('clinics')
-      .update({ plan })
+      .update({
+        plan,
+        subscription_ends_at: ends.toISOString(),
+        trial_ends_at: null,
+      })
       .eq('id', clinicId);
 
     if (error) {

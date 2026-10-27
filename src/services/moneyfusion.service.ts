@@ -349,7 +349,8 @@ class MoneyFusionService {
 
       // 2. Activate the plan on clinic
       if (targetClinicId && targetPlanId) {
-        await clinicSettingsService.updateClinicPlan(targetClinicId, targetPlanId);
+        const months = Number(paymentRecord?.billing_months) || 1;
+        await clinicSettingsService.updateClinicPlan(targetClinicId, targetPlanId, months);
       }
 
       return {
