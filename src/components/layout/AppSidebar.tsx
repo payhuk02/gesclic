@@ -57,7 +57,13 @@ const navItems: NavItem[] = [
   { icon: Settings, label: "Paramètres", path: "/settings" },
 ];
 
-const SidebarNav = ({ onNavigate }: { onNavigate?: () => void }) => {
+const SidebarNav = ({
+  onNavigate,
+  collapsed = false,
+}: {
+  onNavigate?: () => void;
+  collapsed?: boolean;
+}) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut, roles, hasRole } = useAuth();
@@ -76,6 +82,7 @@ const SidebarNav = ({ onNavigate }: { onNavigate?: () => void }) => {
     if (item.featureFlag && !isEnabled(item.featureFlag)) return false;
     if (!item.roles) return true;
     if (isSuperAdmin) return true;
+    if (roles.some((r) => item.roles!.includes(r as AppRole))) return true;
     if (!activeRole) return false;
     return item.roles.includes(activeRole);
   });
@@ -90,6 +97,7 @@ const SidebarNav = ({ onNavigate }: { onNavigate?: () => void }) => {
               key={item.path}
               to={item.path}
               onClick={onNavigate}
+              title={collapsed ? item.label : undefined}
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                 active
@@ -98,7 +106,7 @@ const SidebarNav = ({ onNavigate }: { onNavigate?: () => void }) => {
               )}
             >
               <item.icon className="w-5 h-5 flex-shrink-0" strokeWidth={1.75} />
-              <span>{item.label}</span>
+              {!collapsed && <span>{item.label}</span>}
             </Link>
           );
         })}
@@ -107,6 +115,7 @@ const SidebarNav = ({ onNavigate }: { onNavigate?: () => void }) => {
           <Link
             to="/super-admin"
             onClick={onNavigate}
+            title={collapsed ? "Administration plateforme" : undefined}
             className={cn(
               "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors mt-2 border border-purple-500/20",
               location.pathname.startsWith("/super-admin")
@@ -115,7 +124,7 @@ const SidebarNav = ({ onNavigate }: { onNavigate?: () => void }) => {
             )}
           >
             <Crown className="w-5 h-5 flex-shrink-0" />
-            <span>Administration plateforme</span>
+            {!collapsed && <span>Administration plateforme</span>}
           </Link>
         )}
 
@@ -125,33 +134,14 @@ const SidebarNav = ({ onNavigate }: { onNavigate?: () => void }) => {
       <div className="p-2 border-t border-sidebar-border">
         <button
           onClick={handleLogout}
+          title={collapsed ? "Déconnexion" : undefined}
           className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent transition-colors w-full"
         >
           <LogOut className="w-5 h-5 flex-shrink-0" />
-          <span>Déconnexion</span>
+          {!collapsed && <span>Déconnexion</span>}
         </button>
       </div>
     </>
-  );
-};
-
-const DesktopLogout = ({ collapsed }: { collapsed: boolean }) => {
-  const navigate = useNavigate();
-  const { signOut } = useAuth();
-  const handleLogout = async () => {
-    await signOut();
-    navigate("/login");
-  };
-  return (
-    <div className="p-2 border-t border-sidebar-border">
-      <button
-        onClick={handleLogout}
-        className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent transition-colors w-full"
-      >
-        <LogOut className="w-5 h-5 flex-shrink-0" />
-        {!collapsed && <span>Déconnexion</span>}
-      </button>
-    </div>
   );
 };
 
@@ -160,9 +150,6 @@ const AppSidebar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const isMobile = useIsMobile();
   const location = useLocation();
-  const { roles } = useAuth();
-
-
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -230,35 +217,7 @@ const AppSidebar = () => {
         </button>
       </div>
 
-      <nav className="flex-1 py-4 space-y-1 px-2 overflow-y-auto">
-        {navItems.filter((item) => {
-          if (!item.roles) return true;
-          if (roles.length === 0) return true;
-          return item.roles.some((r) => roles.includes(r));
-        }).map((item) => {
-          const active = location.pathname === item.path || location.pathname.startsWith(item.path + "/");
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-                active
-                  ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                  : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-              )}
-              title={collapsed ? item.label : undefined}
-            >
-              <item.icon className="w-5 h-5 flex-shrink-0" strokeWidth={1.75} />
-              {!collapsed && <span>{item.label}</span>}
-            </Link>
-          );
-        })}
-
-      </nav>
-
-
-      <DesktopLogout collapsed={collapsed} />
+      <SidebarNav collapsed={collapsed} />
     </aside>
   );
 };

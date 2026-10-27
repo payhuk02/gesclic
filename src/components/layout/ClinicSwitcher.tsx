@@ -1,5 +1,7 @@
-import { Building2, Check, ChevronsUpDown } from "lucide-react";
+import { Building2, Check, ChevronsUpDown, Crown } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useClinic } from "@/contexts/ClinicContext";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +21,8 @@ const roleLabels: Record<string, string> = {
 
 const ClinicSwitcher = () => {
   const { memberships, activeClinicId, activeClinic, activeRole, setActiveClinicId, loading } = useClinic();
+  const { hasRole } = useAuth();
+  const isSuperAdmin = hasRole("super_admin");
 
   if (loading) {
     return (
@@ -81,6 +85,17 @@ const ClinicSwitcher = () => {
             {m.clinic_id === activeClinicId && <Check className="w-4 h-4 text-primary shrink-0" />}
           </DropdownMenuItem>
         ))}
+        {isSuperAdmin && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild className="cursor-pointer">
+              <Link to="/super-admin" className="flex items-center gap-2">
+                <Crown className="w-4 h-4 text-purple-600" />
+                <span>Administration plateforme</span>
+              </Link>
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
