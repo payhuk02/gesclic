@@ -84,17 +84,26 @@ export const usePlatformStats = (period: PlatformPeriod = "30d") => {
       const start = new Date(now.getTime() - days * 86400000);
       const prevStart = new Date(now.getTime() - 2 * days * 86400000);
 
-      const [clinicsRes, membersRes, appointmentsRes, paymentsRes] = await Promise.all([
+      const [clinicsRes, membersRes, appointmentsRes, paymentsRes, subsRes] = await Promise.all([
         supabase.from("clinics").select("id, plan, created_at"),
         supabase.from("clinic_members").select("user_id, created_at"),
         supabase.from("appointments").select("id, created_at, clinic_id"),
         supabase.from("payments").select("amount, status, date, created_at, clinic_id"),
+        supabase.from("subscription_payments").select("amount, status, created_at, paid_at, clinic_id"),
       ]);
 
       const clinics = clinicsRes.data ?? [];
       const members = membersRes.data ?? [];
       const appointments = appointmentsRes.data ?? [];
-      const payments = paymentsRes.data ?? [];
+      const clinicPayments = paymentsRes.data ?? [];
+      const subscriptionPayments = (subsRes.data ?? []).map((p) => ({
+        amount: p.amount,
+        status: p.status === "success" ? "paid" : p.status,
+        date: p.paid_at ?? p.created_at,
+        created_at: p.paid_at ?? p.created_at,
+        clinic_id: p.clinic_id,
+      }));
+      const payments = [...clinicPayments, ...subscriptionPayments];
 
       const inRange = (value: string | null | undefined, from: Date, to: Date) => {
         if (!value) return false;

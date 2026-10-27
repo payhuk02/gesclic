@@ -1,18 +1,13 @@
 import { useState, useEffect } from "react";
 import SuperAdminLayout from "@/components/layout/SuperAdminLayout";
-import { supabase } from "@/integrations/supabase/client";
 import {
   Users,
   Search,
-
-  Filter,
-
   MoreVertical,
   Shield,
   Ban,
   Trash2,
   Eye,
-  Edit,
   Mail,
   Building2,
   Calendar,
@@ -45,12 +40,15 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import DeleteConfirmDialog from "@/components/dialogs/DeleteConfirmDialog";
+import { invokeAdminUsers, pickAppRole } from "@/lib/admin-db";
+
+type AppRole = "super_admin" | "admin" | "medecin" | "secretaire" | "infirmier";
 
 interface PlatformUser {
   id: string;
   email: string;
   full_name: string | null;
-  role: "super_admin" | "admin" | "medecin" | "secretaire" | "infirmier";
+  role: AppRole | null;
   clinic_name: string | null;
   created_at: string;
   last_sign_in: string | null;
@@ -76,48 +74,61 @@ const SuperAdminUsers = () => {
   const loadUsers = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*, user_roles(role)")
-        .order("created_at", { ascending: false });
+      const payload = await invokeAdminUsers({ action: "list" }) as {
+        users?: Array<{
+          id: string;
+          email: string | null;
+          full_name: string | null;
+          clinic_name: string | null;
+          created_at: string;
+          last_sign_in_at: string | null;
+          suspended: boolean;
+          roles: string[];
+        }>;
+      };
 
-      if (error) throw error;
-
-      const enrichedUsers = (data || []).map((user: any) => ({
-        id: user.user_id,
-        email: user.email || "N/A",
-        full_name: user.first_name && user.last_name 
-          ? `${user.first_name} ${user.last_name}` 
-          : user.first_name || user.last_name || null,
-        role: user.user_roles?.[0]?.role || "secretaire",
-        clinic_name: user.clinic_name,
-        created_at: user.created_at,
-        last_sign_in: user.last_sign_in_at,
-        status: "active",
-      })) as PlatformUser[];
-
+      const enrichedUsers: PlatformUser[] = (payload.users ?? [])
+        .map((user) => ({
+          id: user.id,
+          email: user.email || "—",
+          full_name: user.full_name,
+          role: pickAppRole(user.roles ?? []),
+          clinic_name: user.clinic_name,
+          created_at: user.created_at,
+          last_sign_in: user.last_sign_in_at,
+          status: user.suspended ? "suspended" : "active",
+        }))
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
       setUsers(enrichedUsers);
     } catch (error) {
       console.error("Error loading users:", error);
-      toast.error("Erreur lors du chargement des utilisateurs");
+      toast.error(error instanceof Error ? error.message : "Erreur lors du chargement des utilisateurs");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSuspendUser = async (userId: string) => {
+  const runUserAction = async (action: string, userId: string, successMessage: string) => {
+    try {
+      await invokeAdminUsers({ action, userId });
+      toast.success(successMessage);
+      await loadUsers();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Action impossible");
+    }
+  };
 
-    toast.success("Utilisateur suspendu");
+  const handleSuspendUser = async (userId: string) => {
+    await runUserAction("suspend", userId, "Utilisateur suspendu");
   };
 
   const handleActivateUser = async (userId: string) => {
-    toast.success("Utilisateur activé");
+    await runUserAction("activate", userId, "Utilisateur activé");
   };
 
   const handleDeleteUser = async (userId: string) => {
-    toast.success("Utilisateur supprimé");
-    loadUsers();
+    await runUserAction("delete", userId, "Utilisateur supprimé");
   };
 
 
@@ -258,7 +269,7 @@ const SuperAdminUsers = () => {
             ) : (
               <div className="space-y-4">
                 {filteredUsers.map((user) => {
-                  const roleInfo = roleConfig[user.role];
+                  const roleInfo = user.role ? roleConfig[user.role] : undefined;
                   const statusInfo = statusConfig[user.status];
 
                   return (
@@ -294,7 +305,9 @@ const SuperAdminUsers = () => {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge className={roleInfo.color}>{roleInfo.label}</Badge>
+                        <Badge className={roleInfo?.color ?? "bg-slate-500"}>
+                          {roleInfo?.label ?? "Sans rôle"}
+                        </Badge>
                         <Badge className={statusInfo.color}>{statusInfo.label}</Badge>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -306,11 +319,6 @@ const SuperAdminUsers = () => {
                             <DropdownMenuItem onClick={() => { setSelectedUser(user); setDetailDialogOpen(true); }}>
                               <Eye className="w-4 h-4 mr-2" />
                               Voir détails
-                            </DropdownMenuItem>
-
-                            <DropdownMenuItem>
-                              <Edit className="w-4 h-4 mr-2" />
-                              Modifier
                             </DropdownMenuItem>
 
                             <DropdownMenuSeparator />
@@ -361,9 +369,8 @@ const SuperAdminUsers = () => {
                     <h3 className="text-lg font-semibold">{selectedUser.full_name || "Utilisateur"}</h3>
                     <p className="text-sm text-muted-foreground">{selectedUser.email}</p>
 
-                    <Badge className={`${roleConfig[selectedUser.role].color} mt-1`}>
-
-                      {roleConfig[selectedUser.role].label}
+                    <Badge className={`${(selectedUser.role ? roleConfig[selectedUser.role].color : "bg-slate-500")} mt-1`}>
+                      {selectedUser.role ? roleConfig[selectedUser.role].label : "Sans rôle"}
                     </Badge>
                   </div>
                 </div>

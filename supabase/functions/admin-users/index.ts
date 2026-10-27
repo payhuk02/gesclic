@@ -65,24 +65,70 @@ Deno.serve(async (req) => {
   try {
     switch (action) {
       case "list": {
-        const users: Array<Record<string, unknown>> = [];
+        const authUsers: Array<{
+          id: string;
+          email: string | null;
+          last_sign_in_at: string | null;
+          created_at: string;
+          banned_until?: string | null;
+        }> = [];
         let page = 1;
         while (page <= 20) {
           const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 200 });
           if (error) throw error;
           for (const u of data.users) {
-            users.push({
+            authUsers.push({
               id: u.id,
               email: u.email ?? null,
               last_sign_in_at: u.last_sign_in_at ?? null,
               created_at: u.created_at,
-              suspended: Boolean((u as { banned_until?: string }).banned_until &&
-                new Date((u as { banned_until?: string }).banned_until as string) > new Date()),
+              banned_until: (u as { banned_until?: string | null }).banned_until ?? null,
             });
           }
           if (data.users.length < 200) break;
           page++;
         }
+
+        const [{ data: profiles }, { data: roles }, { data: members }] = await Promise.all([
+          admin.from("profiles").select("user_id, first_name, last_name, clinic_name, created_at"),
+          admin.from("user_roles").select("user_id, role"),
+          admin.from("clinic_members").select("user_id, clinic_id, role, clinics(name)"),
+        ]);
+
+        const profileByUser = new Map((profiles ?? []).map((p) => [p.user_id, p]));
+        const rolesByUser = new Map<string, string[]>();
+        for (const row of roles ?? []) {
+          const list = rolesByUser.get(row.user_id) ?? [];
+          list.push(row.role);
+          rolesByUser.set(row.user_id, list);
+        }
+        const clinicByUser = new Map<string, string>();
+        for (const row of members ?? []) {
+          if (clinicByUser.has(row.user_id)) continue;
+          const clinic = row.clinics as { name?: string } | { name?: string }[] | null;
+          const name = Array.isArray(clinic) ? clinic[0]?.name : clinic?.name;
+          if (name) clinicByUser.set(row.user_id, name);
+        }
+
+        const users = authUsers.map((u) => {
+          const profile = profileByUser.get(u.id);
+          const first = profile?.first_name ?? "";
+          const last = profile?.last_name ?? "";
+          const full_name = [first, last].filter(Boolean).join(" ").trim() || null;
+          const bannedUntil = u.banned_until ? new Date(u.banned_until) : null;
+          return {
+            id: u.id,
+            email: u.email ?? null,
+            last_sign_in_at: u.last_sign_in_at,
+            created_at: profile?.created_at ?? u.created_at,
+            suspended: Boolean(bannedUntil && bannedUntil > new Date()),
+            first_name: profile?.first_name ?? null,
+            last_name: profile?.last_name ?? null,
+            full_name,
+            clinic_name: clinicByUser.get(u.id) ?? profile?.clinic_name ?? null,
+            roles: rolesByUser.get(u.id) ?? [],
+          };
+        });
         return json({ users });
       }
 

@@ -1,80 +1,59 @@
-
-import { useState } from "react";
-
+import { useEffect, useState } from "react";
 import SuperAdminLayout from "@/components/layout/SuperAdminLayout";
-import {
-  CreditCard,
-  TrendingUp,
-  Download,
-
-  Filter,
-
-  Calendar,
-  Building2,
-  CheckCircle,
-  Clock,
-  AlertTriangle,
-  ArrowUpRight,
-  ArrowDownRight,
-
-
-} from "lucide-react";
+import { CreditCard, CheckCircle, Clock, AlertTriangle, Calendar } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { formatFCFA, usePlatformStats, type PlatformPeriod } from "@/hooks/usePlatformStats";
+import { supabase } from "@/integrations/supabase/client";
 
+interface Invoice {
+  id: string;
+  clinic: string;
+  plan: string;
+  amount: number;
+  status: string;
+  date: string;
+}
 
 const SuperAdminBilling = () => {
-  const [period, setPeriod] = useState("30d");
+  const [period, setPeriod] = useState<PlatformPeriod>("30d");
+  const { stats, loading } = usePlatformStats(period);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
 
-  const invoices = [
-    {
-      id: "INV-001",
-      clinic: "Clinique Santé Plus",
-      plan: "Pro",
-      amount: 29900,
-      status: "paid",
-      date: "2024-03-15",
-    },
-    {
-      id: "INV-002",
-      clinic: "Hôpital Central",
-      plan: "Entreprise",
-      amount: 150000,
-      status: "pending",
-      date: "2024-03-14",
-    },
-    {
-      id: "INV-003",
-      clinic: "Cabinet Médical Alpha",
-      plan: "Standard",
-      amount: 14900,
-      status: "paid",
-      date: "2024-03-13",
-    },
-    {
-      id: "INV-004",
-      clinic: "Clinique Bien-être",
-      plan: "Pro",
-      amount: 29900,
-      status: "failed",
-      date: "2024-03-12",
-    },
-  ];
+  useEffect(() => {
+    const load = async () => {
+      const [{ data }, clinicsRes] = await Promise.all([
+        supabase
+          .from("subscription_payments")
+          .select("id, plan, amount, status, created_at, paid_at, clinic_id")
+          .order("created_at", { ascending: false })
+          .limit(50),
+        supabase.from("clinics").select("id, name"),
+      ]);
+      const names = Object.fromEntries((clinicsRes.data ?? []).map((c) => [c.id, c.name]));
+      setInvoices(
+        (data ?? []).map((row) => ({
+          id: row.id,
+          clinic: names[row.clinic_id] || "—",
+          plan: row.plan,
+          amount: Number(row.amount ?? 0),
+          status: row.status,
+          date: row.paid_at || row.created_at,
+        }))
+      );
+    };
+    load();
+  }, []);
 
-  const statusConfig = {
+  const statusConfig: Record<string, { label: string; icon: typeof CheckCircle; color: string }> = {
     paid: { label: "Payé", icon: CheckCircle, color: "bg-success/10 text-success border-success/20" },
+    success: { label: "Payé", icon: CheckCircle, color: "bg-success/10 text-success border-success/20" },
     pending: { label: "En attente", icon: Clock, color: "bg-warning/10 text-warning border-warning/20" },
     failed: { label: "Échoué", icon: AlertTriangle, color: "bg-destructive/10 text-destructive border-destructive/20" },
-
   };
+
+  const maxPlanRevenue = Math.max(...stats.planBuckets.map((p) => p.revenue), 1);
 
   return (
     <SuperAdminLayout>
@@ -82,186 +61,93 @@ const SuperAdminBilling = () => {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Platform Billing</h1>
-
-            <p className="text-muted-foreground">Facturation globale de la plateforme</p>
+            <p className="text-muted-foreground">Facturation réelle de la plateforme</p>
           </div>
-          <div className="flex gap-2">
-            <Select value={period} onValueChange={setPeriod}>
-
-              <SelectTrigger className="w-40">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="7d">7 jours</SelectItem>
-                <SelectItem value="30d">30 jours</SelectItem>
-                <SelectItem value="90d">90 jours</SelectItem>
-                <SelectItem value="1y">1 an</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Button variant="outline">
-
-              <Download className="w-4 h-4 mr-2" />
-              Exporter
-            </Button>
-          </div>
+          <Select value={period} onValueChange={(v) => setPeriod(v as PlatformPeriod)}>
+            <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7d">7 jours</SelectItem>
+              <SelectItem value="30d">30 jours</SelectItem>
+              <SelectItem value="90d">90 jours</SelectItem>
+              <SelectItem value="1y">1 an</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Revenu Total</CardTitle>
-              <CreditCard className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
+            <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Revenu</CardTitle></CardHeader>
+            <CardContent><div className="text-2xl font-bold">{loading ? "…" : formatFCFA(stats.totalRevenue)}</div></CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Factures payées</CardTitle></CardHeader>
+            <CardContent><div className="text-2xl font-bold">{stats.paidCount}</div></CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">En attente</CardTitle></CardHeader>
             <CardContent>
-
-              <div className="text-2xl font-bold">2.4M FCFA</div>
-              <p className="text-xs text-success mt-1">
-                <ArrowUpRight className="inline w-3 h-3 mr-1" />
-                +18.2% vs période précédente
-              </p>
-
+              <div className="text-2xl font-bold text-warning">{stats.pendingCount}</div>
+              <p className="text-xs text-muted-foreground mt-1">{formatFCFA(stats.pendingAmount)}</p>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Factures Payées</CardTitle>
-              <CheckCircle className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
+            <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Échouées</CardTitle></CardHeader>
             <CardContent>
-
-              <div className="text-2xl font-bold">156</div>
-              <p className="text-xs text-muted-foreground mt-1">94% du total</p>
-
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">En Attente</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-
-              <div className="text-2xl font-bold text-warning">8</div>
-              <p className="text-xs text-muted-foreground mt-1">48,000 FCFA</p>
-
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Échouées</CardTitle>
-              <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-
-              <div className="text-2xl font-bold text-destructive">2</div>
-              <p className="text-xs text-muted-foreground mt-1">12,000 FCFA</p>
-
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5" />
-
-                Revenu Mensuel
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-64 flex items-center justify-center text-muted-foreground">
-                <div className="text-center">
-                  <TrendingUp className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">Graphique de revenu mensuel</p>
-                </div>
-              </div>
-
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building2 className="w-5 h-5" />
-                Revenu par Plan
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-
-              <div className="space-y-4">
-                {[
-                  { plan: "Entreprise", revenue: 450000, percentage: 45 },
-                  { plan: "Pro", revenue: 534000, percentage: 35 },
-                  { plan: "Standard", revenue: 476800, percentage: 15 },
-                  { plan: "Gratuit", revenue: 0, percentage: 5 },
-                ].map((item) => (
-                  <div key={item.plan}>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium">{item.plan}</span>
-                      <span className="text-sm text-muted-foreground">{item.revenue.toLocaleString()} FCFA</span>
-                    </div>
-                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full"
-                        style={{ width: `${item.percentage}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-
+              <div className="text-2xl font-bold text-destructive">{stats.failedCount}</div>
+              <p className="text-xs text-muted-foreground mt-1">{formatFCFA(stats.failedAmount)}</p>
             </CardContent>
           </Card>
         </div>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Factures Récentes</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle>Revenu par plan</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            {stats.planBuckets.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-8">Aucune donnée</p>
+            ) : stats.planBuckets.map((item) => (
+              <div key={item.plan}>
+                <div className="flex justify-between mb-1">
+                  <span className="text-sm font-medium capitalize">{item.plan}</span>
+                  <span className="text-sm text-muted-foreground">{formatFCFA(item.revenue)}</span>
+                </div>
+                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                  <div className="h-full bg-primary" style={{ width: `${(item.revenue / maxPlanRevenue) * 100}%` }} />
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader><CardTitle>Paiements d'abonnement</CardTitle></CardHeader>
           <CardContent>
-
-            <div className="space-y-4">
-              {invoices.map((invoice) => {
-                const statusInfo = statusConfig[invoice.status];
-                const StatusIcon = statusInfo.icon;
-
-                return (
-                  <div
-                    key={invoice.id}
-                    className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="flex items-center gap-4 flex-1">
-                      <CreditCard className="w-6 h-6 text-primary shrink-0" strokeWidth={1.75} />
+            {invoices.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-12">Aucun paiement enregistré</p>
+            ) : (
+              <div className="space-y-4">
+                {invoices.map((invoice) => {
+                  const statusInfo = statusConfig[invoice.status] ?? statusConfig.pending;
+                  const StatusIcon = statusInfo.icon;
+                  return (
+                    <div key={invoice.id} className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 border border-border rounded-lg">
+                      <CreditCard className="w-6 h-6 text-primary shrink-0" />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-foreground">{invoice.clinic}</h3>
-                          <Badge variant="outline">{invoice.plan}</Badge>
+                          <h3 className="font-semibold">{invoice.clinic}</h3>
+                          <Badge variant="outline" className="capitalize">{invoice.plan}</Badge>
                         </div>
-                        <p className="text-sm text-muted-foreground">{invoice.id}</p>
-                        <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3" />
-                            {new Date(invoice.date).toLocaleDateString()}
-                          </span>
-                        </div>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          {new Date(invoice.date).toLocaleDateString()}
+                        </p>
                       </div>
+                      <p className="font-semibold">{formatFCFA(invoice.amount)}</p>
+                      <Badge className={statusInfo.color}><StatusIcon className="w-3 h-3 mr-1" />{statusInfo.label}</Badge>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <p className="font-semibold text-foreground">{invoice.amount.toLocaleString()} FCFA</p>
-                      </div>
-                      <Badge className={statusInfo.color}>
-                        <StatusIcon className="w-3 h-3 mr-1" />
-                        {statusInfo.label}
-                      </Badge>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
+                  );
+                })}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

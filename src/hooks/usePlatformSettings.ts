@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { fromAdmin } from "@/lib/admin-db";
 
 /**
  * Lecture / écriture des réglages globaux de la plateforme (table `platform_settings`).
@@ -13,8 +14,7 @@ export function usePlatformSettings<T extends Record<string, unknown>>(key: stri
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("platform_settings")
+    const { data, error } = await fromAdmin("platform_settings")
       .select("value")
       .eq("key", key)
       .maybeSingle();
@@ -38,8 +38,7 @@ export function usePlatformSettings<T extends Record<string, unknown>>(key: stri
       const payload = { ...settings, ...(next ?? {}) } as T;
       setSaving(true);
       const { data: auth } = await supabase.auth.getUser();
-      const { error } = await supabase
-        .from("platform_settings")
+      const { error } = await fromAdmin("platform_settings")
         .upsert(
           { key, value: payload as never, updated_by: auth.user?.id ?? null },
           { onConflict: "key" }

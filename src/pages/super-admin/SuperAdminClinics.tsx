@@ -95,23 +95,39 @@ const SuperAdminClinics = () => {
     try {
       setLoading(true);
 
-      const { data, error } = await supabase
-        .from("clinics")
-        .select("*")
-        .order("created_at", { ascending: false });
+      const [{ data, error }, membersRes, apptsRes, paymentsRes] = await Promise.all([
+        supabase.from("clinics").select("*").order("created_at", { ascending: false }),
+        supabase.from("clinic_members").select("clinic_id"),
+        supabase.from("appointments").select("clinic_id"),
+        supabase.from("subscription_payments").select("clinic_id, amount, status"),
+      ]);
 
       if (error) throw error;
 
-      // Mock data for user_count, appointment_count, revenue
-      const enrichedClinics = (data || []).map((clinic: any) => ({
-        ...clinic,
-        user_count: Math.floor(Math.random() * 50) + 5,
-        appointment_count: Math.floor(Math.random() * 500) + 50,
-        revenue: Math.floor(Math.random() * 200000) + 10000,
-        country: "Côte d'Ivoire",
-        email: `contact@${clinic.name.toLowerCase().replace(/\s+/g, "-")}.com`,
+      const countBy = (rows: { clinic_id: string }[] | null) => {
+        const map = new Map<string, number>();
+        for (const row of rows ?? []) map.set(row.clinic_id, (map.get(row.clinic_id) ?? 0) + 1);
+        return map;
+      };
+      const memberCounts = countBy(membersRes.data);
+      const apptCounts = countBy(apptsRes.data);
+      const revenueBy = new Map<string, number>();
+      for (const row of paymentsRes.data ?? []) {
+        if (row.status !== "paid" && row.status !== "success") continue;
+        revenueBy.set(row.clinic_id, (revenueBy.get(row.clinic_id) ?? 0) + Number(row.amount ?? 0));
+      }
 
-      })) as Clinic[];
+      const enrichedClinics = (data || []).map((clinic) => {
+        const settings = (clinic.settings ?? {}) as Record<string, unknown>;
+        return {
+          ...clinic,
+          user_count: memberCounts.get(clinic.id) ?? 0,
+          appointment_count: apptCounts.get(clinic.id) ?? 0,
+          revenue: revenueBy.get(clinic.id) ?? 0,
+          country: typeof settings.country === "string" ? settings.country : "—",
+          email: typeof settings.email === "string" ? settings.email : "—",
+        };
+      }) as Clinic[];
 
       setClinics(enrichedClinics);
     } catch (error) {
@@ -474,8 +490,8 @@ const SuperAdminClinics = () => {
                       <Card>
                         <CardContent className="p-4">
                           <TrendingUp className="w-5 h-5 text-primary mb-2" />
-                          <p className="text-2xl font-bold">+12%</p>
-                          <p className="text-xs text-muted-foreground">Croissance</p>
+                          <p className="text-2xl font-bold">{selectedClinic.country}</p>
+                          <p className="text-xs text-muted-foreground">Pays</p>
                         </CardContent>
                       </Card>
                     </div>
