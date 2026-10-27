@@ -8,11 +8,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
+  formatFcfaDot,
   medicationLineTotal,
   prescriptionTotal,
   type PrescriptionMedication,
 } from "@/lib/prescription-meds";
-import { formatFcfa } from "@/lib/clinic-plans";
 
 export interface PrescriptionForm {
   patientId: string;
@@ -179,7 +179,7 @@ const AddPrescriptionDialog = ({ onAdd, onEdit, editData, trigger, patients, doc
                         <td className="p-2 w-24">
                           <Input type="number" min={0} value={m.unitPrice} onChange={(e) => updateLine(i, { unitPrice: Number(e.target.value) })} className="h-8 text-right" />
                         </td>
-                        <td className="p-2 text-right tabular-nums whitespace-nowrap">{formatFcfa(medicationLineTotal(m))} F</td>
+                        <td className="p-2 text-right tabular-nums whitespace-nowrap">{formatFcfaDot(medicationLineTotal(m))} F</td>
                         <td className="p-1">
                           <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeMed(i)}>
                             <Trash2 className="w-3.5 h-3.5" />
@@ -190,7 +190,7 @@ const AddPrescriptionDialog = ({ onAdd, onEdit, editData, trigger, patients, doc
                   </tbody>
                 </table>
                 <div className="flex justify-end px-3 py-2 bg-muted/30 border-t border-border text-sm font-semibold">
-                  Total : {formatFcfa(total)} FCFA
+                  Total : {formatFcfaDot(total)} FCFA
                 </div>
               </div>
             )}

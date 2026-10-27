@@ -1,6 +1,7 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import ExcelJS from "exceljs";
+import { formatFcfaDot } from "@/lib/prescription-meds";
 
 interface ExportColumn {
   header: string;
@@ -132,7 +133,37 @@ export const generateInvoicePDF = (payment: {
   doc.save(`facture-${payment.patientName.replace(/\s+/g, "-")}.pdf`);
 };
 
-export function generatePrescriptionPDF(
+async function loadClinicLogo(url: string): Promise<{ data: string; format: "PNG"; width: number; height: number } | null> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth || img.width;
+      canvas.height = img.naturalHeight || img.height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx || !canvas.width || !canvas.height) {
+        resolve(null);
+        return;
+      }
+      ctx.drawImage(img, 0, 0);
+      try {
+        resolve({
+          data: canvas.toDataURL("image/png"),
+          format: "PNG",
+          width: canvas.width,
+          height: canvas.height,
+        });
+      } catch {
+        resolve(null);
+      }
+    };
+    img.onerror = () => resolve(null);
+    img.src = url;
+  });
+}
+
+export async function generatePrescriptionPDF(
   rx: {
     patientName: string;
     doctorName: string;
@@ -140,29 +171,41 @@ export function generatePrescriptionPDF(
     notes?: string;
     medications: { name: string; dosage: string; quantity: number; unitPrice: number }[];
   },
-  options?: { clinicName?: string; print?: boolean },
+  options?: { clinicName?: string; logoUrl?: string | null; print?: boolean },
 ) {
   const doc = new jsPDF();
+  const pageW = doc.internal.pageSize.getWidth();
   const clinic = options?.clinicName || "Gesclic";
-  const fmt = (n: number) => `${n.toLocaleString("fr-FR")} FCFA`;
+  const fmt = (n: number) => `${formatFcfaDot(n)} FCFA`;
   const total = rx.medications.reduce((s, m) => s + m.quantity * m.unitPrice, 0);
+  const logo = options?.logoUrl ? await loadClinicLogo(options.logoUrl) : null;
 
+  if (logo) {
+    const max = 22;
+    const ratio = logo.width / logo.height;
+    const w = ratio >= 1 ? max : max * ratio;
+    const h = ratio >= 1 ? max / ratio : max;
+    doc.addImage(logo.data, logo.format, 14, 10, w, h);
+  }
+
+  doc.setFont("helvetica", "bold");
   doc.setFontSize(18);
-  doc.text("ORDONNANCE", 14, 22);
+  doc.text("ORDONNANCE", pageW / 2, 18, { align: "center" });
+  doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
-  doc.text(clinic, 14, 30);
-  doc.text(`Date : ${rx.date}`, 14, 36);
-  doc.text(`N° : ORD-${Date.now().toString().slice(-6)}`, 14, 42);
+  doc.text(clinic, 14, 36);
+  doc.text(`Date : ${rx.date}`, 14, 42);
+  doc.text(`N° : ORD-${Date.now().toString().slice(-6)}`, 14, 48);
 
   doc.setDrawColor(59, 130, 246);
-  doc.line(14, 46, 196, 46);
+  doc.line(14, 52, pageW - 14, 52);
 
   doc.setFontSize(11);
-  doc.text(`Patient : ${rx.patientName}`, 14, 56);
-  doc.text(`Médecin : ${rx.doctorName}`, 14, 63);
+  doc.text(`Patient : ${rx.patientName}`, 14, 62);
+  doc.text(`Médecin : ${rx.doctorName}`, 14, 69);
 
   autoTable(doc, {
-    startY: 70,
+    startY: 76,
     head: [["Médicament", "Posologie", "Qté", "P.U.", "Montant"]],
     body: rx.medications.map((m) => [
       m.name,

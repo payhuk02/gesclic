@@ -11,8 +11,7 @@ import { usePatients } from "@/hooks/usePatients";
 import { useDoctors } from "@/hooks/useDoctors";
 import { useClinic } from "@/contexts/ClinicContext";
 import { generatePrescriptionPDF } from "@/utils/exportUtils";
-import { formatFcfa } from "@/lib/clinic-plans";
-import { medicationLabel, prescriptionTotal } from "@/lib/prescription-meds";
+import { formatFcfaDot, medicationLabel, prescriptionTotal } from "@/lib/prescription-meds";
 import { toast } from "sonner";
 
 const Prescriptions = () => {
@@ -42,8 +41,8 @@ const Prescriptions = () => {
     notes: form.notes,
   });
 
-  const exportPdf = (rx: (typeof prescriptions)[0], print = false) => {
-    generatePrescriptionPDF(
+  const exportPdf = async (rx: (typeof prescriptions)[0], print = false) => {
+    await generatePrescriptionPDF(
       {
         patientName: rx.patient_name,
         doctorName: rx.doctor_name,
@@ -51,7 +50,7 @@ const Prescriptions = () => {
         notes: rx.notes,
         medications: rx.medications,
       },
-      { clinicName: activeClinic?.name, print },
+      { clinicName: activeClinic?.name, logoUrl: activeClinic?.logo_url, print },
     );
     toast.success(print ? "Aperçu impression ouvert" : "PDF téléchargé");
   };
@@ -127,7 +126,7 @@ const Prescriptions = () => {
                         <tr key={`${m.name}-${i}`} className="border-t border-border/60">
                           <td className="py-1.5 pr-3 text-foreground">{medicationLabel(m)}</td>
                           <td className="py-1.5 text-right text-muted-foreground whitespace-nowrap">× {m.quantity}</td>
-                          <td className="py-1.5 text-right tabular-nums whitespace-nowrap">{formatFcfa(m.quantity * m.unitPrice)} FCFA</td>
+                          <td className="py-1.5 text-right tabular-nums whitespace-nowrap">{formatFcfaDot(m.quantity * m.unitPrice)} FCFA</td>
                         </tr>
                       ))}
                     </tbody>
@@ -135,7 +134,7 @@ const Prescriptions = () => {
                 </div>
                 <div className="mt-2 flex items-center justify-between gap-2">
                   {rx.notes ? <p className="text-xs text-muted-foreground italic truncate">{rx.notes}</p> : <span />}
-                  <p className="text-sm font-semibold text-foreground whitespace-nowrap">Total {formatFcfa(total)} FCFA</p>
+                  <p className="text-sm font-semibold text-foreground whitespace-nowrap">Total {formatFcfaDot(total)} FCFA</p>
                 </div>
               </div>
             );

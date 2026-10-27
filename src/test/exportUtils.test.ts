@@ -5,13 +5,16 @@ import { exportToExcel, exportToPDF, generateInvoicePDF, generatePrescriptionPDF
 vi.mock("jspdf", () => ({
   default: vi.fn(() => ({
     setFontSize: vi.fn(),
+    setFont: vi.fn(),
     text: vi.fn(),
     save: vi.fn(),
     setDrawColor: vi.fn(),
     line: vi.fn(),
+    addImage: vi.fn(),
     splitTextToSize: vi.fn((t: string) => [t]),
     autoPrint: vi.fn(),
     output: vi.fn(),
+    internal: { pageSize: { getWidth: () => 210 } },
   })),
 }));
 
@@ -105,12 +108,12 @@ describe("exportUtils", () => {
       medications: [{ name: "Amox", dosage: "500mg", quantity: 2, unitPrice: 1500 }],
     };
 
-    it("downloads a PDF", () => {
-      expect(() => generatePrescriptionPDF(rx)).not.toThrow();
+    it("downloads a PDF", async () => {
+      await expect(generatePrescriptionPDF(rx)).resolves.toBeUndefined();
     });
 
-    it("opens print preview", () => {
-      expect(() => generatePrescriptionPDF(rx, { print: true, clinicName: "Clinique Test" })).not.toThrow();
+    it("opens print preview", async () => {
+      await expect(generatePrescriptionPDF(rx, { print: true, clinicName: "Clinique Test" })).resolves.toBeUndefined();
     });
   });
 });

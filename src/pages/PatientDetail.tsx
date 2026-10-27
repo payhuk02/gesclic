@@ -16,8 +16,7 @@ import {
 import { cn } from "@/lib/utils";
 import { belongsToPatient } from "@/lib/patient-link";
 import { generatePrescriptionPDF } from "@/utils/exportUtils";
-import { formatFcfa } from "@/lib/clinic-plans";
-import { prescriptionTotal } from "@/lib/prescription-meds";
+import { formatFcfaDot, prescriptionTotal } from "@/lib/prescription-meds";
 import { useClinic } from "@/contexts/ClinicContext";
 
 const PatientDetail = () => {
@@ -157,16 +156,16 @@ const PatientDetail = () => {
                   <p className="text-sm font-medium text-foreground">{rx.doctor_name}</p>
                   <div className="flex items-center gap-1">
                     <span className="text-xs text-muted-foreground">{rx.date}</span>
-                    <Button variant="ghost" size="icon" className="h-8 w-8" title="Télécharger PDF" onClick={() => generatePrescriptionPDF(pdfPayload, { clinicName: activeClinic?.name })}>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" title="Télécharger PDF" onClick={() => generatePrescriptionPDF(pdfPayload, { clinicName: activeClinic?.name, logoUrl: activeClinic?.logo_url })}>
                       <Download className="w-3.5 h-3.5" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8" title="Imprimer" onClick={() => generatePrescriptionPDF(pdfPayload, { clinicName: activeClinic?.name, print: true })}>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" title="Imprimer" onClick={() => generatePrescriptionPDF(pdfPayload, { clinicName: activeClinic?.name, logoUrl: activeClinic?.logo_url, print: true })}>
                       <Printer className="w-3.5 h-3.5" />
                     </Button>
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-2">{rx.medications.map((m, i) => <span key={`${m.name}-${i}`} className="text-xs bg-secondary px-3 py-1 rounded-full text-foreground">{m.name}{m.unitPrice ? ` · ${formatFcfa(m.unitPrice)} F` : ""}</span>)}</div>
-                <p className="text-sm font-semibold text-foreground mt-2 text-right">Total {formatFcfa(prescriptionTotal(rx.medications))} FCFA</p>
+                <div className="flex flex-wrap gap-2">{rx.medications.map((m, i) => <span key={`${m.name}-${i}`} className="text-xs bg-secondary px-3 py-1 rounded-full text-foreground">{m.name}{m.unitPrice ? ` · ${formatFcfaDot(m.unitPrice)} F` : ""}</span>)}</div>
+                <p className="text-sm font-semibold text-foreground mt-2 text-right">Total {formatFcfaDot(prescriptionTotal(rx.medications))} FCFA</p>
               </div>
             );
             })}

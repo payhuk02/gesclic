@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parsePrescriptionMeds, prescriptionTotal } from "../prescription-meds";
+import { formatFcfaDot, parsePrescriptionMeds, prescriptionTotal } from "../prescription-meds";
 
 describe("parsePrescriptionMeds", () => {
   it("parses legacy comma-separated names", () => {
@@ -17,5 +17,13 @@ describe("parsePrescriptionMeds", () => {
       ]),
     );
     expect(prescriptionTotal(meds)).toBe(3500);
+  });
+});
+
+describe("formatFcfaDot", () => {
+  it("groups thousands with a dot", () => {
+    expect(formatFcfaDot(1000)).toBe("1.000");
+    expect(formatFcfaDot(1100)).toBe("1.100");
+    expect(formatFcfaDot(100)).toBe("100");
   });
 });

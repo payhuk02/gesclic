@@ -48,3 +48,12 @@ export function medicationLabel(m: PrescriptionMedication | string) {
   if (typeof m === "string") return m;
   return m.dosage ? `${m.name} (${m.dosage})` : m.name;
 }
+
+/** Thousands separator with a dot (1.000) — jsPDF cannot print fr-FR narrow spaces. */
+export function formatFcfaDot(amount: number) {
+  const n = Math.round(Number(amount) || 0);
+  const negative = n < 0;
+  const digits = String(Math.abs(n));
+  const grouped = digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return negative ? `-${grouped}` : grouped;
+}
