@@ -1,5 +1,28 @@
 import { supabase } from '@/integrations/supabase/client';
 
+const LOGO_MIME_EXT: Record<string, string> = {
+  'image/png': 'png',
+  'image/jpeg': 'jpg',
+  'image/jpg': 'jpg',
+  'image/webp': 'webp',
+  'image/gif': 'gif',
+  'image/svg+xml': 'svg',
+};
+
+function resolveLogoMime(file: File): string | null {
+  if (file.type && LOGO_MIME_EXT[file.type]) return file.type === 'image/jpg' ? 'image/jpeg' : file.type;
+  const ext = file.name.split('.').pop()?.toLowerCase();
+  const fromName: Record<string, string> = {
+    png: 'image/png',
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    webp: 'image/webp',
+    gif: 'image/gif',
+    svg: 'image/svg+xml',
+  };
+  return ext ? fromName[ext] ?? null : null;
+}
+
 export interface ClinicOpeningHours {
   weekday: string;
   saturday: string;
@@ -214,32 +237,30 @@ export class ClinicSettingsService {
   }
 
   async uploadClinicLogo(clinicId: string, file: File): Promise<string> {
-    if (!file.type.startsWith('image/')) {
-      throw new Error('Fichier image requis');
+    const mime = resolveLogoMime(file);
+    if (!mime) {
+      throw new Error('Fichier image requis (PNG, JPG, WebP, SVG)');
     }
     if (file.size > 5 * 1024 * 1024) {
       throw new Error('Image max 5 Mo');
     }
 
-    const ext = file.name.split('.').pop() || 'png';
+    const ext = LOGO_MIME_EXT[mime] ?? 'png';
     const path = `${clinicId}/logo-${Date.now()}.${ext}`;
     const { error: uploadError } = await supabase.storage
       .from('clinic-logos')
-      .upload(path, file, { upsert: true, contentType: file.type });
+      .upload(path, file, { upsert: true, contentType: mime });
 
     if (uploadError) {
-      throw new Error("Impossible d'uploader le logo");
+      console.error('clinic logo upload', uploadError);
+      throw new Error(uploadError.message || "Impossible d'uploader le logo");
     }
 
-    const { data: signed, error: signError } = await supabase.storage
-      .from('clinic-logos')
-      .createSignedUrl(path, 60 * 60 * 24 * 365);
-
-    if (signError || !signed?.signedUrl) {
+    const { data } = supabase.storage.from('clinic-logos').getPublicUrl(path);
+    if (!data.publicUrl) {
       throw new Error('Logo uploadé mais URL non générée');
     }
-
-    return signed.signedUrl;
+    return data.publicUrl;
   }
 
   async getUserProfile(userId: string): Promise<UserProfile | null> {

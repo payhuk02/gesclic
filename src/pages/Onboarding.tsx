@@ -22,6 +22,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { clinicSettingsService } from "@/services/clinic-settings.service";
 import { useAuth } from "@/contexts/AuthContext";
 import { useClinic, type AppRole } from "@/contexts/ClinicContext";
 import { useInvitations } from "@/hooks/useInvitations";
@@ -100,38 +101,22 @@ const Onboarding = () => {
   const goPrev = () => setStepIndex((i) => Math.max(i - 1, 0));
 
   const handleLogoUpload = async (file: File) => {
-    if (!activeClinicId) return;
-    if (!file.type.startsWith("image/")) {
-      toast.error("Fichier image requis");
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image max 5 Mo");
+    if (!activeClinicId) {
+      toast.error("Clinique non prête. Réessayez dans un instant.");
       return;
     }
     setUploadingLogo(true);
-    const ext = file.name.split(".").pop() || "png";
-    const path = `${activeClinicId}/logo-${Date.now()}.${ext}`;
-    const { error: upErr } = await supabase.storage
-      .from("clinic-logos")
-      .upload(path, file, { upsert: true, contentType: file.type });
-    if (upErr) {
-      console.error(upErr);
-      toast.error("Erreur upload du logo");
+    try {
+      const url = await clinicSettingsService.uploadClinicLogo(activeClinicId, file);
+      setLogoUrl(url);
+      await supabase.from("clinics").update({ logo_url: url }).eq("id", activeClinicId);
+      toast.success("Logo mis à jour");
+    } catch (error) {
+      console.error(error);
+      toast.error(error instanceof Error ? error.message : "Erreur upload du logo");
+    } finally {
       setUploadingLogo(false);
-      return;
     }
-    const { data: signed, error: signErr } = await supabase.storage
-      .from("clinic-logos")
-      .createSignedUrl(path, 60 * 60 * 24 * 365);
-    if (signErr || !signed) {
-      toast.error("Logo uploadé mais URL non générée");
-      setUploadingLogo(false);
-      return;
-    }
-    setLogoUrl(signed.signedUrl);
-    setUploadingLogo(false);
-    toast.success("Logo mis à jour");
   };
 
   const saveClinic = async () => {
