@@ -53,7 +53,7 @@ const HeroSection = () => {
 
   return (
     <section
-      className="relative min-h-[88vh] lg:min-h-[92vh] flex items-end justify-center overflow-hidden bg-slate-950 pt-16 pb-16"
+      className="relative min-h-[100svh] h-[100svh] flex items-end justify-center overflow-hidden bg-slate-950 pt-16 pb-20"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
