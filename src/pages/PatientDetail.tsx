@@ -11,10 +11,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ArrowLeft, Phone, Mail, Calendar, Droplets,
   AlertTriangle, User, FileText, CreditCard, Pill,
-  Clock, Loader2,
+  Clock, Loader2, Download, Printer,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { belongsToPatient } from "@/lib/patient-link";
+import { generatePrescriptionPDF } from "@/utils/exportUtils";
+import { formatFcfa } from "@/lib/clinic-plans";
+import { prescriptionTotal } from "@/lib/prescription-meds";
+import { useClinic } from "@/contexts/ClinicContext";
 
 const PatientDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -23,6 +27,7 @@ const PatientDetail = () => {
   const { payments } = usePayments();
   const { prescriptions } = usePrescriptions();
   const { records } = useMedicalRecords();
+  const { activeClinic } = useClinic();
 
   if (loading) {
     return <AppLayout title="Chargement..."><div className="flex justify-center py-16 sm:py-20"><Loader2 className="w-6 h-6 sm:w-8 sm:h-8 animate-spin text-primary" /></div></AppLayout>;
@@ -138,12 +143,33 @@ const PatientDetail = () => {
         <TabsContent value="prescriptions">
           <div className="space-y-3">
             {patientPrescriptions.length === 0 && <p className="text-center text-muted-foreground py-12">Aucune ordonnance</p>}
-            {patientPrescriptions.map((rx) => (
+            {patientPrescriptions.map((rx) => {
+              const pdfPayload = {
+                patientName: patient.name,
+                doctorName: rx.doctor_name,
+                date: rx.date,
+                notes: rx.notes,
+                medications: rx.medications,
+              };
+              return (
               <div key={rx.id} className="bg-card rounded-xl p-4 border border-border">
-                <div className="flex items-center justify-between mb-2"><p className="text-sm font-medium text-foreground">{rx.doctor_name}</p><span className="text-xs text-muted-foreground">{rx.date}</span></div>
-                <div className="flex flex-wrap gap-2">{rx.medications.map((m) => <span key={m} className="text-xs bg-secondary px-3 py-1 rounded-full text-foreground">{m}</span>)}</div>
+                <div className="flex items-center justify-between mb-2 gap-2">
+                  <p className="text-sm font-medium text-foreground">{rx.doctor_name}</p>
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs text-muted-foreground">{rx.date}</span>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" title="Télécharger PDF" onClick={() => generatePrescriptionPDF(pdfPayload, { clinicName: activeClinic?.name })}>
+                      <Download className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" title="Imprimer" onClick={() => generatePrescriptionPDF(pdfPayload, { clinicName: activeClinic?.name, print: true })}>
+                      <Printer className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2">{rx.medications.map((m, i) => <span key={`${m.name}-${i}`} className="text-xs bg-secondary px-3 py-1 rounded-full text-foreground">{m.name}{m.unitPrice ? ` · ${formatFcfa(m.unitPrice)} F` : ""}</span>)}</div>
+                <p className="text-sm font-semibold text-foreground mt-2 text-right">Total {formatFcfa(prescriptionTotal(rx.medications))} FCFA</p>
               </div>
-            ))}
+            );
+            })}
           </div>
         </TabsContent>
 

@@ -45,7 +45,7 @@ const GlobalSearch = ({ open, onOpenChange }: { open: boolean; onOpenChange: (v:
     patients.forEach((p) => results.push({ id: p.id, label: p.name, description: `${p.phone} · ${p.blood_group}`, icon: Users, path: `/patients/${p.id}`, category: "Patients" }));
     doctors.forEach((d) => results.push({ id: d.id, label: d.name, description: d.specialty, icon: UserCog, path: "/staff", category: "Médecins" }));
     appointments.slice(0, 20).forEach((a) => results.push({ id: a.id, label: `${a.patient_name} — ${a.type}`, description: `${a.date} ${a.time} · ${a.doctor_name}`, icon: Calendar, path: "/appointments", category: "Rendez-vous" }));
-    prescriptions.slice(0, 20).forEach((rx) => results.push({ id: rx.id, label: rx.patient_name, description: `${rx.medications.join(", ")} · ${rx.doctor_name}`, icon: FileEdit, path: "/prescriptions", category: "Ordonnances" }));
+    prescriptions.slice(0, 20).forEach((rx) => results.push({ id: rx.id, label: rx.patient_name, description: `${rx.medications.map((m) => m.name).join(", ")} · ${rx.doctor_name}`, icon: FileEdit, path: "/prescriptions", category: "Ordonnances" }));
     payments.slice(0, 20).forEach((pay) => results.push({ id: pay.id, label: `${pay.patient_name} — ${pay.amount.toLocaleString()} FCFA`, description: `${pay.method} · ${pay.date}`, icon: CreditCard, path: "/payments", category: "Paiements" }));
     return results;
   }, [patients, doctors, appointments, prescriptions, payments]);

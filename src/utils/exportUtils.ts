@@ -131,3 +131,77 @@ export const generateInvoicePDF = (payment: {
 
   doc.save(`facture-${payment.patientName.replace(/\s+/g, "-")}.pdf`);
 };
+
+export function generatePrescriptionPDF(
+  rx: {
+    patientName: string;
+    doctorName: string;
+    date: string;
+    notes?: string;
+    medications: { name: string; dosage: string; quantity: number; unitPrice: number }[];
+  },
+  options?: { clinicName?: string; print?: boolean },
+) {
+  const doc = new jsPDF();
+  const clinic = options?.clinicName || "Gesclic";
+  const fmt = (n: number) => `${n.toLocaleString("fr-FR")} FCFA`;
+  const total = rx.medications.reduce((s, m) => s + m.quantity * m.unitPrice, 0);
+
+  doc.setFontSize(18);
+  doc.text("ORDONNANCE", 14, 22);
+  doc.setFontSize(10);
+  doc.text(clinic, 14, 30);
+  doc.text(`Date : ${rx.date}`, 14, 36);
+  doc.text(`N° : ORD-${Date.now().toString().slice(-6)}`, 14, 42);
+
+  doc.setDrawColor(59, 130, 246);
+  doc.line(14, 46, 196, 46);
+
+  doc.setFontSize(11);
+  doc.text(`Patient : ${rx.patientName}`, 14, 56);
+  doc.text(`Médecin : ${rx.doctorName}`, 14, 63);
+
+  autoTable(doc, {
+    startY: 70,
+    head: [["Médicament", "Posologie", "Qté", "P.U.", "Montant"]],
+    body: rx.medications.map((m) => [
+      m.name,
+      m.dosage || "—",
+      String(m.quantity),
+      fmt(m.unitPrice),
+      fmt(m.quantity * m.unitPrice),
+    ]),
+    foot: [["", "", "", "Total", fmt(total)]],
+    headStyles: { fillColor: [59, 130, 246] },
+    footStyles: { fillColor: [241, 245, 249], textColor: [15, 23, 42], fontStyle: "bold" },
+    styles: { fontSize: 9 },
+    columnStyles: {
+      2: { halign: "right" },
+      3: { halign: "right" },
+      4: { halign: "right" },
+    },
+  });
+
+  const finalY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable?.finalY ?? 110;
+  if (rx.notes) {
+    doc.setFontSize(10);
+    doc.text("Notes :", 14, finalY + 12);
+    doc.setFontSize(9);
+    const notes = doc.splitTextToSize(rx.notes, 180);
+    doc.text(notes, 14, finalY + 18);
+  }
+
+  const signY = Math.min(finalY + (rx.notes ? 36 : 22), 270);
+  doc.setFontSize(10);
+  doc.text("Signature du médecin", 130, signY);
+  doc.line(130, signY + 16, 190, signY + 16);
+
+  const filename = `ordonnance-${rx.patientName.replace(/\s+/g, "-")}.pdf`;
+  if (options?.print) {
+    const printable = doc as jsPDF & { autoPrint: () => void };
+    printable.autoPrint();
+    printable.output("dataurlnewwindow");
+    return;
+  }
+  doc.save(filename);
+}

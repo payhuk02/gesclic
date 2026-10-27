@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { exportToExcel, exportToPDF, generateInvoicePDF } from "@/utils/exportUtils";
+import { exportToExcel, exportToPDF, generateInvoicePDF, generatePrescriptionPDF } from "@/utils/exportUtils";
 
 // Mock jsPDF and ExcelJS
 vi.mock("jspdf", () => ({
@@ -9,6 +9,9 @@ vi.mock("jspdf", () => ({
     save: vi.fn(),
     setDrawColor: vi.fn(),
     line: vi.fn(),
+    splitTextToSize: vi.fn((t: string) => [t]),
+    autoPrint: vi.fn(),
+    output: vi.fn(),
   })),
 }));
 
@@ -90,6 +93,24 @@ describe("exportUtils", () => {
 
     it("should generate invoice PDF", () => {
       expect(() => generateInvoicePDF(mockPayment)).not.toThrow();
+    });
+  });
+
+  describe("generatePrescriptionPDF", () => {
+    const rx = {
+      patientName: "Marie Diallo",
+      doctorName: "Dr. Sow",
+      date: "2026-10-27",
+      notes: "Après repas",
+      medications: [{ name: "Amox", dosage: "500mg", quantity: 2, unitPrice: 1500 }],
+    };
+
+    it("downloads a PDF", () => {
+      expect(() => generatePrescriptionPDF(rx)).not.toThrow();
+    });
+
+    it("opens print preview", () => {
+      expect(() => generatePrescriptionPDF(rx, { print: true, clinicName: "Clinique Test" })).not.toThrow();
     });
   });
 });
