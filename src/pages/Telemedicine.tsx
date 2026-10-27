@@ -343,7 +343,7 @@ const Telemedicine = () => {
                   Nouvelle Session
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-lg">
+              <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Créer une Session Vidéo</DialogTitle>
                   <DialogDescription>
@@ -705,7 +705,7 @@ const Telemedicine = () => {
       )}
 
       <Dialog open={endDialogOpen} onOpenChange={setEndDialogOpen}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Terminer la session</DialogTitle>
             <DialogDescription>
@@ -747,7 +747,7 @@ const Telemedicine = () => {
       </Dialog>
 
       <Dialog open={!!detailSession} onOpenChange={(open) => !open && setDetailSession(null)}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Détails de la session</DialogTitle>
             <DialogDescription>
