@@ -53,7 +53,7 @@ const HeroSection = () => {
 
   return (
     <section
-      className="relative min-h-[100svh] h-[100svh] flex items-end justify-center overflow-hidden bg-slate-950 pt-16 pb-20"
+      className="relative min-h-[120svh] flex items-end justify-center overflow-hidden bg-slate-950 pt-16 pb-16"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
@@ -76,8 +76,7 @@ const HeroSection = () => {
           </motion.div>
         </AnimatePresence>
 
-        <div className="absolute inset-0 bg-black/10 pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-black/25 pointer-events-none" />
+        <div className="absolute inset-0 bg-black/15 pointer-events-none" />
       </div>
 
       {/* Navigation Arrows on Screen Edges */}
@@ -162,8 +161,6 @@ const HeroSection = () => {
         ))}
       </div>
 
-      {/* Subtle bottom transition to next section */}
-      <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-background/60 to-transparent pointer-events-none" />
     </section>
   );
 };
