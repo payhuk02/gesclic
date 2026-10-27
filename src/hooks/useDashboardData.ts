@@ -205,7 +205,7 @@ function useRecentActivity(clinicId: string | undefined) {
  */
 function useChartData(clinicId: string | undefined) {
   return useQuery({
-    queryKey: dashboardKeys.charts(clinicId || '')
+    queryKey: dashboardKeys.charts(clinicId || ''),
     queryFn: async () => {
       if (!clinicId) throw new Error('Clinic ID required');
 
