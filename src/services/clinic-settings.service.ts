@@ -67,7 +67,7 @@ export const DEFAULT_CLINIC_PROFILE_SETTINGS: ClinicProfileSettings = {
   email: '',
   phone: '',
   address: '',
-  country: '',
+  country: 'Burkina Faso',
   website: '',
   opening_hours: { ...DEFAULT_OPENING_HOURS },
   notifications: { ...DEFAULT_NOTIFICATION_SETTINGS },
@@ -102,7 +102,7 @@ function parseSettings(raw: unknown): ClinicProfileSettings {
     email: typeof obj.email === 'string' ? obj.email : '',
     phone: typeof obj.phone === 'string' ? obj.phone : '',
     address: typeof obj.address === 'string' ? obj.address : '',
-    country: typeof obj.country === 'string' ? obj.country : '',
+    country: typeof obj.country === 'string' && obj.country.trim() ? obj.country : 'Burkina Faso',
     website: typeof obj.website === 'string' ? obj.website : '',
     opening_hours: {
       weekday: typeof hours.weekday === 'string' ? hours.weekday : DEFAULT_OPENING_HOURS.weekday,
@@ -211,8 +211,8 @@ export class ClinicSettingsService {
     if (!file.type.startsWith('image/')) {
       throw new Error('Fichier image requis');
     }
-    if (file.size > 2 * 1024 * 1024) {
-      throw new Error('Image max 2 Mo');
+    if (file.size > 5 * 1024 * 1024) {
+      throw new Error('Image max 5 Mo');
     }
 
     const ext = file.name.split('.').pop() || 'png';

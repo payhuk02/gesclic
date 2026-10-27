@@ -376,6 +376,7 @@ const Settings = () => {
                     {uploadingLogo ? <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" /> : <Upload className="w-3 h-3 sm:w-4 sm:h-4" />}
                     Changer le logo
                   </Button>
+                  <p className="text-xs text-muted-foreground">PNG, JPG ou SVG · 5 Mo max</p>
                 </>
               )}
             </div>
@@ -390,7 +391,7 @@ const Settings = () => {
               </div>
               <div>
                 <Label>Téléphone</Label>
-                <Input value={settings.phone} onChange={(e) => updateSetting("phone", e.target.value)} className="mt-1" disabled={inputsDisabled} placeholder="+225 ..." />
+                <Input value={settings.phone} onChange={(e) => updateSetting("phone", e.target.value)} className="mt-1" disabled={inputsDisabled} placeholder="+226 ..." />
               </div>
               <div>
                 <Label>Adresse</Label>

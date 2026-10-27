@@ -171,7 +171,7 @@ const ClinicFormDialog = ({ open, onOpenChange, clinic, onSaved }: ClinicFormDia
               id="clinic-country"
               value={form.country}
               onChange={(e) => setForm({ ...form, country: e.target.value })}
-              placeholder="Côte d'Ivoire"
+              placeholder="Burkina Faso"
               className="mt-1"
             />
           </div>

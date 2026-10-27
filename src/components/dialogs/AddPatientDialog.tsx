@@ -68,7 +68,7 @@ const AddPatientDialog = ({ onAdd, onEdit, editData, trigger }: Props) => {
             </div>
             <div>
               <Label className="text-sm">Téléphone *</Label>
-              <Input className="mt-1.5" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+225 07 08 09 10" />
+              <Input className="mt-1.5" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+226 07 08 09 10" />
             </div>
             <div>
               <Label className="text-sm">Email</Label>

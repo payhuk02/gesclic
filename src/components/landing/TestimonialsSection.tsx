@@ -2,9 +2,9 @@ import { motion } from "framer-motion";
 import { Star } from "lucide-react";
 
 const testimonials = [
-  { name: "Dr. Marie Konaté", role: "Directrice — Clinique Santé Plus, Abidjan", text: "Gesclic a transformé notre gestion. Nous avons réduit les rendez-vous manqués de 60% grâce aux rappels SMS.", rating: 5 },
-  { name: "Ibrahima Sow", role: "Administrateur — Centre Médical Dakar", text: "L'interface est tellement simple que même notre personnel le moins tech-savvy l'utilise sans problème. Excellent !", rating: 5 },
-  { name: "Dr. Ama Owusu", role: "Dentiste — Smile Clinic, Accra", text: "Les paiements Mobile Money intégrés ont changé la donne. Nos patients adorent payer via Wave ou Orange Money.", rating: 5 },
+  { name: "Dr. Marie Konaté", role: "Directrice — Clinique Santé Plus, Ouagadougou", text: "Gesclic a transformé notre gestion. Nous avons réduit les rendez-vous manqués de 60% grâce aux rappels SMS.", rating: 5 },
+  { name: "Ibrahima Sow", role: "Administrateur — Centre Médical de Ouaga", text: "L'interface est tellement simple que même notre personnel le moins tech-savvy l'utilise sans problème. Excellent !", rating: 5 },
+  { name: "Dr. Ama Ouédraogo", role: "Dentiste — Smile Clinic, Bobo-Dioulasso", text: "Les paiements Mobile Money intégrés ont changé la donne. Nos patients adorent payer via Wave ou Orange Money.", rating: 5 },
 ];
 
 const TestimonialsSection = () => {

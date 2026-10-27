@@ -35,7 +35,7 @@ const DoctorDialog = ({ trigger, initial, onSubmit, title }: { trigger: React.Re
           <div><Label>Nom complet *</Label><Input className="mt-1" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Dr. Jean Dupont" /></div>
           <div><Label>Spécialité</Label><Input className="mt-1" value={form.specialty} onChange={(e) => setForm({ ...form, specialty: e.target.value })} /></div>
           <div className="grid grid-cols-2 gap-3">
-            <div><Label>Téléphone</Label><Input className="mt-1" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
+            <div><Label>Téléphone</Label><Input className="mt-1" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+226 ..." /></div>
             <div><Label>Email</Label><Input className="mt-1" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
           </div>
           <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setOpen(false)}>Annuler</Button><Button type="submit" className="gradient-hero border-0">Enregistrer</Button></div>

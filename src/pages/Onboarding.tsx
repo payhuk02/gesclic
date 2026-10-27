@@ -105,8 +105,8 @@ const Onboarding = () => {
       toast.error("Fichier image requis");
       return;
     }
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error("Image max 2 Mo");
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image max 5 Mo");
       return;
     }
     setUploadingLogo(true);
@@ -383,7 +383,7 @@ const Onboarding = () => {
                           )}
                           {logoUrl ? "Changer le logo" : "Ajouter un logo"}
                         </Button>
-                        <p className="text-xs text-muted-foreground">PNG, JPG ou SVG · 2 Mo max</p>
+                        <p className="text-xs text-muted-foreground">PNG, JPG ou SVG · 5 Mo max</p>
                       </div>
                     </div>
                   </div>

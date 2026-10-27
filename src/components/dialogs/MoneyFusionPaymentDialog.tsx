@@ -232,7 +232,7 @@ export function MoneyFusionPaymentDialog({
               <Input
                 id="phoneNumber"
                 type="tel"
-                placeholder="Ex: 0102030405 ou +225 07..."
+                placeholder="Ex: 0102030405 ou +226 07..."
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
                 required
