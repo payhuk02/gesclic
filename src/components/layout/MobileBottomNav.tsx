@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useClinic, type AppRole } from "@/contexts/ClinicContext";
 import { useFeatureFlags } from "@/contexts/FeatureFlagsContext";
 import { useNavigate } from "react-router-dom";
 import MedicalAIAssistant from "@/components/MedicalAIAssistant";
@@ -18,13 +19,14 @@ interface NavItem {
   label: string;
   path: string;
   featureFlag?: string;
+  roles?: AppRole[];
 }
 
 const mobileNavItems: NavItem[] = [
   { icon: LayoutDashboard, label: "Accueil", path: "/dashboard" },
   { icon: Calendar, label: "RDV", path: "/appointments" },
   { icon: Users, label: "Patients", path: "/patients" },
-  { icon: Video, label: "Télé", path: "/telemedicine", featureFlag: "telemedicine_enabled" },
+  { icon: Video, label: "Télé", path: "/telemedicine", featureFlag: "telemedicine_enabled", roles: ["admin", "medecin"] },
 ];
 
 const allNavItems: NavItem[] = [
@@ -32,20 +34,20 @@ const allNavItems: NavItem[] = [
   { icon: Calendar, label: "Rendez-vous", path: "/appointments" },
   { icon: Users, label: "Patients", path: "/patients" },
   { icon: FileText, label: "Dossiers médicaux", path: "/medical-records" },
-  { icon: FileEdit, label: "Ordonnances", path: "/prescriptions" },
-  { icon: CreditCard, label: "Paiements", path: "/payments" },
-  { icon: FlaskConical, label: "Laboratoire", path: "/laboratory" },
-  { icon: Pill, label: "Pharmacie", path: "/pharmacy" },
-  { icon: BarChart3, label: "Rapports", path: "/reports" },
-  { icon: Video, label: "Télémédecine", path: "/telemedicine", featureFlag: "telemedicine_enabled" },
+  { icon: FileEdit, label: "Ordonnances", path: "/prescriptions", roles: ["admin", "medecin"] },
+  { icon: CreditCard, label: "Paiements", path: "/payments", roles: ["admin", "secretaire"] },
+  { icon: FlaskConical, label: "Laboratoire", path: "/laboratory", roles: ["admin", "medecin", "infirmier"] },
+  { icon: Pill, label: "Pharmacie", path: "/pharmacy", roles: ["admin", "medecin", "infirmier"] },
+  { icon: BarChart3, label: "Rapports", path: "/reports", roles: ["admin", "medecin"] },
+  { icon: Video, label: "Télémédecine", path: "/telemedicine", featureFlag: "telemedicine_enabled", roles: ["admin", "medecin"] },
   { icon: Shield, label: "Sécurité", path: "/security" },
-  { icon: BarChart3, label: "Analytics Avancés", path: "/advanced-analytics" },
-  { icon: Puzzle, label: "Intégrations", path: "/integrations" },
-  { icon: Key, label: "API Platform", path: "/api-platform" },
-  { icon: Workflow, label: "Workflows", path: "/workflow-automation", featureFlag: "workflow_automation_enabled" },
-  { icon: Globe, label: "Webhooks", path: "/webhooks" },
-  { icon: UserCog, label: "Personnel", path: "/staff" },
-  { icon: Crown, label: "Abonnements", path: "/subscriptions" },
+  { icon: BarChart3, label: "Analytics Avancés", path: "/advanced-analytics", roles: ["admin", "medecin"] },
+  { icon: Puzzle, label: "Intégrations", path: "/integrations", roles: ["admin"] },
+  { icon: Key, label: "API Platform", path: "/api-platform", roles: ["admin"] },
+  { icon: Workflow, label: "Workflows", path: "/workflow-automation", featureFlag: "workflow_automation_enabled", roles: ["admin"] },
+  { icon: Globe, label: "Webhooks", path: "/webhooks", roles: ["admin"] },
+  { icon: UserCog, label: "Personnel", path: "/staff", roles: ["admin"] },
+  { icon: Crown, label: "Abonnements", path: "/subscriptions", roles: ["admin"] },
   { icon: Settings, label: "Paramètres", path: "/settings" },
 ];
 
@@ -54,18 +56,25 @@ const MobileBottomNav = () => {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showAI, setShowAI] = useState(false);
-  const { signOut } = useAuth();
+  const { signOut, roles, hasRole } = useAuth();
   const { isEnabled } = useFeatureFlags();
+  const { activeRole } = useClinic();
   const navigate = useNavigate();
 
   if (!isMobile) return null;
 
-  const visibleMobileItems = mobileNavItems.filter(
-    (item) => !item.featureFlag || isEnabled(item.featureFlag),
-  );
-  const visibleAllItems = allNavItems.filter(
-    (item) => !item.featureFlag || isEnabled(item.featureFlag),
-  );
+  const isSuperAdmin = hasRole("super_admin") || roles.includes("super_admin");
+  const canSee = (item: NavItem) => {
+    if (item.featureFlag && !isEnabled(item.featureFlag)) return false;
+    if (!item.roles) return true;
+    if (isSuperAdmin) return true;
+    if (roles.some((r) => item.roles!.includes(r as AppRole))) return true;
+    if (!activeRole) return false;
+    return item.roles.includes(activeRole);
+  };
+
+  const visibleMobileItems = mobileNavItems.filter(canSee);
+  const visibleAllItems = allNavItems.filter(canSee);
 
   const handleLogout = async () => {
     await signOut();

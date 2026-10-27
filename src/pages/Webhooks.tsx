@@ -36,6 +36,7 @@ const emptyForm: WebhookSubscriptionForm = {
 
 const Webhooks = () => {
   const { activeClinicId } = useClinic();
+  const { user } = useAuth();
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
 
   const [events, setEvents] = useState<any[]>([]);
@@ -58,13 +59,22 @@ const Webhooks = () => {
       setLoading(true);
 
       const subs = await webhookService.getSubscriptions(activeClinicId);
-
       setSubscriptions(subs);
 
-      // Get delivery stats for first subscription if available
+      const eventsList = await webhookService.getEvents(activeClinicId);
+      setEvents(eventsList);
+
       if (subs.length > 0) {
         const stats = await webhookService.getDeliveryStats(subs[0].id, 30);
-        setDeliveryStats(stats);
+        setDeliveryStats({
+          total_delivered: stats.delivered,
+          total_failed: stats.failed,
+          success_rate: stats.successRate,
+          average_delivery_time: 0,
+          deliveries_by_event_type: [],
+        });
+      } else {
+        setDeliveryStats(null);
       }
     } catch (error) {
       console.error("Error loading webhook data:", error);
@@ -77,17 +87,18 @@ const Webhooks = () => {
   const handleCreateSubscription = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { user } = useAuth();
-      if (!user) return;
+      if (!user || !activeClinicId) return;
+      if (!form.eventType) {
+        toast.error("Choisissez un type d'événement");
+        return;
+      }
 
       await webhookService.createSubscription(
         user.id,
-
         activeClinicId,
-
-        form.name,
+        form.name.trim() || form.eventType,
         form.endpointUrl,
-        [form.eventType]
+        [form.eventType],
       );
 
       setCreateDialogOpen(false);
@@ -147,9 +158,13 @@ const Webhooks = () => {
   ];
 
   const filteredSubscriptions = subscriptions.filter((sub) => {
-    const matchesSearch = sub.event_type.toLowerCase().includes(search.toLowerCase()) ||
-                         sub.endpoint_url.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === "all" || (statusFilter === "active" ? sub.active : !sub.active);
+    const eventLabel = Array.isArray(sub.events) ? sub.events.join(", ") : (sub.event_type || "");
+    const endpoint = sub.url || sub.endpoint_url || "";
+    const active = sub.is_active ?? sub.active;
+    const matchesSearch = eventLabel.toLowerCase().includes(search.toLowerCase()) ||
+                         endpoint.toLowerCase().includes(search.toLowerCase()) ||
+                         (sub.name || "").toLowerCase().includes(search.toLowerCase());
+    const matchesStatus = statusFilter === "all" || (statusFilter === "active" ? active : !active);
     return matchesSearch && matchesStatus;
   });
 
@@ -197,6 +212,14 @@ const Webhooks = () => {
                   <DialogTitle>Créer un Webhook</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleCreateSubscription} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Nom</Label>
+                    <Input
+                      placeholder="Notifications RDV"
+                      value={form.name}
+                      onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    />
+                  </div>
                   <div className="space-y-2">
                     <Label>Type d'Événement</Label>
                     <Select value={form.eventType} onValueChange={(v) => setForm({ ...form, eventType: v })}>
@@ -252,14 +275,14 @@ const Webhooks = () => {
                     <div className="flex flex-col sm:flex-row gap-4 justify-between items-start">
                       <div className="flex-1 space-y-2">
                         <div className="flex items-center gap-2">
-                          <Badge variant={sub.active ? "default" : "secondary"}>
-                            {sub.active ? "Actif" : "Inactif"}
+                          <Badge variant={(sub.is_active ?? sub.active) ? "default" : "secondary"}>
+                            {(sub.is_active ?? sub.active) ? "Actif" : "Inactif"}
                           </Badge>
-                          <span className="font-mono text-sm">{sub.event_type}</span>
+                          <span className="font-mono text-sm">{Array.isArray(sub.events) ? sub.events.join(", ") : sub.event_type}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <p className="text-sm text-muted-foreground truncate">{sub.endpoint_url}</p>
-                          <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => copyToClipboard(sub.endpoint_url)}>
+                          <p className="text-sm text-muted-foreground truncate">{sub.url || sub.endpoint_url}</p>
+                          <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => copyToClipboard(sub.url || sub.endpoint_url)}>
                             <Copy className="w-3 h-3" />
                           </Button>
                         </div>
@@ -320,8 +343,8 @@ const Webhooks = () => {
                             {new Date(event.created_at).toLocaleString()}
                           </p>
                         </div>
-                        {event.retry_count > 0 && (
-                          <Badge variant="outline">{event.retry_count} retry</Badge>
+                        {(event.retry_count || event.delivery_attempts) > 0 && (
+                          <Badge variant="outline">{event.retry_count || event.delivery_attempts} retry</Badge>
                         )}
                       </div>
                     );

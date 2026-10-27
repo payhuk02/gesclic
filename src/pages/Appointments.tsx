@@ -124,11 +124,11 @@ const Appointments = () => {
   };
 
   const handleAdd = (form: AppointmentForm) => {
-    addAppointment({ patient_name: form.patientName, doctor_name: form.doctorName, date: form.date, time: form.time, type: form.type });
+    addAppointment({ patient_id: form.patientId || null, patient_name: form.patientName, doctor_name: form.doctorName, date: form.date, time: form.time, type: form.type });
   };
 
   const handleEdit = (id: string, form: AppointmentForm) => {
-    updateAppointment(id, { patient_name: form.patientName, doctor_name: form.doctorName, date: form.date, time: form.time, type: form.type });
+    updateAppointment(id, { patient_id: form.patientId || null, patient_name: form.patientName, doctor_name: form.doctorName, date: form.date, time: form.time, type: form.type });
   };
 
 
@@ -239,7 +239,7 @@ const Appointments = () => {
                                     )
                                   )}
                                   <AddAppointmentDialog
-                                    editData={{ patientName: a.patient_name, doctorName: a.doctor_name, date: a.date, time: a.time, type: a.type }}
+                                    editData={{ patientId: a.patient_id || "", patientName: a.patient_name, doctorName: a.doctor_name, date: a.date, time: a.time, type: a.type }}
                                     onEdit={(form) => handleEdit(a.id, form)}
                                     patients={patients.map(p => ({ id: p.id, name: p.name }))}
                                     doctors={doctors.map(d => ({ id: d.id, name: d.name, specialty: d.specialty }))}
@@ -278,7 +278,7 @@ const Appointments = () => {
                               <p className="opacity-80">{a.doctor_name} · {a.type}</p>
                               <div className="absolute top-1 right-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <AddAppointmentDialog
-                                  editData={{ patientName: a.patient_name, doctorName: a.doctor_name, date: a.date, time: a.time, type: a.type }}
+                                  editData={{ patientId: a.patient_id || "", patientName: a.patient_name, doctorName: a.doctor_name, date: a.date, time: a.time, type: a.type }}
                                   onEdit={(form) => handleEdit(a.id, form)}
                                   patients={patients.map(p => ({ id: p.id, name: p.name }))}
                                   doctors={doctors.map(d => ({ id: d.id, name: d.name, specialty: d.specialty }))}

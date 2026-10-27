@@ -25,21 +25,21 @@ const FooterSection = () => {
             <h4 className="font-semibold mb-3">Support</h4>
             <ul className="space-y-2 text-sm opacity-70">
               <li><a href="#faq">FAQ</a></li>
-              <li><a href="#">Documentation</a></li>
-              <li><a href="#">Contact</a></li>
+              <li><a href="#faq">Documentation</a></li>
+              <li><a href="mailto:support@gesclic.com">Contact</a></li>
             </ul>
           </div>
           <div>
             <h4 className="font-semibold mb-3">Légal</h4>
             <ul className="space-y-2 text-sm opacity-70">
-              <li><a href="#">Confidentialité</a></li>
-              <li><a href="#">CGU</a></li>
-              <li><a href="#">RGPD</a></li>
+              <li><a href="mailto:support@gesclic.com?subject=Confidentialité">Confidentialité</a></li>
+              <li><a href="mailto:support@gesclic.com?subject=CGU">CGU</a></li>
+              <li><a href="mailto:support@gesclic.com?subject=RGPD">RGPD</a></li>
             </ul>
           </div>
         </div>
         <div className="border-t border-sidebar-border pt-6 text-center text-sm opacity-50">
-          © 2024 Gesclic. Tous droits réservés.
+          © 2026 Gesclic. Tous droits réservés.
         </div>
       </div>
     </footer>

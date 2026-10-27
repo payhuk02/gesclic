@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { clearMfaPending } from "@/lib/mfa-session";
+import { clearMfaPending, shouldRestorePersistedSession } from "@/lib/mfa-session";
 
 type AppRole = "super_admin" | "admin" | "medecin" | "secretaire" | "infirmier";
 
@@ -70,7 +70,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session && !shouldRestorePersistedSession()) {
+        await supabase.auth.signOut();
+        setSession(null);
+        setUser(null);
+        setProfile(null);
+        setRoles([]);
+        setLoading(false);
+        return;
+      }
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {

@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, X } from "lucide-react";
 
 export interface PrescriptionForm {
+  patientId: string;
   patientName: string;
   doctorName: string;
   medications: string[];
@@ -24,13 +25,13 @@ interface Props {
 
 const AddPrescriptionDialog = ({ onAdd, onEdit, editData, trigger, patients, doctors }: Props) => {
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState<PrescriptionForm>({ patientName: "", doctorName: "", medications: [] });
+  const [form, setForm] = useState<PrescriptionForm>({ patientId: "", patientName: "", doctorName: "", medications: [] });
   const [medInput, setMedInput] = useState("");
   const isEdit = !!editData;
 
   useEffect(() => {
     if (editData && open) setForm(editData);
-    else if (!open) setForm({ patientName: "", doctorName: "", medications: [] });
+    else if (!open) setForm({ patientId: "", patientName: "", doctorName: "", medications: [] });
   }, [editData, open]);
 
   const addMed = () => {
@@ -47,7 +48,7 @@ const AddPrescriptionDialog = ({ onAdd, onEdit, editData, trigger, patients, doc
     if (!form.patientName || !form.doctorName || form.medications.length === 0) return;
     if (isEdit) onEdit?.(form);
     else onAdd?.(form);
-    setForm({ patientName: "", doctorName: "", medications: [] });
+    setForm({ patientId: "", patientName: "", doctorName: "", medications: [] });
     setOpen(false);
   };
 
@@ -72,10 +73,13 @@ const AddPrescriptionDialog = ({ onAdd, onEdit, editData, trigger, patients, doc
           <div>
             <Label>Patient *</Label>
             {patientList.length > 0 ? (
-              <Select value={form.patientName} onValueChange={(v) => setForm({ ...form, patientName: v })}>
+              <Select value={form.patientId || form.patientName} onValueChange={(v) => {
+                const p = patientList.find((x) => x.id === v);
+                setForm({ ...form, patientId: v, patientName: p?.name || v });
+              }}>
                 <SelectTrigger className="mt-1"><SelectValue placeholder="Sélectionner" /></SelectTrigger>
                 <SelectContent>
-                  {patientList.map((p) => (<SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>))}
+                  {patientList.map((p) => (<SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>))}
                 </SelectContent>
               </Select>
             ) : (

@@ -19,11 +19,11 @@ const Payments = () => {
   const totalPending = payments.filter((p) => p.status === "pending").reduce((s, p) => s + p.amount, 0);
 
   const handleAdd = (form: PaymentForm) => {
-    addPayment({ patient_name: form.patientName, amount: form.amount, method: form.method, description: form.description });
+    addPayment({ patient_id: form.patientId || null, patient_name: form.patientName, amount: form.amount, method: form.method, description: form.description });
   };
 
   const handleEdit = (id: string, form: PaymentForm) => {
-    updatePayment(id, { patient_name: form.patientName, amount: form.amount, method: form.method, description: form.description });
+    updatePayment(id, { patient_id: form.patientId || null, patient_name: form.patientName, amount: form.amount, method: form.method, description: form.description });
   };
 
   return (
@@ -123,7 +123,7 @@ const Payments = () => {
                       <td className="px-4 py-3">
                         <div className="flex gap-1">
                           <AddPaymentDialog
-                            editData={{ patientName: p.patient_name, amount: p.amount, method: p.method, description: p.description }}
+                            editData={{ patientId: p.patient_id || "", patientName: p.patient_name, amount: p.amount, method: p.method, description: p.description }}
                             onEdit={(form) => handleEdit(p.id, form)}
                             patients={patients.map(pt => ({ id: pt.id, name: pt.name }))}
                             trigger={

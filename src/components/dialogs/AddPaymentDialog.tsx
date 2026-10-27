@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus } from "lucide-react";
 
 export interface PaymentForm {
+  patientId: string;
   patientName: string;
   amount: number;
   method: string;
@@ -14,7 +15,7 @@ export interface PaymentForm {
 }
 
 const methods = ["Orange Money", "Wave", "MTN Mobile Money", "Moov Money", "Espèces", "Carte bancaire"];
-const emptyForm: PaymentForm = { patientName: "", amount: 0, method: "Orange Money", description: "" };
+const emptyForm: PaymentForm = { patientId: "", patientName: "", amount: 0, method: "Orange Money", description: "" };
 
 interface Props {
   onAdd?: (payment: PaymentForm) => void;
@@ -63,11 +64,14 @@ const AddPaymentDialog = ({ onAdd, onEdit, editData, trigger, patients }: Props)
           <div>
             <Label>Patient *</Label>
             {patientList.length > 0 ? (
-              <Select value={form.patientName} onValueChange={(v) => setForm({ ...form, patientName: v })}>
+              <Select value={form.patientId || form.patientName} onValueChange={(v) => {
+                const p = patientList.find((x) => x.id === v);
+                setForm({ ...form, patientId: v, patientName: p?.name || v });
+              }}>
                 <SelectTrigger className="mt-1"><SelectValue placeholder="Sélectionner" /></SelectTrigger>
                 <SelectContent>
                   {patientList.map((p) => (
-                    <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>
+                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

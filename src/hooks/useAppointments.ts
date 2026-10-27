@@ -9,6 +9,7 @@ export type AppointmentStatus = "confirmed" | "pending" | "completed" | "cancell
 
 export interface Appointment {
   id: string;
+  patient_id: string | null;
   patient_name: string;
   doctor_name: string;
   date: string;
@@ -27,7 +28,7 @@ export const useAppointments = () => {
     if (!user || !activeClinicId) { setAppointments([]); setLoading(false); return; }
     const { data, error } = await supabase
       .from("appointments")
-      .select("id, patient_name, doctor_name, date, time, type, status")
+      .select("id, patient_id, patient_name, doctor_name, date, time, type, status")
       .eq("clinic_id", activeClinicId)
       .is("deleted_at", null)
       .order("date", { ascending: false });
@@ -42,7 +43,7 @@ export const useAppointments = () => {
     if (!user || !activeClinicId) return;
     const { data, error } = await supabase
       .from("appointments")
-      .insert({ ...form, user_id: user.id, clinic_id: activeClinicId, status: "pending" })
+      .insert({ ...form, patient_id: form.patient_id || null, user_id: user.id, clinic_id: activeClinicId, status: "pending" })
       .select()
       .single();
     if (error) { toast.error("Erreur création rendez-vous"); return; }

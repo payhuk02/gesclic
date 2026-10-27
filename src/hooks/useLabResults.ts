@@ -9,6 +9,7 @@ export type LabStatus = "pending" | "in_progress" | "completed" | "validated";
 
 export interface LabResult {
   id: string;
+  patient_id: string | null;
   patient_name: string;
   analysis_type: string;
   date: string;
@@ -26,7 +27,7 @@ export const useLabResults = () => {
     if (!user || !activeClinicId) { setResults([]); setLoading(false); return; }
     const { data, error } = await supabase
       .from("lab_results")
-      .select("id, patient_name, analysis_type, date, result, status")
+      .select("id, patient_id, patient_name, analysis_type, date, result, status")
       .eq("clinic_id", activeClinicId)
       .is("deleted_at", null)
       .order("date", { ascending: false });
@@ -39,7 +40,7 @@ export const useLabResults = () => {
 
   const addResult = async (form: Omit<LabResult, "id" | "status"> & { status?: LabStatus }) => {
     if (!user || !activeClinicId) return;
-    const { data, error } = await supabase.from("lab_results").insert({ ...form, user_id: user.id, clinic_id: activeClinicId, status: form.status || "pending" }).select().single();
+    const { data, error } = await supabase.from("lab_results").insert({ ...form, patient_id: form.patient_id || null, user_id: user.id, clinic_id: activeClinicId, status: form.status || "pending" }).select().single();
     if (error) { toast.error("Erreur création analyse"); return; }
     setResults((prev) => [data as LabResult, ...prev]);
     toast.success(`Analyse créée pour ${form.patient_name}`);

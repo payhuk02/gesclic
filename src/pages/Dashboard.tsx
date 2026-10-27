@@ -12,11 +12,17 @@ import { Link } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 
-const MONTHS = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Aoû", "Sep", "Oct", "Nov", "Déc"];
-const DAYS_FR = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
+const TYPE_COLORS = [
+  "hsl(var(--primary))",
+  "hsl(var(--accent))",
+  "hsl(var(--destructive))",
+  "hsl(var(--warning))",
+  "hsl(210, 70%, 50%)",
+  "hsl(150, 60%, 45%)",
+];
 
 const Dashboard = () => {
-  const { data, isLoading, isError, error } = useDashboardData();
+  const { data, isLoading, isError } = useDashboardData();
 
   if (isLoading) {
     return (
@@ -38,48 +44,32 @@ const Dashboard = () => {
     );
   }
 
-  const { stats, recentActivity, charts } = data;
-  const today = new Date().toISOString().split("T")[0];
-  const todayAppts = [];
-  const pendingLabs = [];
-  const lowStockMeds = [];
-  const pharmacyItems = [];
-  const doctors = [];
-  const payments = [];
-  const appointments = [];
+  const { stats, recentActivity, charts, widgets } = data;
+  const { todayCount, upcomingAppointments, consultationTypes, weeklyAppointments, pharmacyItems, lowStockMeds, doctors } = widgets;
 
-  // Use the centralized chart data
-  const revenueData = charts.revenue.map(item => ({
+  const revenueData = charts.revenue.map((item) => ({
     month: item.month,
-    revenue: item.amount
+    revenue: item.amount,
   }));
 
-  // Build weekly appointments from chart data
-  const weeklyAppointments = charts.appointments.slice(0, 6).map(item => ({
-    day: new Date(item.date).toLocaleDateString('fr-FR', { weekday: 'short' }),
-    count: item.count
+  const typedConsultations = consultationTypes.map((ct, i) => ({
+    ...ct,
+    color: TYPE_COLORS[i % TYPE_COLORS.length],
   }));
-
-  // Consultation types would be derived from appointments data
-  const consultationTypes = [
-    { name: "Général", value: Math.round(stats.totalAppointments * 0.45) || 0, color: "hsl(var(--primary))" },
-    { name: "Spécialiste", value: Math.round(stats.totalAppointments * 0.30) || 0, color: "hsl(var(--accent))" },
-    { name: "Urgence", value: Math.round(stats.totalAppointments * 0.15) || 0, color: "hsl(var(--destructive))" },
-    { name: "Suivi", value: Math.round(stats.totalAppointments * 0.10) || 0, color: "hsl(var(--warning))" },
-  ];
-
 
   const statCards = [
-    { label: "RDV aujourd'hui", value: `${todayAppts.length}`, icon: Calendar, color: "text-sky-500" },
+    { label: "RDV aujourd'hui", value: `${todayCount}`, icon: Calendar, color: "text-sky-500" },
     { label: "Patients actifs", value: `${stats.totalPatients}`, icon: Users, color: "text-emerald-500" },
     { label: "Revenus (payés)", value: `${(stats.totalRevenue / 1000).toFixed(0)}K`, icon: TrendingUp, color: "text-primary" },
     { label: "Impayés", value: `${(stats.pendingPayments / 1000).toFixed(0)}K`, icon: CreditCard, color: "text-amber-500" },
   ];
 
-  const upcomingAppts = []; // Would be filtered from appointments data
   const alertCount = stats.lowStockItems + stats.pendingLabResults;
   const recentActivities = recentActivity.slice(0, 5).map((activity) => ({
-    icon: Calendar, text: activity.description, time: activity.timestamp, color: "text-primary",
+    icon: Calendar,
+    text: activity.description,
+    time: activity.timestamp,
+    color: "text-primary",
   }));
 
   return (
@@ -91,14 +81,14 @@ const Dashboard = () => {
             <h3 className="font-semibold text-foreground text-sm sm:text-base">{alertCount} alerte{alertCount > 1 ? "s" : ""} à traiter</h3>
           </div>
           <div className="grid sm:grid-cols-2 gap-2 sm:gap-3">
-            {lowStockMeds.length > 0 && (
+            {stats.lowStockItems > 0 && (
               <Link to="/pharmacy" className="flex items-center gap-2 p-2 rounded-lg bg-card border border-border hover:bg-secondary/50 transition-colors">
-                <Pill className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-destructive" /><span className="text-xs sm:text-sm text-foreground">{lowStockMeds.length} produit{lowStockMeds.length > 1 ? "s" : ""} en rupture</span><ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground ml-auto" />
+                <Pill className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-destructive" /><span className="text-xs sm:text-sm text-foreground">{stats.lowStockItems} produit{stats.lowStockItems > 1 ? "s" : ""} en rupture</span><ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground ml-auto" />
               </Link>
             )}
-            {pendingLabs.length > 0 && (
+            {stats.pendingLabResults > 0 && (
               <Link to="/laboratory" className="flex items-center gap-2 p-2 rounded-lg bg-card border border-border hover:bg-secondary/50 transition-colors">
-                <FlaskConical className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-warning" /><span className="text-xs sm:text-sm text-foreground">{pendingLabs.length} analyse{pendingLabs.length > 1 ? "s" : ""} en attente</span><ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground ml-auto" />
+                <FlaskConical className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-warning" /><span className="text-xs sm:text-sm text-foreground">{stats.pendingLabResults} analyse{stats.pendingLabResults > 1 ? "s" : ""} en attente</span><ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground ml-auto" />
               </Link>
             )}
           </div>
@@ -134,13 +124,13 @@ const Dashboard = () => {
         </div>
         <div className="bg-card rounded-xl p-4 sm:p-6 shadow-card border border-border">
           <h3 className="font-semibold text-foreground mb-3 sm:mb-4 text-sm sm:text-base">Types de consultations</h3>
-          {consultationTypes.length === 0 ? <p className="text-center py-12 text-muted-foreground text-sm">Aucun rendez-vous</p> : (
+          {typedConsultations.length === 0 ? <p className="text-center py-12 text-muted-foreground text-sm">Aucun rendez-vous</p> : (
             <>
               <ResponsiveContainer width="100%" height={160}>
-                <PieChart><Pie data={consultationTypes} cx="50%" cy="50%" innerRadius={40} outerRadius={60} dataKey="value" paddingAngle={3}>{consultationTypes.map((entry, i) => <Cell key={i} fill={entry.color} />)}</Pie><Tooltip /></PieChart>
+                <PieChart><Pie data={typedConsultations} cx="50%" cy="50%" innerRadius={40} outerRadius={60} dataKey="value" paddingAngle={3}>{typedConsultations.map((entry, i) => <Cell key={i} fill={entry.color} />)}</Pie><Tooltip /></PieChart>
               </ResponsiveContainer>
               <div className="grid grid-cols-2 gap-2 mt-2">
-                {consultationTypes.map((ct) => (
+                {typedConsultations.map((ct) => (
                   <div key={ct.name} className="flex items-center gap-2 text-[10px] sm:text-xs"><div className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full" style={{ backgroundColor: ct.color }} /><span className="text-muted-foreground">{ct.name} ({ct.value})</span></div>
                 ))}
               </div>
@@ -158,7 +148,7 @@ const Dashboard = () => {
         </div>
         <div className="bg-card rounded-xl p-4 sm:p-6 shadow-card border border-border">
           <h3 className="font-semibold text-foreground mb-3 sm:mb-4 flex items-center gap-2 text-sm sm:text-base"><Pill className="w-4 h-4 sm:w-5 sm:h-5 text-warning" />Stock pharmacie critique</h3>
-          {pharmacyItems.length === 0 ? <p className="text-xs sm:text-sm text-muted-foreground">Aucun produit enregistré</p> : lowStockMeds.length === 0 ? <p className="text-xs sm:text-sm text-muted-foreground">Tous les stocks sont suffisants ✓</p> : (
+          {pharmacyItems.length === 0 ? <p className="text-xs sm:text-sm text-muted-foreground">Aucun produit enregistré</p> : lowStockMeds.length === 0 ? <p className="text-xs sm:text-sm text-muted-foreground">Tous les stocks sont suffisants</p> : (
             <div className="space-y-2 sm:space-y-3">
               {lowStockMeds.slice(0, 6).map((med) => {
                 const pct = Math.min((med.quantity / Math.max(med.threshold, 1)) * 100, 100);
@@ -187,7 +177,7 @@ const Dashboard = () => {
         <div className="bg-card rounded-xl p-4 sm:p-6 shadow-card border border-border">
           <h3 className="font-semibold text-foreground mb-3 sm:mb-4 flex items-center gap-2 text-sm sm:text-base"><Clock className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />Rendez-vous à venir</h3>
           <div className="space-y-2 sm:space-y-3">
-            {upcomingAppts.length === 0 ? <p className="text-xs sm:text-sm text-muted-foreground">Aucun rendez-vous à venir</p> : upcomingAppts.map((a) => (
+            {upcomingAppointments.length === 0 ? <p className="text-xs sm:text-sm text-muted-foreground">Aucun rendez-vous à venir</p> : upcomingAppointments.map((a) => (
               <div key={a.id} className="flex items-center justify-between p-2 sm:p-3 rounded-lg bg-secondary/50">
                 <div><p className="text-xs sm:text-sm font-medium text-foreground">{a.patient_name}</p><p className="text-[10px] sm:text-xs text-muted-foreground">{a.doctor_name} — {a.type}</p></div>
                 <div className="text-right"><p className="text-xs sm:text-sm font-medium text-foreground">{a.time}</p><p className="text-[10px] sm:text-xs text-muted-foreground">{a.date}</p></div>

@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Heart, Mail, Lock, User, Eye, EyeOff, Building2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { platformPolicyService } from "@/services/platform-policy.service";
 import { toast } from "sonner";
 import logo from "@/assets/Logo_Gesclic.png";
 import registerImage from "@/assets/auth-register-doctor.jpg";
@@ -21,8 +22,16 @@ const Register = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 6) {
-      toast.error("Le mot de passe doit contenir au moins 6 caractères");
+    const policy = await platformPolicyService.getSecurityPolicy();
+    const ip = await platformPolicyService.getClientIp();
+    const ipCheck = platformPolicyService.ipAllowed(ip, policy);
+    if (!ipCheck.ok) {
+      toast.error(ipCheck.reason || "Inscription refusée pour cette adresse IP");
+      return;
+    }
+    const pwd = platformPolicyService.passwordMeetsPolicy(password, policy);
+    if (!pwd.ok) {
+      toast.error(pwd.reason || "Mot de passe trop faible");
       return;
     }
     setLoading(true);

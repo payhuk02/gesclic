@@ -15,8 +15,8 @@ const Prescriptions = () => {
   const { patients } = usePatients();
   const { doctors } = useDoctors();
 
-  const handleAdd = (form: PrescriptionForm) => addPrescription({ patient_name: form.patientName, doctor_name: form.doctorName, medications: form.medications });
-  const handleEdit = (id: string, form: PrescriptionForm) => updatePrescription(id, { patient_name: form.patientName, doctor_name: form.doctorName, medications: form.medications });
+  const handleAdd = (form: PrescriptionForm) => addPrescription({ patient_id: form.patientId || null, patient_name: form.patientName, doctor_name: form.doctorName, medications: form.medications });
+  const handleEdit = (id: string, form: PrescriptionForm) => updatePrescription(id, { patient_id: form.patientId || null, patient_name: form.patientName, doctor_name: form.doctorName, medications: form.medications });
 
   return (
     <AppLayout title="Ordonnances">
@@ -56,7 +56,7 @@ const Prescriptions = () => {
                     {rx.status === "active" ? "Active" : "Terminée"}
                   </Badge>
                   <AddPrescriptionDialog
-                    editData={{ patientName: rx.patient_name, doctorName: rx.doctor_name, medications: rx.medications }}
+                    editData={{ patientId: rx.patient_id || "", patientName: rx.patient_name, doctorName: rx.doctor_name, medications: rx.medications }}
                     onEdit={(form) => handleEdit(rx.id, form)}
                     patients={patients.map((p) => ({ id: p.id, name: p.name }))}
                     doctors={doctors.map((d) => ({ id: d.id, name: d.name }))}

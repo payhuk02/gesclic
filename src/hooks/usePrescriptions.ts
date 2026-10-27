@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 export interface Prescription {
   id: string;
+  patient_id: string | null;
   patient_name: string;
   doctor_name: string;
   date: string;
@@ -17,6 +18,7 @@ export interface Prescription {
 
 interface DbPrescription {
   id: string;
+  patient_id: string | null;
   patient_name: string;
   doctor_name: string;
   date: string;
@@ -42,7 +44,7 @@ export const usePrescriptions = () => {
     if (!user || !activeClinicId) { setPrescriptions([]); setLoading(false); return; }
     const { data, error } = await supabase
       .from("prescriptions")
-      .select("id, patient_name, doctor_name, date, medications, notes, status")
+      .select("id, patient_id, patient_name, doctor_name, date, medications, notes, status")
       .eq("clinic_id", activeClinicId)
       .is("deleted_at", null)
       .order("date", { ascending: false });
@@ -53,13 +55,14 @@ export const usePrescriptions = () => {
 
   useEffect(() => { fetchPrescriptions(); }, [user, activeClinicId]);
 
-  const addPrescription = async (form: { patient_name: string; doctor_name: string; medications: string[]; notes?: string }) => {
+  const addPrescription = async (form: { patient_id?: string | null; patient_name: string; doctor_name: string; medications: string[]; notes?: string }) => {
     if (!user || !activeClinicId) return;
     const { data, error } = await supabase
       .from("prescriptions")
       .insert({
         user_id: user.id,
         clinic_id: activeClinicId,
+        patient_id: form.patient_id || null,
         patient_name: form.patient_name,
         doctor_name: form.doctor_name,
         medications: JSON.stringify(form.medications),
@@ -74,9 +77,9 @@ export const usePrescriptions = () => {
     toast.success(`Ordonnance créée pour ${form.patient_name}`);
   };
 
-  const updatePrescription = async (id: string, form: { patient_name: string; doctor_name: string; medications: string[]; notes?: string }) => {
+  const updatePrescription = async (id: string, form: { patient_id?: string | null; patient_name: string; doctor_name: string; medications: string[]; notes?: string }) => {
     const { error } = await supabase.from("prescriptions").update({
-      patient_name: form.patient_name, doctor_name: form.doctor_name, medications: JSON.stringify(form.medications), notes: form.notes || "",
+      patient_id: form.patient_id || null, patient_name: form.patient_name, doctor_name: form.doctor_name, medications: JSON.stringify(form.medications), notes: form.notes || "",
     }).eq("id", id);
     if (error) { toast.error("Erreur modification"); return; }
     setPrescriptions((prev) => prev.map((rx) => rx.id === id ? { ...rx, ...form, notes: form.notes || "" } : rx));

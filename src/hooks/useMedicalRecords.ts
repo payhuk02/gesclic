@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 export interface MedicalRecord {
   id: string;
+  patient_id: string | null;
   patient_name: string;
   date: string;
   diagnosis: string;
@@ -24,7 +25,7 @@ export const useMedicalRecords = () => {
     if (!user || !activeClinicId) { setRecords([]); setLoading(false); return; }
     const { data, error } = await supabase
       .from("medical_records")
-      .select("id, patient_name, date, diagnosis, treatment, notes")
+      .select("id, patient_id, patient_name, date, diagnosis, treatment, notes")
       .eq("clinic_id", activeClinicId)
       .is("deleted_at", null)
       .order("date", { ascending: false });
@@ -37,7 +38,7 @@ export const useMedicalRecords = () => {
 
   const addRecord = async (form: Omit<MedicalRecord, "id">) => {
     if (!user || !activeClinicId) return;
-    const { data, error } = await supabase.from("medical_records").insert({ ...form, user_id: user.id, clinic_id: activeClinicId }).select().single();
+    const { data, error } = await supabase.from("medical_records").insert({ ...form, patient_id: form.patient_id || null, user_id: user.id, clinic_id: activeClinicId }).select().single();
     if (error) { toast.error("Erreur création dossier"); return; }
     setRecords((prev) => [data, ...prev]);
     toast.success(`Dossier créé pour ${form.patient_name}`);

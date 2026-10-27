@@ -93,8 +93,7 @@ export type Database = {
           date: string
           doctor_name: string
           id: string
-
-
+          patient_id: string | null
           patient_name: string
           status: string
           time: string
@@ -108,8 +107,7 @@ export type Database = {
           date: string
           doctor_name: string
           id?: string
-
-
+          patient_id?: string | null
           patient_name: string
           status?: string
           time: string
@@ -123,8 +121,7 @@ export type Database = {
           date?: string
           doctor_name?: string
           id?: string
-
-
+          patient_id?: string | null
           patient_name?: string
           status?: string
           time?: string
@@ -338,6 +335,7 @@ export type Database = {
           created_at: string
           date: string
           id: string
+          patient_id: string | null
           patient_name: string
           result: string
           status: string
@@ -350,6 +348,7 @@ export type Database = {
           created_at?: string
           date: string
           id?: string
+          patient_id?: string | null
           patient_name: string
           result?: string
           status?: string
@@ -362,6 +361,7 @@ export type Database = {
           created_at?: string
           date?: string
           id?: string
+          patient_id?: string | null
           patient_name?: string
           result?: string
           status?: string
@@ -388,8 +388,7 @@ export type Database = {
           diagnosis: string
           id: string
           notes: string
-
-
+          patient_id: string | null
           patient_name: string
           treatment: string
           updated_at: string
@@ -402,8 +401,7 @@ export type Database = {
           diagnosis?: string
           id?: string
           notes?: string
-
-
+          patient_id?: string | null
           patient_name: string
           treatment?: string
           updated_at?: string
@@ -416,8 +414,7 @@ export type Database = {
           diagnosis?: string
           id?: string
           notes?: string
-
-
+          patient_id?: string | null
           patient_name?: string
           treatment?: string
           updated_at?: string
@@ -556,8 +553,7 @@ export type Database = {
           description: string
           id: string
           method: string
-
-
+          patient_id: string | null
           patient_name: string
           status: string
           updated_at: string
@@ -572,8 +568,7 @@ export type Database = {
           description?: string
           id?: string
           method?: string
-
-
+          patient_id?: string | null
           patient_name: string
           status?: string
           updated_at?: string
@@ -588,8 +583,7 @@ export type Database = {
           description?: string
           id?: string
           method?: string
-
-
+          patient_id?: string | null
           patient_name?: string
           status?: string
           updated_at?: string
@@ -665,8 +659,7 @@ export type Database = {
           id: string
           medications: string
           notes: string
-
-
+          patient_id: string | null
           patient_name: string
           status: string
           updated_at: string
@@ -680,8 +673,7 @@ export type Database = {
           id?: string
           medications?: string
           notes?: string
-
-
+          patient_id?: string | null
           patient_name: string
           status?: string
           updated_at?: string
@@ -695,8 +687,7 @@ export type Database = {
           id?: string
           medications?: string
           notes?: string
-
-
+          patient_id?: string | null
           patient_name?: string
           status?: string
           updated_at?: string

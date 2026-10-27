@@ -6,7 +6,8 @@ import { Mail, Lock, Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { securityService } from "@/services/security.service";
-import { clearMfaPending, setMfaPending } from "@/lib/mfa-session";
+import { clearMfaPending, setEnforce2faSetup, setMfaPending, setRememberMe } from "@/lib/mfa-session";
+import { platformPolicyService } from "@/services/platform-policy.service";
 import { toast } from "sonner";
 import logo from "@/assets/Logo_Gesclic.png";
 import loginImage from "@/assets/auth-login-doctor.jpg";
@@ -17,6 +18,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [mfaCode, setMfaCode] = useState("");
   const [mfaUserId, setMfaUserId] = useState<string | null>(null);
+  const [rememberMe, setRememberMeChecked] = useState(true);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -37,6 +39,7 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     try {
+      setRememberMe(rememberMe);
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
         toast.error(
@@ -54,6 +57,16 @@ const Login = () => {
         return;
       }
 
+      const policy = await platformPolicyService.getSecurityPolicy();
+      const ip = await platformPolicyService.getClientIp();
+      const ipCheck = platformPolicyService.ipAllowed(ip, policy);
+      if (!ipCheck.ok) {
+        await platformPolicyService.logDeniedAccess({ reason: ipCheck.reason, ip, email });
+        await supabase.auth.signOut();
+        toast.error(ipCheck.reason || "Accès refusé");
+        return;
+      }
+
       const mfaRequired = await securityService.isMFAEnabled(userId);
       if (mfaRequired) {
         setMfaPending(userId);
@@ -62,7 +75,16 @@ const Login = () => {
         return;
       }
 
+      if (policy.enforce2FA) {
+        setEnforce2faSetup();
+        toast.message("L'authentification à deux facteurs est obligatoire. Configurez-la pour continuer.");
+        navigate("/security");
+        return;
+      }
+
       completeLogin();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erreur de connexion");
     } finally {
       setLoading(false);
     }
@@ -192,7 +214,12 @@ const Login = () => {
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <label className="flex items-center gap-2 text-muted-foreground">
-                    <input type="checkbox" className="rounded border-border" defaultChecked />
+                    <input
+                      type="checkbox"
+                      className="rounded border-border"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMeChecked(e.target.checked)}
+                    />
                     Se souvenir de moi
                   </label>
                   <Link to="/forgot-password" className="text-primary hover:underline">

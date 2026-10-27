@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { TrendingUp, Users, Calendar, CreditCard, Activity } from "lucide-react";
 import ExportButtons from "@/components/ExportButtons";
 import { cn } from "@/lib/utils";
+import { belongsToPatient } from "@/lib/patient-link";
 
 const COLORS = [
   "hsl(var(--primary))", "hsl(var(--accent))", "hsl(var(--destructive))",
@@ -24,16 +25,37 @@ const statusLabels: Record<string, string> = {
   confirmed: "Confirmé", pending: "En attente", completed: "Terminé", cancelled: "Annulé",
 };
 
+const startOfPeriod = (period: string): Date | null => {
+  if (period === "all") return null;
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  if (period === "week") d.setDate(d.getDate() - d.getDay());
+  else if (period === "month") d.setDate(1);
+  else if (period === "quarter") d.setMonth(Math.floor(d.getMonth() / 3) * 3, 1);
+  return d;
+};
+
+const inPeriod = (value: string | null | undefined, from: Date | null) => {
+  if (!from || !value) return true;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return false;
+  return d >= from;
+};
+
 const Reports = () => {
   const [period, setPeriod] = useState("all");
   const { patients } = usePatients();
   const { appointments } = useAppointments();
   const { payments } = usePayments();
   const { doctors } = useDoctors();
+  const from = startOfPeriod(period);
+
+  const periodAppointments = appointments.filter((a) => inPeriod(a.date, from));
+  const periodPayments = payments.filter((p) => inPeriod(p.date, from));
 
   const revenueByMonth = (() => {
     const map = new Map<string, number>();
-    payments.filter((p) => p.status === "paid").forEach((p) => {
+    periodPayments.filter((p) => p.status === "paid").forEach((p) => {
       const d = new Date(p.date);
       if (Number.isNaN(d.getTime())) return;
       const key = `${d.getFullYear()}-${String(d.getMonth()).padStart(2, "0")}`;
@@ -46,34 +68,34 @@ const Reports = () => {
   })();
 
   const paymentsByMethod = Object.entries(
-    payments.reduce((acc, p) => { acc[p.method] = (acc[p.method] || 0) + p.amount; return acc; }, {} as Record<string, number>)
+    periodPayments.reduce((acc, p) => { acc[p.method] = (acc[p.method] || 0) + p.amount; return acc; }, {} as Record<string, number>)
   ).map(([method, amount]) => ({ method, amount }));
 
   const appointmentsByType = Object.entries(
-    appointments.reduce((acc, a) => { acc[a.type] = (acc[a.type] || 0) + 1; return acc; }, {} as Record<string, number>)
+    periodAppointments.reduce((acc, a) => { acc[a.type] = (acc[a.type] || 0) + 1; return acc; }, {} as Record<string, number>)
   ).map(([type, count]) => ({ type, count }));
 
   const appointmentsByDoctor = doctors.map((d) => ({
     name: d.name.replace(/^Dr\.?\s*/i, ""),
-    rdv: appointments.filter((a) => a.doctor_name === d.name).length,
+    rdv: periodAppointments.filter((a) => a.doctor_name === d.name).length,
   }));
 
   const appointmentsByStatus = Object.entries(
-    appointments.reduce((acc, a) => { acc[a.status] = (acc[a.status] || 0) + 1; return acc; }, {} as Record<string, number>)
+    periodAppointments.reduce((acc, a) => { acc[a.status] = (acc[a.status] || 0) + 1; return acc; }, {} as Record<string, number>)
   ).map(([status, count]) => ({ status, count }));
 
   const patientsByBloodGroup = Object.entries(
     patients.reduce((acc, p) => { acc[p.blood_group || "—"] = (acc[p.blood_group || "—"] || 0) + 1; return acc; }, {} as Record<string, number>)
   ).map(([group, count]) => ({ group, count }));
 
-  const totalRevenue = payments.reduce((s, p) => s + p.amount, 0);
-  const paidRevenue = payments.filter((p) => p.status === "paid").reduce((s, p) => s + p.amount, 0);
+  const totalRevenue = periodPayments.reduce((s, p) => s + p.amount, 0);
+  const paidRevenue = periodPayments.filter((p) => p.status === "paid").reduce((s, p) => s + p.amount, 0);
   const avgPerPatient = patients.length > 0 ? Math.round(paidRevenue / patients.length) : 0;
 
   const stats = [
     { label: "Revenus totaux", value: `${(totalRevenue / 1000).toFixed(0)}K FCFA`, icon: TrendingUp, color: "text-primary" },
     { label: "Patients", value: patients.length, icon: Users, color: "text-blue-600 dark:text-blue-400" },
-    { label: "Rendez-vous", value: appointments.length, icon: Calendar, color: "text-amber-600 dark:text-amber-400" },
+    { label: "Rendez-vous", value: periodAppointments.length, icon: Calendar, color: "text-amber-600 dark:text-amber-400" },
     { label: "Moyenne/patient", value: `${(avgPerPatient / 1000).toFixed(0)}K`, icon: CreditCard, color: "text-emerald-600 dark:text-emerald-400" },
   ];
 
@@ -92,7 +114,7 @@ const Reports = () => {
                 <SelectItem value="quarter">Ce trimestre</SelectItem>
               </SelectContent>
             </Select>
-            <ExportButtons data={payments.map(p => ({ ...p, patientName: p.patient_name })) as unknown as Record<string, unknown>[]} columns={[{ header: "Patient", key: "patientName" },{ header: "Montant", key: "amount" },{ header: "Méthode", key: "method" },{ header: "Statut", key: "status" },{ header: "Date", key: "date" }]} title="Rapport financier" filename="rapport-financier" />
+            <ExportButtons data={periodPayments.map(p => ({ ...p, patientName: p.patient_name })) as unknown as Record<string, unknown>[]} columns={[{ header: "Patient", key: "patientName" },{ header: "Montant", key: "amount" },{ header: "Méthode", key: "method" },{ header: "Statut", key: "status" },{ header: "Date", key: "date" }]} title="Rapport financier" filename="rapport-financier" />
           </div>
         </div>
 
@@ -171,7 +193,7 @@ const Reports = () => {
               <table className="w-full text-sm">
                 <thead><tr className="border-b border-border"><th className="text-left py-2 text-muted-foreground font-medium">Patient</th><th className="text-left py-2 text-muted-foreground font-medium">RDV</th><th className="text-left py-2 text-muted-foreground font-medium">Groupe sanguin</th><th className="text-left py-2 text-muted-foreground font-medium">Dernière visite</th></tr></thead>
                 <tbody>
-                  {patients.map((p) => ({ ...p, rdvCount: appointments.filter((a) => a.patient_name === p.name).length })).sort((a, b) => b.rdvCount - a.rdvCount).slice(0, 5).map((p) => (
+                  {patients.map((p) => ({ ...p, rdvCount: periodAppointments.filter((a) => belongsToPatient(a, p)).length })).sort((a, b) => b.rdvCount - a.rdvCount).slice(0, 5).map((p) => (
                     <tr key={p.id} className="border-b border-border/50"><td className="py-2 font-medium">{p.name}</td><td className="py-2">{p.rdvCount}</td><td className="py-2">{p.blood_group}</td><td className="py-2">{p.last_visit || "—"}</td></tr>
                   ))}
                 </tbody>

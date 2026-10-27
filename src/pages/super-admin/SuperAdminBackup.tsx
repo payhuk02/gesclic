@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import SuperAdminLayout from "@/components/layout/SuperAdminLayout";
-import { Database, HardDrive, Calendar, Trash2, MoreVertical, RefreshCw } from "lucide-react";
+import { Database, HardDrive, Calendar, Trash2, MoreVertical, RefreshCw, Download } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import DeleteConfirmDialog from "@/components/dialogs/DeleteConfirmDialog";
 import { fromAdmin } from "@/lib/admin-db";
 import { useAuth } from "@/contexts/AuthContext";
+import { backupService } from "@/services/backup.service";
 
 interface Backup {
   id: string;
@@ -16,6 +17,7 @@ interface Backup {
   backup_type: string;
   size_bytes: number;
   status: string;
+  location: string | null;
   created_by: string | null;
   created_at: string;
   error_message: string | null;
@@ -42,19 +44,27 @@ const SuperAdminBackup = () => {
 
   const createRecord = async () => {
     setCreating(true);
-    const name = `backup_${new Date().toISOString().replace(/[:.]/g, "-")}`;
-    const { error } = await fromAdmin("backups").insert({
-      name,
-      backup_type: "manual",
-      status: "pending",
-      size_bytes: 0,
-      created_by: user?.id ?? null,
-    });
-    setCreating(false);
-    if (error) toast.error("Enregistrement impossible");
-    else {
-      toast.success("Demande de sauvegarde enregistrée. L'exécution réelle se fait côté infrastructure.");
+    try {
+      const dump = await backupService.exportPlatformDump();
+      backupService.triggerDownload(dump.filename, dump.json);
+      const errorKeys = Object.keys(dump.payload.errors);
+      const { error } = await fromAdmin("backups").insert({
+        name: dump.filename,
+        backup_type: "json_export",
+        status: errorKeys.length ? "completed_with_errors" : "completed",
+        size_bytes: dump.size,
+        location: dump.filename,
+        completed_at: new Date().toISOString(),
+        created_by: user?.id ?? null,
+        error_message: errorKeys.length ? `Tables inaccessibles: ${errorKeys.join(", ")}` : null,
+      });
+      if (error) toast.error("Export téléchargé, mais l'historique n'a pas pu être enregistré");
+      else toast.success("Sauvegarde JSON exportée et téléchargée");
       load();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Export impossible");
+    } finally {
+      setCreating(false);
     }
   };
 
@@ -70,11 +80,11 @@ const SuperAdminBackup = () => {
         <div className="flex justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold">Backup & Restore</h1>
-            <p className="text-muted-foreground">Historique réel des sauvegardes (sans simulation)</p>
+            <p className="text-muted-foreground">Export JSON des données accessibles au super-admin (pas un dump Postgres)</p>
           </div>
           <Button onClick={createRecord} disabled={creating} className="gradient-hero border-0">
-            {creating ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Database className="w-4 h-4 mr-2" />}
-            Enregistrer une sauvegarde
+            {creating ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
+            Exporter une sauvegarde
           </Button>
         </div>
         <div className="grid gap-4 md:grid-cols-3">

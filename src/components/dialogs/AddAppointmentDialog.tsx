@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus } from "lucide-react";
 
 export interface AppointmentForm {
+  patientId: string;
   patientName: string;
   doctorName: string;
   date: string;
@@ -17,7 +18,7 @@ export interface AppointmentForm {
 
 const types = ["Consultation", "Suivi", "Téléconsultation", "Suivi cardiaque", "Échographie", "Soin dentaire", "ECG", "Vaccination", "Détartrage", "Pédiatrie", "Bilan"];
 
-const emptyForm: AppointmentForm = { patientName: "", doctorName: "", date: "", time: "", type: "Consultation" };
+const emptyForm: AppointmentForm = { patientId: "", patientName: "", doctorName: "", date: "", time: "", type: "Consultation" };
 
 interface Props {
   onAdd?: (appt: AppointmentForm) => void;
@@ -68,10 +69,13 @@ const AddAppointmentDialog = ({ onAdd, onEdit, editData, trigger, patients, doct
           <div>
             <Label className="text-sm">Patient *</Label>
             {patientList.length > 0 ? (
-              <Select value={form.patientName} onValueChange={(v) => setForm({ ...form, patientName: v })}>
+              <Select value={form.patientId || form.patientName} onValueChange={(v) => {
+                const p = patientList.find((x) => x.id === v);
+                setForm({ ...form, patientId: v, patientName: p?.name || v });
+              }}>
                 <SelectTrigger className="mt-1.5 h-10 sm:h-10"><SelectValue placeholder="Sélectionner un patient" /></SelectTrigger>
                 <SelectContent>
-                  {patientList.map((p) => (<SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>))}
+                  {patientList.map((p) => (<SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>))}
                 </SelectContent>
               </Select>
             ) : (

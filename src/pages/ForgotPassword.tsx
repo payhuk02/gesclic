@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Heart, Mail, ArrowLeft } from "lucide-react";
+import { Mail, ArrowLeft } from "lucide-react";
+import logo from "@/assets/Logo_Gesclic.png";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -29,8 +30,8 @@ const ForgotPassword = () => {
     <div className="min-h-dvh bg-background flex items-center justify-center p-4 sm:p-6">
       <div className="w-full max-w-md">
         <Link to="/" className="flex items-center gap-2 font-bold text-xl sm:text-2xl mb-6 sm:mb-8">
-          <Heart className="w-7 h-7 sm:w-8 sm:h-8 text-primary fill-primary" />
-          <span>Medi<span className="text-primary">Flow</span></span>
+          <img src={logo} alt="Gesclic" className="w-7 h-7 sm:w-8 sm:h-8" />
+          <span>Gesclic</span>
         </Link>
         <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-2">Mot de passe oublié</h2>
         <p className="text-muted-foreground mb-6 sm:mb-8">

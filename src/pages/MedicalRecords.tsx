@@ -16,8 +16,8 @@ import { Plus } from "lucide-react";
 import DeleteConfirmDialog from "@/components/dialogs/DeleteConfirmDialog";
 import EmptyState from "@/components/EmptyState";
 
-interface RecordForm { patient_name: string; date: string; diagnosis: string; treatment: string; notes: string }
-const empty: RecordForm = { patient_name: "", date: new Date().toISOString().split("T")[0], diagnosis: "", treatment: "", notes: "" };
+interface RecordForm { patient_id: string; patient_name: string; date: string; diagnosis: string; treatment: string; notes: string }
+const empty: RecordForm = { patient_id: "", patient_name: "", date: new Date().toISOString().split("T")[0], diagnosis: "", treatment: "", notes: "" };
 
 const RecordDialog = ({ trigger, initial, onSubmit, title, patients }: {
   trigger: React.ReactNode; initial?: RecordForm; onSubmit: (f: RecordForm) => void; title: string;
@@ -41,9 +41,12 @@ const RecordDialog = ({ trigger, initial, onSubmit, title, patients }: {
           <div>
             <Label>Patient *</Label>
             {patients.length > 0 ? (
-              <Select value={form.patient_name} onValueChange={(v) => setForm({ ...form, patient_name: v })}>
+              <Select value={form.patient_id || form.patient_name} onValueChange={(v) => {
+                const p = patients.find((x) => x.id === v);
+                setForm({ ...form, patient_id: v, patient_name: p?.name || v });
+              }}>
                 <SelectTrigger className="mt-1"><SelectValue placeholder="Sélectionner" /></SelectTrigger>
-                <SelectContent>{patients.map((p) => <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>)}</SelectContent>
+                <SelectContent>{patients.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
               </Select>
             ) : <Input className="mt-1" value={form.patient_name} onChange={(e) => setForm({ ...form, patient_name: e.target.value })} />}
           </div>

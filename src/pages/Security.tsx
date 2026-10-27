@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { securityService } from "@/services/security.service";
+import { clearEnforce2faSetup } from "@/lib/mfa-session";
 import { useAuth } from "@/contexts/AuthContext";
 import { useClinic } from "@/contexts/ClinicContext";
 import { toast } from "sonner";
@@ -34,19 +35,23 @@ const Security = () => {
   }, [user, activeClinicId]);
 
   const loadSecurityData = async () => {
-    if (!user || !activeClinicId) return;
-    
+    if (!user) return;
+
     try {
       setLoading(true);
-      const [enabled, logs, events] = await Promise.all([
-        securityService.isMFAEnabled(user.id),
-        securityService.getAuditLogs(activeClinicId, 50),
-        securityService.getSecurityEvents(activeClinicId),
-      ]);
-      
+      const enabled = await securityService.isMFAEnabled(user.id);
       setMfaEnabled(enabled);
-      setAuditLogs(logs);
-      setSecurityEvents(events);
+      if (activeClinicId) {
+        const [logs, events] = await Promise.all([
+          securityService.getAuditLogs(activeClinicId, 50),
+          securityService.getSecurityEvents(activeClinicId),
+        ]);
+        setAuditLogs(logs);
+        setSecurityEvents(events);
+      } else {
+        setAuditLogs([]);
+        setSecurityEvents([]);
+      }
     } catch (error) {
       console.error("Error loading security data:", error);
     } finally {
@@ -82,6 +87,7 @@ const Security = () => {
         setMfaEnabled(true);
         setMfaSetup(null);
         setVerifyCode("");
+        clearEnforce2faSetup();
         loadSecurityData();
       } else {
         toast.error("Code incorrect");

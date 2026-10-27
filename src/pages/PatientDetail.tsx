@@ -14,6 +14,7 @@ import {
   Clock, Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { belongsToPatient } from "@/lib/patient-link";
 
 const PatientDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -40,10 +41,10 @@ const PatientDetail = () => {
     );
   }
 
-  const patientAppointments = appointments.filter((a) => a.patient_name === patient.name);
-  const patientPayments = payments.filter((p) => p.patient_name === patient.name);
-  const patientPrescriptions = prescriptions.filter((p) => p.patient_name === patient.name);
-  const patientRecords = records.filter((r) => r.patient_name === patient.name);
+  const patientAppointments = appointments.filter((a) => belongsToPatient(a, patient));
+  const patientPayments = payments.filter((p) => belongsToPatient(p, patient));
+  const patientPrescriptions = prescriptions.filter((p) => belongsToPatient(p, patient));
+  const patientRecords = records.filter((r) => belongsToPatient(r, patient));
 
   const age = patient.dob ? new Date().getFullYear() - new Date(patient.dob).getFullYear() : 0;
 

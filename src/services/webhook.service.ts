@@ -360,6 +360,41 @@ export class WebhookService {
   }
 
   /**
+   * Recent webhook deliveries for a clinic (via integration instances).
+   */
+  async getEvents(clinicId: string): Promise<Array<{
+    id: string;
+    event_type: string;
+    delivery_status: string;
+    created_at: string;
+    delivery_attempts: number;
+    retry_count: number;
+  }>> {
+    try {
+      const { data, error } = await supabase
+        .from("webhook_events")
+        .select("id, event_type, delivery_status, created_at, delivery_attempts, integration_instances!inner(clinic_id)")
+        .eq("integration_instances.clinic_id", clinicId)
+        .order("created_at", { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+
+      return (data || []).map((event) => ({
+        id: event.id,
+        event_type: event.event_type,
+        delivery_status: event.delivery_status,
+        created_at: event.created_at,
+        delivery_attempts: event.delivery_attempts ?? 0,
+        retry_count: event.delivery_attempts ?? 0,
+      }));
+    } catch (error) {
+      console.error("Error getting webhook events:", error);
+      return [];
+    }
+  }
+
+  /**
    * Trigger webhook for event type
    */
   async triggerEvent(eventType: string, eventData: Record<string, any>): Promise<void> {
