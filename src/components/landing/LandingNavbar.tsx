@@ -16,28 +16,28 @@ const LandingNavbar = () => {
         </Link>
 
         <div className="hidden lg:flex items-center gap-6 xl:gap-8">
-          <a href="#showcase" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+          <Link to="/#showcase" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             Modules
-          </a>
-          <a href="#ai" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-1">
+          </Link>
+          <Link to="/#ai" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-1">
             <Sparkles className="w-3.5 h-3.5 text-primary" />
             IA Médicale
-          </a>
-          <a href="#use-cases" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+          </Link>
+          <Link to="/#use-cases" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             Établissements
-          </a>
-          <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+          </Link>
+          <Link to="/#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             Fonctionnalités
-          </a>
-          <a href="#security" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+          </Link>
+          <Link to="/#security" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             Sécurité
-          </a>
-          <a href="#pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+          </Link>
+          <Link to="/#pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             Tarifs
-          </a>
-          <a href="#faq" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+          </Link>
+          <Link to="/#faq" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             FAQ
-          </a>
+          </Link>
         </div>
 
         <div className="hidden md:flex items-center gap-3">
@@ -60,28 +60,28 @@ const LandingNavbar = () => {
 
       {open && (
         <div className="lg:hidden bg-card/98 backdrop-blur-lg border-t border-border p-5 space-y-4 shadow-xl">
-          <a href="#showcase" className="block text-sm font-medium text-muted-foreground hover:text-foreground" onClick={() => setOpen(false)}>
+          <Link to="/#showcase" className="block text-sm font-medium text-muted-foreground hover:text-foreground" onClick={() => setOpen(false)}>
             Modules
-          </a>
-          <a href="#ai" className="block text-sm font-medium text-primary flex items-center gap-1.5" onClick={() => setOpen(false)}>
+          </Link>
+          <Link to="/#ai" className="block text-sm font-medium text-primary flex items-center gap-1.5" onClick={() => setOpen(false)}>
             <Sparkles className="w-3.5 h-3.5" />
             IA Médicale
-          </a>
-          <a href="#use-cases" className="block text-sm font-medium text-muted-foreground hover:text-foreground" onClick={() => setOpen(false)}>
+          </Link>
+          <Link to="/#use-cases" className="block text-sm font-medium text-muted-foreground hover:text-foreground" onClick={() => setOpen(false)}>
             Établissements
-          </a>
-          <a href="#features" className="block text-sm font-medium text-muted-foreground hover:text-foreground" onClick={() => setOpen(false)}>
+          </Link>
+          <Link to="/#features" className="block text-sm font-medium text-muted-foreground hover:text-foreground" onClick={() => setOpen(false)}>
             Fonctionnalités
-          </a>
-          <a href="#security" className="block text-sm font-medium text-muted-foreground hover:text-foreground" onClick={() => setOpen(false)}>
+          </Link>
+          <Link to="/#security" className="block text-sm font-medium text-muted-foreground hover:text-foreground" onClick={() => setOpen(false)}>
             Sécurité
-          </a>
-          <a href="#pricing" className="block text-sm font-medium text-muted-foreground hover:text-foreground" onClick={() => setOpen(false)}>
+          </Link>
+          <Link to="/#pricing" className="block text-sm font-medium text-muted-foreground hover:text-foreground" onClick={() => setOpen(false)}>
             Tarifs
-          </a>
-          <a href="#faq" className="block text-sm font-medium text-muted-foreground hover:text-foreground" onClick={() => setOpen(false)}>
+          </Link>
+          <Link to="/#faq" className="block text-sm font-medium text-muted-foreground hover:text-foreground" onClick={() => setOpen(false)}>
             FAQ
-          </a>
+          </Link>
           <div className="flex gap-2 pt-3 border-t border-border">
             <Button asChild variant="outline" size="sm" className="flex-1">
               <Link to="/login">Connexion</Link>

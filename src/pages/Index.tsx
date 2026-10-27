@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import LandingNavbar from "@/components/landing/LandingNavbar";
 import HeroSection from "@/components/landing/HeroSection";
 import StatsSection from "@/components/landing/StatsSection";
@@ -13,6 +15,15 @@ import CTASection from "@/components/landing/CTASection";
 import FooterSection from "@/components/landing/FooterSection";
 
 const Index = () => {
+  const { hash } = useLocation();
+  useEffect(() => {
+    if (!hash) return;
+    const id = hash.replace("#", "");
+    requestAnimationFrame(() => {
+      document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, [hash]);
+
   return (
     <div className="min-h-screen bg-background selection:bg-primary/20 selection:text-primary">
       <LandingNavbar />

@@ -71,6 +71,7 @@ const SuperAdminAnnouncements = lazy(() => import("./pages/super-admin/SuperAdmi
 const SuperAdminBackup = lazy(() => import("./pages/super-admin/SuperAdminBackup"));
 const SuperAdminAPIManagement = lazy(() => import("./pages/super-admin/SuperAdminAPIManagement"));
 const SuperAdminAI = lazy(() => import("./pages/super-admin/SuperAdminAI"));
+const PublicContent = lazy(() => import("./pages/PublicContent"));
 
 const queryClient = createQueryClient();
 
@@ -114,6 +115,11 @@ const App = () => (
                 <Suspense fallback={<LoadingFallback />}>
                   <Routes>
                   <Route path="/" element={<Index />} />
+                  <Route path="/confidentialite" element={<PublicContent />} />
+                  <Route path="/cgu" element={<PublicContent />} />
+                  <Route path="/rgpd" element={<PublicContent />} />
+                  <Route path="/documentation" element={<PublicContent />} />
+                  <Route path="/contact" element={<PublicContent />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
                   <Route path="/forgot-password" element={<ForgotPassword />} />

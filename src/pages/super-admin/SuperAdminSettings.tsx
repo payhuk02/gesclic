@@ -1,21 +1,13 @@
 import SuperAdminLayout from "@/components/layout/SuperAdminLayout";
-import { Globe, Shield, Bell, Save } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Globe, Shield, Bell, Save, FileText } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePlatformSettings } from "@/hooks/usePlatformSettings";
-
-const generalDefaults = {
-  platformName: "Gesclic",
-  platformUrl: "https://gesclic.com",
-  supportEmail: "support@gesclic.com",
-  maintenanceMode: false,
-  registrationEnabled: true,
-  requireEmailVerification: true,
-  defaultPlan: "essentiel",
-};
+import { GENERAL_SITE_DEFAULTS, LEGAL_SITE_DEFAULTS } from "@/lib/site-content";
 
 const notificationDefaults = {
   emailAlerts: true,
@@ -34,32 +26,68 @@ const Toggle = ({ checked, onChange, label }: { checked: boolean; onChange: () =
 );
 
 const SuperAdminSettings = () => {
-  const general = usePlatformSettings("general", generalDefaults);
+  const general = usePlatformSettings("general", GENERAL_SITE_DEFAULTS);
+  const legal = usePlatformSettings("legal", LEGAL_SITE_DEFAULTS);
   const notifications = usePlatformSettings("notifications", notificationDefaults);
 
   return (
     <SuperAdminLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold">Platform Settings</h1>
-          <p className="text-muted-foreground">Paramètres enregistrés en base</p>
+          <h1 className="text-2xl font-bold">Paramètres de la plateforme</h1>
+          <p className="text-muted-foreground">Ces textes alimentent le pied de page et les pages publiques.</p>
         </div>
         <Tabs defaultValue="general">
-          <TabsList>
+          <TabsList className="flex flex-wrap h-auto">
             <TabsTrigger value="general"><Globe className="w-4 h-4 mr-1" />Général</TabsTrigger>
+            <TabsTrigger value="pages"><FileText className="w-4 h-4 mr-1" />Pages & footer</TabsTrigger>
             <TabsTrigger value="security"><Shield className="w-4 h-4 mr-1" />Sécurité</TabsTrigger>
             <TabsTrigger value="notifications"><Bell className="w-4 h-4 mr-1" />Notifications</TabsTrigger>
           </TabsList>
           <TabsContent value="general" className="mt-4">
             <Card>
-              <CardHeader><CardTitle>Informations</CardTitle></CardHeader>
+              <CardHeader>
+                <CardTitle>Identité</CardTitle>
+                <CardDescription>Nom, contact et mentions du pied de page (site public).</CardDescription>
+              </CardHeader>
               <CardContent className="space-y-4">
                 <div><Label>Nom</Label><Input className="mt-1" value={general.settings.platformName} onChange={(e) => general.setSettings({ ...general.settings, platformName: e.target.value })} /></div>
                 <div><Label>URL</Label><Input className="mt-1" value={general.settings.platformUrl} onChange={(e) => general.setSettings({ ...general.settings, platformUrl: e.target.value })} /></div>
-                <div><Label>Email support</Label><Input className="mt-1" value={general.settings.supportEmail} onChange={(e) => general.setSettings({ ...general.settings, supportEmail: e.target.value })} /></div>
+                <div><Label>Accroche (footer)</Label><Input className="mt-1" value={general.settings.tagline} onChange={(e) => general.setSettings({ ...general.settings, tagline: e.target.value })} /></div>
+                <div><Label>Email support</Label><Input className="mt-1" type="email" value={general.settings.supportEmail} onChange={(e) => general.setSettings({ ...general.settings, supportEmail: e.target.value })} /></div>
+                <div><Label>Téléphone</Label><Input className="mt-1" value={general.settings.phone} onChange={(e) => general.setSettings({ ...general.settings, phone: e.target.value })} /></div>
+                <div><Label>Adresse</Label><Input className="mt-1" value={general.settings.address} onChange={(e) => general.setSettings({ ...general.settings, address: e.target.value })} /></div>
+                <div><Label>Mention copyright</Label><Input className="mt-1" value={general.settings.footerNote} onChange={(e) => general.setSettings({ ...general.settings, footerNote: e.target.value })} /></div>
                 <Button onClick={() => general.save()} disabled={general.saving} className="gradient-hero border-0"><Save className="w-4 h-4 mr-2" />Sauvegarder</Button>
               </CardContent>
             </Card>
+          </TabsContent>
+          <TabsContent value="pages" className="mt-4 space-y-4">
+            <p className="text-sm text-muted-foreground">Markdown accepté. Les pages /confidentialite, /cgu, /rgpd, /documentation et /contact se mettent à jour après enregistrement.</p>
+            {([
+              ["privacyTitle", "privacyBody", "Confidentialité"],
+              ["termsTitle", "termsBody", "CGU"],
+              ["rgpdTitle", "rgpdBody", "RGPD"],
+              ["docsTitle", "docsBody", "Documentation"],
+              ["contactTitle", "contactBody", "Contact"],
+            ] as const).map(([titleKey, bodyKey, label]) => (
+              <Card key={titleKey}>
+                <CardHeader><CardTitle className="text-lg">{label}</CardTitle></CardHeader>
+                <CardContent className="space-y-3">
+                  <div>
+                    <Label>Titre</Label>
+                    <Input className="mt-1" value={legal.settings[titleKey]} onChange={(e) => legal.setSettings({ ...legal.settings, [titleKey]: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label>Contenu</Label>
+                    <Textarea className="mt-1 min-h-[180px] font-mono text-xs" value={legal.settings[bodyKey]} onChange={(e) => legal.setSettings({ ...legal.settings, [bodyKey]: e.target.value })} />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+            <Button onClick={() => legal.save()} disabled={legal.saving} className="gradient-hero border-0">
+              <Save className="w-4 h-4 mr-2" />Sauvegarder les pages
+            </Button>
           </TabsContent>
           <TabsContent value="security" className="mt-4">
             <Card>

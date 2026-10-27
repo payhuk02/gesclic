@@ -112,7 +112,10 @@ const Register = () => {
           </form>
 
           <p className="mt-4 text-xs text-center text-muted-foreground">
-            En vous inscrivant, vous acceptez nos CGU et notre politique de confidentialité.
+            En vous inscrivant, vous acceptez nos{" "}
+            <Link to="/cgu" className="text-primary hover:underline">CGU</Link>
+            {" "}et notre{" "}
+            <Link to="/confidentialite" className="text-primary hover:underline">politique de confidentialité</Link>.
           </p>
 
           <div className="mt-6 text-center text-sm text-muted-foreground">

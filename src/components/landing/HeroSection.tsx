@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import {
   ArrowRight,
   Play,
-  Shield,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -54,7 +53,7 @@ const HeroSection = () => {
 
   return (
     <section
-      className="relative min-h-[90vh] lg:min-h-[94vh] flex items-center justify-center overflow-hidden bg-slate-950 pt-20 pb-16 lg:pt-28 lg:pb-20"
+      className="relative min-h-[88vh] lg:min-h-[92vh] flex items-end justify-center overflow-hidden bg-slate-950 pt-16 pb-16"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
@@ -77,9 +76,8 @@ const HeroSection = () => {
           </motion.div>
         </AnimatePresence>
 
-        {/* Subtle, Light Overlay: Keeps images bright, crisp, and clearly visible */}
-        <div className="absolute inset-0 bg-black/25 pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-transparent to-black/50 pointer-events-none" />
+        <div className="absolute inset-0 bg-black/10 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-black/25 pointer-events-none" />
       </div>
 
       {/* Navigation Arrows on Screen Edges */}
@@ -99,67 +97,47 @@ const HeroSection = () => {
         <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={1.75} />
       </button>
 
-      {/* Main Centered Content */}
-      <div className="container relative z-20 mx-auto px-4 flex flex-col items-center text-center">
-        {/* Animated Accréditation Badge */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="inline-flex items-center gap-2 rounded-full bg-slate-950/60 hover:bg-slate-950/75 backdrop-blur-md border border-white/25 px-4 py-1.5 text-xs sm:text-sm font-semibold text-white mb-6 sm:mb-8 shadow-xl transition-all"
-        >
-          <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-          <Shield className="w-4 h-4 text-sky-400" strokeWidth={1.75} />
-          <span>Plateforme médicale nouvelle génération certifiée pour l'Afrique</span>
-        </motion.div>
-
-        {/* Animated Centered Main Heading */}
+      <div className="container relative z-20 mx-auto px-4 flex flex-col items-center text-center pb-8 sm:pb-10">
         <motion.h1
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.15 }}
-          className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-heading font-bold tracking-tight text-white leading-[1.1] max-w-5xl mb-6 sm:mb-8 drop-shadow-[0_4px_16px_rgba(0,0,0,0.85)]"
+          transition={{ duration: 0.5 }}
+          className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-tight text-white leading-tight max-w-3xl mb-3 drop-shadow-[0_2px_12px_rgba(0,0,0,0.7)]"
         >
           La gestion médicale{" "}
-          <span className="font-serif italic bg-gradient-to-r from-sky-300 via-cyan-200 to-teal-300 bg-clip-text text-transparent drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]">
-            intelligente & unifiée
-          </span>{" "}
-          pour votre clinique
+          <span className="font-serif italic bg-gradient-to-r from-sky-300 via-cyan-200 to-teal-300 bg-clip-text text-transparent">
+            unifiée
+          </span>
         </motion.h1>
-
-        {/* Animated Centered Subtitle */}
         <motion.p
-          initial={{ opacity: 0, y: 25 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.3 }}
-          className="text-base sm:text-lg md:text-xl text-white font-medium drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)] leading-relaxed max-w-3xl mb-8 sm:mb-10"
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="text-sm sm:text-base text-white/90 font-medium drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] max-w-xl mb-5"
         >
-          Dossiers médicaux électroniques, téléconsultation HD, IA d'aide au diagnostic, pharmacie, laboratoire et encaissements Mobile Money instantanés. Conçu pour simplifier le quotidien des praticiens et directeurs de cliniques.
+          Dossiers, téléconsultation, IA, pharmacie et Mobile Money — essai Pro 7 jours.
         </motion.p>
-
-        {/* Animated Centered CTA Buttons */}
         <motion.div
-          initial={{ opacity: 0, y: 25 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.45 }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-5 w-full sm:w-auto"
+          transition={{ duration: 0.5, delay: 0.15 }}
+          className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full sm:w-auto"
         >
           <Button
             asChild
             size="lg"
-            className="bg-gradient-to-r from-sky-500 via-sky-600 to-teal-500 hover:from-sky-400 hover:to-teal-400 border-0 text-base sm:text-lg px-8 shadow-2xl hover:shadow-sky-500/40 transition-all duration-300 text-white font-bold w-full sm:w-auto h-13 rounded-xl group"
+            className="bg-gradient-to-r from-sky-500 via-sky-600 to-teal-500 hover:from-sky-400 hover:to-teal-400 border-0 text-sm sm:text-base px-6 shadow-xl text-white font-bold w-full sm:w-auto h-11 rounded-xl group"
           >
             <Link to="/register" className="flex items-center justify-center">
               Démarrer gratuitement
-              <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </Button>
-
           <Button
             asChild
             variant="outline"
             size="lg"
-            className="bg-slate-950/60 hover:bg-slate-950/80 border-white/30 text-white backdrop-blur-md text-base sm:text-lg px-7 w-full sm:w-auto h-13 rounded-xl transition-all font-semibold shadow-2xl"
+            className="bg-slate-950/50 hover:bg-slate-950/70 border-white/30 text-white backdrop-blur-md text-sm sm:text-base px-5 w-full sm:w-auto h-11 rounded-xl font-semibold"
           >
             <Link to="/login" className="flex items-center justify-center">
               <Play className="mr-2 w-4 h-4 text-sky-300" />
@@ -167,13 +145,9 @@ const HeroSection = () => {
             </Link>
           </Button>
         </motion.div>
-        <p className="mt-5 text-sm text-white/80 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
-          Essai Pro 7 jours · sans carte bancaire
-        </p>
       </div>
 
-      {/* Discreet Minimalist Carousel Slide Indicators at bottom */}
-      <div className="absolute bottom-6 left-0 right-0 z-20 flex items-center justify-center gap-2.5 pointer-events-auto">
+      <div className="absolute top-24 left-0 right-0 z-20 flex items-center justify-center gap-2.5 pointer-events-auto">
         {heroSlides.map((slide, idx) => (
           <button
             key={slide.id}
