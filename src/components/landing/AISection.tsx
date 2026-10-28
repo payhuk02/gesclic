@@ -40,10 +40,14 @@ const aiCapabilities = [
 const AISection = () => {
   return (
     <section id="ai" className="py-16 sm:py-24 bg-gradient-to-b from-background via-primary/[0.03] to-background relative overflow-hidden">
-      {/* Ambient background glow */}
-      <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-[400px] h-[400px] bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+      {/* Dynamic ambient background glow */}
+      <motion.div
+        animate={{ scale: [1, 1.15, 1], opacity: [0.12, 0.22, 0.12] }}
+        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute top-1/2 left-1/4 -translate-y-1/2 w-[450px] h-[450px] bg-primary rounded-full blur-3xl pointer-events-none"
+      />
 
-      <div className="container mx-auto px-4 relative">
+      <div className="container mx-auto px-4 relative z-10">
         <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           {/* Left Column: Image with floating AI HUD Badges (5 cols) */}
           <motion.div
@@ -53,36 +57,34 @@ const AISection = () => {
             transition={{ duration: 0.6 }}
             className="lg:col-span-5 relative order-2 lg:order-1"
           >
-            <div className="relative rounded-3xl overflow-hidden border border-primary/20 shadow-elevated">
+            <div className="relative rounded-3xl overflow-hidden border border-primary/25 shadow-elevated group">
               <img
                 src={medicalAiImg}
                 alt="Médecin utilisant l'IA Gesclic"
-                className="w-full h-[360px] sm:h-[460px] object-cover object-center"
+                className="w-full h-[360px] sm:h-[460px] object-cover object-center group-hover:scale-105 transition-transform duration-700"
                 loading="lazy"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent pointer-events-none" />
 
-              {/* Floating diagnostic badge */}
+              {/* Floating diagnostic badge with gentle levitation */}
               <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.3 }}
-                className="absolute top-4 left-4 bg-card/90 backdrop-blur-md rounded-2xl p-3 border border-primary/30 shadow-lg max-w-[240px]"
+                animate={{ y: [0, -7, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute top-4 left-4 bg-card/95 backdrop-blur-md rounded-2xl p-3.5 border border-primary/40 shadow-xl max-w-[250px]"
               >
                 <div className="flex items-center gap-2 mb-1.5">
                   <Sparkles className="w-4 h-4 text-primary" />
                   <span className="text-xs font-bold text-foreground">Assistant Gesclic AI</span>
                 </div>
-                <p className="text-[11px] text-muted-foreground leading-tight">
+                <p className="text-[11px] text-muted-foreground leading-tight font-medium">
                   Constantes analysées : rythme sinusal régulier, aucun conflit médicamenteux détecté.
                 </p>
               </motion.div>
 
               {/* Bottom security assurance */}
-              <div className="absolute bottom-4 left-4 right-4 bg-card/95 backdrop-blur-md rounded-xl p-3 border border-border flex items-center gap-2.5">
-                <Lock className="w-4 h-4 text-success flex-shrink-0" />
-                <span className="text-xs text-foreground font-medium">
+              <div className="absolute bottom-4 left-4 right-4 bg-card/95 backdrop-blur-md rounded-xl p-3 border border-border flex items-center gap-2.5 shadow-lg">
+                <Lock className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                <span className="text-xs text-foreground font-semibold">
                   Données médicales chiffrées & modèle IA souverain
                 </span>
               </div>
@@ -109,30 +111,35 @@ const AISection = () => {
               Gesclic intègre un copilote médical conçu spécifiquement pour assister les médecins, infirmiers et pharmaciens dans leur pratique quotidienne. Gagnez un temps précieux et sécurisez chaque prise de décision.
             </p>
 
-            {/* AI Capabilities Grid */}
+            {/* AI Capabilities Grid with Stagger & Hover Elevation */}
             <div className="grid sm:grid-cols-2 gap-4 pt-2">
-              {aiCapabilities.map((cap) => (
-                <div
+              {aiCapabilities.map((cap, i) => (
+                <motion.div
                   key={cap.title}
-                  className="bg-card/70 backdrop-blur-sm rounded-2xl p-4 sm:p-5 border border-border hover:border-primary/40 transition-all shadow-sm group flex flex-col items-center text-center"
+                  initial={{ opacity: 0, y: 15 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.08, duration: 0.4 }}
+                  whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                  className="bg-card/80 backdrop-blur-sm rounded-2xl p-4 sm:p-5 border border-border hover:border-primary/50 transition-all shadow-card hover:shadow-elevated group flex flex-col items-center text-center"
                 >
-                  <div className="text-primary mb-3 flex justify-center">
-                    <cap.icon className="w-7 h-7 group-hover:scale-110 transition-transform duration-300" strokeWidth={1.75} />
+                  <div className="text-primary mb-3 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <cap.icon className="w-8 h-8 text-primary" strokeWidth={1.75} />
                   </div>
                   <h4 className="font-semibold text-foreground text-sm sm:text-base mb-1.5 text-center">{cap.title}</h4>
-                  <p className="text-xs text-muted-foreground leading-relaxed text-center">{cap.desc}</p>
-                </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed text-center font-medium">{cap.desc}</p>
+                </motion.div>
               ))}
             </div>
 
             <div className="pt-4 flex flex-wrap items-center gap-4">
-              <Button asChild size="lg" className="gradient-hero border-0 text-white shadow-md">
+              <Button asChild size="lg" className="gradient-hero border-0 text-white shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
                 <Link to="/register">
                   Découvrir l'IA Médicale
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Link>
               </Button>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground font-medium">
                 <Stethoscope className="w-4 h-4 text-primary" />
                 <span>Recommandé par plus de 500 praticiens</span>
               </div>

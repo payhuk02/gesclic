@@ -46,9 +46,18 @@ const securityFeatures = [
 const SecurityComplianceSection = () => {
   return (
     <section id="security" className="py-16 sm:py-24 bg-background relative overflow-hidden">
-      <div className="container mx-auto px-4">
-        <div className="max-w-3xl mx-auto text-center mb-12 sm:mb-16">
-          <Badge variant="outline" className="mb-3 px-3.5 py-1 text-success border-success/30 bg-success/5">
+      {/* Subtle ambient security emerald glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="container mx-auto px-4 relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 18 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="max-w-3xl mx-auto text-center mb-12 sm:mb-16"
+        >
+          <Badge variant="outline" className="mb-3 px-3.5 py-1 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 bg-emerald-500/10">
             <ShieldCheck className="w-3.5 h-3.5 mr-1.5" /> Sécurité & Conformité Données de Santé
           </Badge>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold text-foreground tracking-tight mb-4">
@@ -57,9 +66,9 @@ const SecurityComplianceSection = () => {
           <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
             Nous appliquons les standards internationaux les plus rigoureux pour garantir le secret médical et la continuité de service de votre clinique.
           </p>
-        </div>
+        </motion.div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 max-w-6xl mx-auto">
           {securityFeatures.map((sec, i) => (
             <motion.div
               key={sec.title}
@@ -67,21 +76,22 @@ const SecurityComplianceSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.08, duration: 0.5 }}
-              className="bg-card rounded-2xl p-6 border border-border hover:border-primary/30 shadow-card hover:shadow-elevated transition-all flex flex-col justify-between items-center text-center group"
+              whileHover={{ y: -6, transition: { duration: 0.25 } }}
+              className="bg-card rounded-2xl p-6 border border-border/80 hover:border-emerald-500/40 shadow-card hover:shadow-elevated transition-all flex flex-col justify-between items-center text-center group"
             >
               <div className="flex flex-col items-center w-full">
-                <div className="mb-4 text-emerald-600 dark:text-emerald-400 flex justify-center">
-                  <sec.icon className="w-8 h-8 group-hover:scale-110 transition-transform duration-300" strokeWidth={1.75} />
+                <div className="text-emerald-600 dark:text-emerald-400 mb-4 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <sec.icon className="w-9 h-9" strokeWidth={1.75} />
                 </div>
-                <h3 className="text-base sm:text-lg font-bold text-foreground mb-2 text-center">
+                <h3 className="text-base sm:text-lg font-bold text-foreground mb-2 text-center font-heading">
                   {sec.title}
                 </h3>
-                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed text-center">
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed text-center font-medium">
                   {sec.desc}
                 </p>
               </div>
 
-              <div className="pt-4 mt-4 border-t border-border flex items-center justify-center gap-1.5 text-xs font-medium text-success w-full">
+              <div className="pt-4 mt-5 border-t border-border/70 flex items-center justify-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 w-full">
                 <CheckCircle className="w-4 h-4" />
                 <span>Norme active & vérifiée</span>
               </div>

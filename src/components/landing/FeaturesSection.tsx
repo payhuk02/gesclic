@@ -101,15 +101,16 @@ const features: FeatureItem[] = [
 
 const FeaturesSection = () => {
   return (
-    <section id="features" className="py-16 sm:py-24 bg-muted/30 border-y border-border/50 relative">
-      <div className="container mx-auto px-4">
+    <section id="features" className="py-16 sm:py-24 bg-muted/30 border-y border-border/50 relative overflow-hidden">
+      <div className="container mx-auto px-4 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
           className="text-center max-w-3xl mx-auto mb-14 sm:mb-18"
         >
-          <Badge variant="outline" className="mb-3 px-3 py-1 text-primary border-primary/20 bg-primary/5">
+          <Badge variant="outline" className="mb-3 px-3.5 py-1 text-primary border-primary/20 bg-primary/5">
             <Layers className="w-3.5 h-3.5 mr-1.5" /> Écosystème Médical Complet
           </Badge>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold text-foreground mb-4 tracking-tight">
@@ -126,15 +127,18 @@ const FeaturesSection = () => {
             return (
               <motion.div
                 key={feature.title}
-                initial={{ opacity: 0, y: 15 }}
+                initial={{ opacity: 0, y: 18 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.04, duration: 0.4 }}
-                className="bg-card rounded-2xl p-5 border border-border/80 hover:border-primary/40 shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col justify-between"
+                viewport={{ once: true, margin: "-30px" }}
+                transition={{ delay: (i % 4) * 0.07, duration: 0.45 }}
+                whileHover={{ y: -5, transition: { duration: 0.2 } }}
+                className="bg-card rounded-2xl p-5 sm:p-6 border border-border/80 hover:border-primary/50 shadow-card hover:shadow-elevated transition-all duration-300 group flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <Icon className="w-6 h-6 text-primary group-hover:scale-110 transition-transform duration-300" strokeWidth={1.75} />
+                    <div className="text-primary">
+                      <Icon className="w-7 h-7 text-primary group-hover:scale-110 transition-transform duration-300" strokeWidth={1.75} />
+                    </div>
                     <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md bg-muted text-muted-foreground group-hover:text-primary transition-colors">
                       {feature.category}
                     </span>
@@ -143,7 +147,7 @@ const FeaturesSection = () => {
                   <h3 className="font-semibold text-foreground mb-2 text-sm sm:text-base leading-snug group-hover:text-primary transition-colors">
                     {feature.title}
                   </h3>
-                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed font-medium">
                     {feature.desc}
                   </p>
                 </div>

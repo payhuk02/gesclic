@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   FileText,
   Video,
@@ -19,7 +18,7 @@ import telemedicineImg from "@/assets/telemedicine_doctor.jpg";
 import medicalAiImg from "@/assets/medical_ai_assistant.jpg";
 import receptionPaymentImg from "@/assets/clinic_reception_payment.jpg";
 
-interface ShowcaseTab {
+interface ShowcaseItem {
   id: string;
   label: string;
   icon: React.ElementType;
@@ -32,7 +31,7 @@ interface ShowcaseTab {
   metrics: { label: string; value: string };
 }
 
-const tabs: ShowcaseTab[] = [
+const showcaseItems: ShowcaseItem[] = [
   {
     id: "records",
     label: "Dossier Médical",
@@ -47,7 +46,7 @@ const tabs: ShowcaseTab[] = [
       "Timeline chronologique complète des consultations",
       "Éditeur d'ordonnances avec base de données médicamenteuse",
       "Export PDF certifié avec en-tête et logo de votre clinique",
-      "Accès sécurisé pour chaque spécialité (générale, pédiatrie, cardio, gynéco...)",
+      "Accès sécurisé pour chaque spécialité médicale",
     ],
     metrics: { label: "Temps gagné par consultation", value: "-12 min" },
   },
@@ -57,7 +56,7 @@ const tabs: ShowcaseTab[] = [
     icon: Video,
     badge: "Téléconsultation HD chiffrée",
     title: "Consultez vos patients partout, sans contrainte géographique",
-    subtitle: "Vidéo haute définition, salle d'attente virtuelle et partage de documents sécurisé.",
+    subtitle: "Vidéo haute définition, salle d'attente virtuelle et partage sécurisé.",
     description:
       "Rapprochez la médecine des patients éloignés ou à mobilité réduite. Aucun téléchargement nécessaire pour le patient : un simple lien SMS ou WhatsApp lui permet de rejoindre la salle de consultation chiffrée.",
     image: telemedicineImg,
@@ -75,7 +74,7 @@ const tabs: ShowcaseTab[] = [
     icon: Sparkles,
     badge: "Intelligence Artificielle Clinique",
     title: "L'assistance médicale de pointe au creux de votre main",
-    subtitle: "Aide au diagnostic différentiel, alertes d'interactions et synthèse clinique instantanée.",
+    subtitle: "Aide au diagnostic différentiel, alertes et synthèse clinique instantanée.",
     description:
       "Notre modèle d'IA entraîné sur les référentiels de santé analyse en temps réel les symptômes décrits, signale les interactions médicamenteuses potentielles et génère une synthèse claire du dossier pour accélérer vos prises de décision.",
     image: medicalAiImg,
@@ -83,7 +82,7 @@ const tabs: ShowcaseTab[] = [
       "Alerte automatique en cas d'incompatibilité de prescriptions",
       "Aide au diagnostic différentiel basé sur les recommandations OMS",
       "Transcription vocale des comptes-rendus de consultation",
-      "Confidentialité absolue : vos données de santé ne servent pas à l'entraînement public",
+      "Confidentialité absolue : données souveraines et chiffrées",
     ],
     metrics: { label: "Réduction des erreurs de prescription", value: "99.4%" },
   },
@@ -93,7 +92,7 @@ const tabs: ShowcaseTab[] = [
     icon: Smartphone,
     badge: "Mobile Money & MoneyFusion",
     title: "Encaissements instantanés par Mobile Money et cartes bancaires",
-    subtitle: "Orange Money, Wave, MTN, Moov, cartes Visa et facturation automatique intégrée.",
+    subtitle: "Orange Money, Wave, MTN, Moov, cartes Visa et facturation automatique.",
     description:
       "Fluidifiez le passage en caisse de votre établissement. Les patients règlent en quelques secondes via leur opérateur Mobile Money favori avec réconciliation bancaire et édition de factures normalisées.",
     image: receptionPaymentImg,
@@ -101,25 +100,26 @@ const tabs: ShowcaseTab[] = [
       "Paiements directs Orange Money, Wave, MTN Moov et cartes",
       "Émission automatique de reçus et factures d'honoraires",
       "Clôture de caisse quotidienne en 1 clic sans écart de caisse",
-      "Passerelle Moneyfusion.net agréée et sécurisée",
+      "Passerelle agréée et réconciliation temps réel",
     ],
     metrics: { label: "Zéro impayé sur les actes", value: "100%" },
   },
 ];
 
 const ShowcaseSection = () => {
-  const [activeTab, setActiveTab] = useState<string>("records");
-
-  const current = tabs.find((t) => t.id === activeTab) ?? tabs[0];
-  const Icon = current.icon;
-
   return (
     <section id="showcase" className="py-16 sm:py-24 bg-background relative overflow-hidden">
-      <div className="container mx-auto px-4">
-        {/* Header */}
-        <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
-          <Badge variant="outline" className="mb-3 px-3 py-1 text-primary border-primary/20 bg-primary/5">
-            <Zap className="w-3.5 h-3.5 mr-1" /> Expérience Praticien & Patient
+      <div className="container mx-auto px-4 relative z-10">
+        {/* Section Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 18 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="text-center max-w-3xl mx-auto mb-12 sm:mb-16"
+        >
+          <Badge variant="outline" className="mb-3 px-3.5 py-1 text-primary border-primary/20 bg-primary/5">
+            <Zap className="w-3.5 h-3.5 mr-1.5" /> Expérience Praticien & Patient
           </Badge>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold text-foreground tracking-tight mb-4">
             Une suite clinique conçue pour l'excellence
@@ -127,119 +127,84 @@ const ShowcaseSection = () => {
           <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
             Découvrez comment Gesclic digitalise chaque étape du parcours de soin, de l'accueil du patient à la téléconsultation jusqu'à la facturation.
           </p>
-        </div>
+        </motion.div>
 
-        {/* Tab selection buttons */}
-        <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-10 sm:mb-14 max-w-4xl mx-auto">
-          {tabs.map((tab) => {
-            const TabIcon = tab.icon;
-            const isActive = tab.id === activeTab;
+        {/* Unpacked Modules Grid: all 4 modules clearly and openly displayed */}
+        <div className="grid md:grid-cols-2 gap-6 lg:gap-8 max-w-6xl mx-auto">
+          {showcaseItems.map((item, i) => {
+            const ItemIcon = item.icon;
             return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition-all duration-200 ${
-                  isActive
-                    ? "bg-primary text-primary-foreground shadow-md scale-[1.02]"
-                    : "bg-card hover:bg-muted text-muted-foreground hover:text-foreground border border-border"
-                }`}
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ delay: i * 0.1, duration: 0.55 }}
+                whileHover={{ y: -6, transition: { duration: 0.25 } }}
+                className="bg-card rounded-3xl border border-border shadow-card hover:shadow-elevated hover:border-primary/40 transition-all duration-300 flex flex-col justify-between overflow-hidden group"
               >
-                <TabIcon className="w-4 h-4" />
-                <span>{tab.label}</span>
-              </button>
+                {/* Visual Preview Banner */}
+                <div className="relative h-56 sm:h-64 overflow-hidden">
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent pointer-events-none" />
+
+                  {/* Top category label & icon */}
+                  <div className="absolute top-4 left-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-950/70 backdrop-blur-md border border-white/20 text-white text-xs font-semibold shadow-md">
+                    <ItemIcon className="w-3.5 h-3.5 text-sky-300" strokeWidth={2} />
+                    <span>{item.badge}</span>
+                  </div>
+
+                  {/* Metric chip */}
+                  <div className="absolute bottom-3 right-4 bg-slate-950/80 backdrop-blur-md px-3 py-1 rounded-lg border border-white/15 text-right shadow-md">
+                    <span className="text-base font-bold text-sky-300 tabular-nums">{item.metrics.value}</span>
+                    <span className="text-[10px] text-slate-300 block font-medium">{item.metrics.label}</span>
+                  </div>
+                </div>
+
+                {/* Card Content */}
+                <div className="p-6 sm:p-7 flex flex-col justify-between flex-1">
+                  <div>
+                    <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-2 font-heading leading-tight group-hover:text-primary transition-colors">
+                      {item.title}
+                    </h3>
+                    <p className="text-xs sm:text-sm font-semibold text-primary/90 mb-3">
+                      {item.subtitle}
+                    </p>
+                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-5 font-medium">
+                      {item.description}
+                    </p>
+
+                    {/* Features list with checkmarks */}
+                    <div className="space-y-2.5 mb-6">
+                      {item.features.map((feat) => (
+                        <div key={feat} className="flex items-start gap-2 text-xs sm:text-sm">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" strokeWidth={2} />
+                          <span className="text-foreground/90 font-medium">{feat}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Card Action footer */}
+                  <div className="pt-4 border-t border-border/80 flex items-center justify-between">
+                    <Button asChild size="sm" className="gradient-hero border-0 text-white shadow-sm hover:shadow-md transition-all font-bold">
+                      <Link to="/register">
+                        Découvrir ce module
+                        <ArrowRight className="w-4 h-4 ml-1.5" />
+                      </Link>
+                    </Button>
+                    <span className="text-xs text-muted-foreground font-semibold">Inclus dans l'essai 7j</span>
+                  </div>
+                </div>
+              </motion.div>
             );
           })}
         </div>
-
-        {/* Interactive Tab Content */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={current.id}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.3 }}
-            className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-center bg-card rounded-3xl p-6 sm:p-8 lg:p-12 border border-border shadow-elevated"
-          >
-            {/* Left Column: Description & Highlights (7 cols) */}
-            <div className="lg:col-span-7 space-y-6">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary">
-                <Icon className="w-3.5 h-3.5" />
-                <span>{current.badge}</span>
-              </div>
-
-              <div>
-                <h3 className="text-2xl sm:text-3xl font-bold text-foreground mb-3 leading-tight">
-                  {current.title}
-                </h3>
-                <p className="text-sm sm:text-base font-medium text-muted-foreground mb-4">
-                  {current.subtitle}
-                </p>
-                <p className="text-xs sm:text-sm text-muted-foreground/90 leading-relaxed">
-                  {current.description}
-                </p>
-              </div>
-
-              {/* Feature points */}
-              <div className="grid sm:grid-cols-2 gap-3 pt-2">
-                {current.features.map((feat) => (
-                  <div key={feat} className="flex items-start gap-2 text-xs sm:text-sm">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" strokeWidth={1.75} />
-                    <span className="text-foreground">{feat}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Key Metric & CTA */}
-              <div className="pt-4 border-t border-border flex flex-wrap items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <ShieldCheck className="w-8 h-8 text-primary" strokeWidth={1.75} />
-                  <div>
-                    <p className="text-xl sm:text-2xl font-bold text-foreground tabular-nums">
-                      {current.metrics.value}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {current.metrics.label}
-                    </p>
-                  </div>
-                </div>
-
-                <Button asChild className="gradient-hero border-0 text-white shadow-sm">
-                  <Link to="/register">
-                    Essayer ce module
-                    <ArrowRight className="w-4 h-4 ml-1.5" />
-                  </Link>
-                </Button>
-              </div>
-            </div>
-
-            {/* Right Column: Visual Preview (5 cols) */}
-            <div className="lg:col-span-5 relative">
-              <div className="relative rounded-2xl overflow-hidden border border-border shadow-2xl group">
-                <img
-                  src={current.image}
-                  alt={current.title}
-                  className="w-full h-[320px] sm:h-[420px] object-cover object-center group-hover:scale-105 transition-transform duration-500"
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
-
-                {/* Floating pill badge */}
-                <div className="absolute bottom-4 left-4 right-4 bg-background/90 backdrop-blur-md rounded-xl p-3 border border-border/80 flex items-center justify-between shadow-lg">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-3 h-3 rounded-full bg-success animate-pulse" />
-                    <span className="text-xs font-semibold text-foreground">
-                      Module actif en temps réel
-                    </span>
-                  </div>
-                  <span className="text-[11px] font-mono text-muted-foreground bg-muted px-2 py-0.5 rounded">
-                    Gesclic v2.4
-                  </span>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </AnimatePresence>
       </div>
     </section>
   );
