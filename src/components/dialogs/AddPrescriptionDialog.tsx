@@ -192,12 +192,52 @@ const AddPrescriptionDialog = ({ onAdd, onEdit, editData, trigger, patients, doc
 
           <div>
             <Label>Médicaments *</Label>
-            <div className="grid grid-cols-2 sm:grid-cols-12 gap-2 mt-1">
-              <Input className="sm:col-span-4" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="Nom" onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addMed())} />
-              <Input className="sm:col-span-3" value={draft.dosage} onChange={(e) => setDraft({ ...draft, dosage: e.target.value })} placeholder="Posologie" />
-              <Input className="sm:col-span-2" type="number" min={1} value={draft.quantity} onChange={(e) => setDraft({ ...draft, quantity: Number(e.target.value) })} placeholder="Qté" />
-              <Input className="sm:col-span-2" type="number" min={0} value={draft.unitPrice || ""} onChange={(e) => setDraft({ ...draft, unitPrice: Number(e.target.value) })} placeholder="Prix" />
-              <Button type="button" variant="outline" className="sm:col-span-1" onClick={addMed}>Ajouter</Button>
+            <div className="flex flex-col md:flex-row gap-2 mt-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 flex-1">
+                <Input
+                  value={draft.name}
+                  onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+                  placeholder="Nom"
+                  onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addMed())}
+                />
+                <Input
+                  value={draft.dosage}
+                  onChange={(e) => setDraft({ ...draft, dosage: e.target.value })}
+                  placeholder="Posologie"
+                  onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addMed())}
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <Input
+                  className="w-20 shrink-0"
+                  type="number"
+                  min={1}
+                  value={draft.quantity}
+                  onChange={(e) => setDraft({ ...draft, quantity: Number(e.target.value) })}
+                  placeholder="Qté"
+                  title="Quantité"
+                  onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addMed())}
+                />
+                <Input
+                  className="w-24 sm:w-28 shrink-0"
+                  type="number"
+                  min={0}
+                  value={draft.unitPrice || ""}
+                  onChange={(e) => setDraft({ ...draft, unitPrice: Number(e.target.value) })}
+                  placeholder="Prix"
+                  title="Prix unitaire"
+                  onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addMed())}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="shrink-0 px-3.5 gap-1.5 whitespace-nowrap hover:bg-primary hover:text-primary-foreground transition-colors"
+                  onClick={addMed}
+                >
+                  <Plus className="w-4 h-4 shrink-0" />
+                  <span>Ajouter</span>
+                </Button>
+              </div>
             </div>
             {form.medications.length > 0 && (
               <div className="mt-3 border border-border rounded-lg overflow-hidden">

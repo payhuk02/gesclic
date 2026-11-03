@@ -15,6 +15,7 @@ export interface Prescription {
   medications: PrescriptionMedication[];
   notes: string;
   status: string;
+  created_at?: string;
 }
 
 interface DbPrescription {
@@ -26,6 +27,7 @@ interface DbPrescription {
   medications: string;
   notes: string;
   status: string;
+  created_at?: string;
 }
 
 type PrescriptionInput = {
@@ -39,6 +41,7 @@ type PrescriptionInput = {
 
 const toApp = (p: DbPrescription): Prescription => ({
   ...p,
+  created_at: p.created_at,
   medications: parsePrescriptionMeds(p.medications),
 });
 
@@ -52,10 +55,10 @@ export const usePrescriptions = () => {
     if (!user || !activeClinicId) { setPrescriptions([]); setLoading(false); return; }
     const { data, error } = await supabase
       .from("prescriptions")
-      .select("id, patient_id, patient_name, doctor_name, date, medications, notes, status")
+      .select("id, patient_id, patient_name, doctor_name, date, medications, notes, status, created_at")
       .eq("clinic_id", activeClinicId)
       .is("deleted_at", null)
-      .order("date", { ascending: false });
+      .order("created_at", { ascending: false });
     if (error) { console.error(error); toast.error("Erreur chargement ordonnances"); }
     else setPrescriptions((data as DbPrescription[] || []).map(toApp));
     setLoading(false);

@@ -182,6 +182,7 @@ const PatientDetail = () => {
                 patientName: patient.name,
                 doctorName: rx.doctor_name,
                 date: rx.date,
+                createdAt: rx.created_at,
                 notes: rx.notes,
                 medications: rx.medications,
               };

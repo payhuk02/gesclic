@@ -187,11 +187,46 @@ async function loadClinicLogo(url: string): Promise<{ data: string; format: "PNG
   });
 }
 
+/**
+ * Formate la date et l'heure pour l'affichage officiel sur l'ordonnance médicale
+ */
+export function formatPrescriptionDateTime(dateStr?: string, createdAtStr?: string): string {
+  const source = createdAtStr || dateStr;
+  const now = new Date();
+
+  if (source) {
+    const d = new Date(source);
+    if (!isNaN(d.getTime())) {
+      const day = String(d.getDate()).padStart(2, "0");
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const year = d.getFullYear();
+
+      const hasExplicitTime = Boolean(
+        (createdAtStr && createdAtStr.includes("T")) ||
+        (dateStr && (dateStr.includes("T") || dateStr.includes(":")))
+      );
+
+      const hours = String(hasExplicitTime ? d.getHours() : now.getHours()).padStart(2, "0");
+      const minutes = String(hasExplicitTime ? d.getMinutes() : now.getMinutes()).padStart(2, "0");
+
+      return `${day}/${month}/${year} à ${hours}:${minutes}`;
+    }
+  }
+
+  const day = String(now.getDate()).padStart(2, "0");
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const year = now.getFullYear();
+  const hours = String(now.getHours()).padStart(2, "0");
+  const minutes = String(now.getMinutes()).padStart(2, "0");
+  return `${day}/${month}/${year} à ${hours}:${minutes}`;
+}
+
 export async function generatePrescriptionPDF(
   rx: {
     patientName: string;
     doctorName: string;
     date: string;
+    createdAt?: string;
     notes?: string;
     medications: { name: string; dosage: string; quantity: number; unitPrice: number }[];
   },
@@ -218,7 +253,8 @@ export async function generatePrescriptionPDF(
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
   doc.text(clinic, 14, 36);
-  doc.text(`Date : ${rx.date}`, 14, 42);
+  const formattedDateTime = formatPrescriptionDateTime(rx.date, rx.createdAt);
+  doc.text(`Date & Heure : ${formattedDateTime}`, 14, 42);
   doc.text(`N° : ORD-${Date.now().toString().slice(-6)}`, 14, 48);
 
   doc.setDrawColor(59, 130, 246);

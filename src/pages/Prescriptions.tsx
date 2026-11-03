@@ -90,6 +90,7 @@ const Prescriptions = () => {
         patientName: rx.patient_name,
         doctorName: rx.doctor_name,
         date: rx.date,
+        createdAt: rx.created_at,
         notes: rx.notes,
         medications: rx.medications,
       },

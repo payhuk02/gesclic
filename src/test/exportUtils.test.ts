@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { exportToExcel, exportToPDF, generateInvoicePDF, generatePrescriptionPDF } from "@/utils/exportUtils";
+import { exportToExcel, exportToPDF, generateInvoicePDF, generatePrescriptionPDF, formatPrescriptionDateTime } from "@/utils/exportUtils";
 
 // Mock jsPDF and ExcelJS
 vi.mock("jspdf", () => ({
@@ -114,6 +114,16 @@ describe("exportUtils", () => {
 
     it("opens print preview", async () => {
       await expect(generatePrescriptionPDF(rx, { print: true, clinicName: "Clinique Test" })).resolves.toBeUndefined();
+    });
+
+    it("formats date and time properly with createdAt ISO", () => {
+      const dt = formatPrescriptionDateTime("2026-10-27", "2026-10-27T09:30:00Z");
+      expect(dt).toMatch(/27\/10\/2026 à \d{2}:\d{2}/);
+    });
+
+    it("formats date with fallback time when createdAt is not present", () => {
+      const dt = formatPrescriptionDateTime("2026-10-27");
+      expect(dt).toMatch(/27\/10\/2026 à \d{2}:\d{2}/);
     });
   });
 });
