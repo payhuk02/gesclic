@@ -1,7 +1,7 @@
 import AppLayout from "@/components/layout/AppLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FileText, Pencil, Loader2, Download, Printer, CheckCircle2 } from "lucide-react";
+import { FileText, Pencil, Loader2, Download, Printer, CheckCircle2, PackageCheck } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
 import AddPrescriptionDialog from "@/components/dialogs/AddPrescriptionDialog";
 import DeleteConfirmDialog from "@/components/dialogs/DeleteConfirmDialog";
@@ -9,6 +9,7 @@ import type { PrescriptionForm } from "@/components/dialogs/AddPrescriptionDialo
 import { usePrescriptions } from "@/hooks/usePrescriptions";
 import { usePatients } from "@/hooks/usePatients";
 import { useDoctors } from "@/hooks/useDoctors";
+import { usePharmacyStock } from "@/hooks/usePharmacyStock";
 import { useClinic } from "@/contexts/ClinicContext";
 import { generatePrescriptionPDF } from "@/utils/exportUtils";
 import { formatFcfaDot, medicationLabel, prescriptionTotal } from "@/lib/prescription-meds";
@@ -18,10 +19,11 @@ const Prescriptions = () => {
   const { prescriptions, loading, addPrescription, updatePrescription, setPrescriptionStatus, deletePrescription } = usePrescriptions();
   const { patients } = usePatients();
   const { doctors } = useDoctors();
+  const { items: pharmacyItems, updateItem: updatePharmacyItem } = usePharmacyStock();
   const { activeClinic } = useClinic();
 
   const lists = {
-    patients: patients.map((p) => ({ id: p.id, name: p.name })),
+    patients: patients.map((p) => ({ id: p.id, name: p.name, allergies: p.allergies })),
     doctors: doctors.map((d) => ({ id: d.id, name: d.name })),
   };
 
@@ -40,6 +42,47 @@ const Prescriptions = () => {
     medications: form.medications,
     notes: form.notes,
   });
+
+  const handleDispenseAndDeductStock = async (rx: (typeof prescriptions)[0]) => {
+    if (rx.status === "completed") {
+      toast.info("Cette ordonnance a déjà été clôturée.");
+      return;
+    }
+
+    let deductedCount = 0;
+    const missingItems: string[] = [];
+
+    for (const med of rx.medications) {
+      const medNameLower = med.name.toLowerCase().trim();
+      const stockItem = pharmacyItems.find(
+        (item) =>
+          item.name.toLowerCase().trim().includes(medNameLower) ||
+          medNameLower.includes(item.name.toLowerCase().trim()),
+      );
+
+      if (stockItem) {
+        const newQuantity = Math.max(0, stockItem.quantity - med.quantity);
+        await updatePharmacyItem(stockItem.id, { quantity: newQuantity });
+        deductedCount++;
+      } else {
+        missingItems.push(med.name);
+      }
+    }
+
+    await setPrescriptionStatus(rx.id, "completed");
+
+    if (deductedCount > 0) {
+      toast.success(
+        `Ordonnance délivrée et stock mis à jour (${deductedCount} produit${deductedCount > 1 ? "s" : ""} déstocké${deductedCount > 1 ? "s" : ""})`,
+      );
+    } else {
+      toast.success("Ordonnance clôturée (aucun produit correspondant trouvé dans l'inventaire pharmacie).");
+    }
+
+    if (missingItems.length > 0) {
+      toast.info(`Non trouvés en pharmacie : ${missingItems.join(", ")}`);
+    }
+  };
 
   const exportPdf = async (rx: (typeof prescriptions)[0], print = false) => {
     await generatePrescriptionPDF(
@@ -94,6 +137,18 @@ const Prescriptions = () => {
                     <Badge variant="outline" className={rx.status === "active" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20" : "bg-muted text-muted-foreground"}>
                       {rx.status === "active" ? "Active" : "Terminée"}
                     </Badge>
+                    {rx.status === "active" && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 gap-1.5 text-xs border-emerald-500/30 text-emerald-600 hover:bg-emerald-500/10"
+                        title="Délivrer et déduire du stock pharmacie"
+                        onClick={() => handleDispenseAndDeductStock(rx)}
+                      >
+                        <PackageCheck className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Délivrer & Déstocker</span>
+                      </Button>
+                    )}
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" title="Télécharger PDF" onClick={() => exportPdf(rx)}>
                       <Download className="w-3.5 h-3.5" />
                     </Button>

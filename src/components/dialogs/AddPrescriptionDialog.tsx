@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, AlertTriangle, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import {
   formatFcfaDot,
@@ -13,6 +13,7 @@ import {
   prescriptionTotal,
   type PrescriptionMedication,
 } from "@/lib/prescription-meds";
+import { checkAllergyConflict } from "@/lib/allergy-checker";
 
 export interface PrescriptionForm {
   patientId: string;
@@ -30,7 +31,7 @@ interface Props {
   onEdit?: (rx: PrescriptionForm) => void;
   editData?: PrescriptionForm | null;
   trigger?: React.ReactNode;
-  patients?: { id: string; name: string }[];
+  patients?: { id: string; name: string; allergies?: string }[];
   doctors?: { id: string; name: string }[];
 }
 
@@ -39,6 +40,19 @@ const AddPrescriptionDialog = ({ onAdd, onEdit, editData, trigger, patients, doc
   const [form, setForm] = useState<PrescriptionForm>(emptyForm);
   const [draft, setDraft] = useState<PrescriptionMedication>(emptyMed);
   const isEdit = !!editData;
+
+  const patientList = patients || [];
+  const doctorList = doctors || [];
+
+  const selectedPatient = useMemo(() => {
+    return patientList.find((p) => p.id === form.patientId || p.name === form.patientName);
+  }, [patientList, form.patientId, form.patientName]);
+
+  const patientAllergies = selectedPatient?.allergies;
+  const hasKnownAllergies =
+    !!patientAllergies &&
+    patientAllergies.trim().toLowerCase() !== "aucune" &&
+    patientAllergies.trim().toLowerCase() !== "neant";
 
   useEffect(() => {
     if (editData && open) setForm({ ...emptyForm, ...editData, notes: editData.notes || "" });
@@ -53,6 +67,16 @@ const AddPrescriptionDialog = ({ onAdd, onEdit, editData, trigger, patients, doc
   const addMed = () => {
     const name = draft.name.trim();
     if (!name) return;
+
+    if (hasKnownAllergies) {
+      const conflict = checkAllergyConflict(patientAllergies, name);
+      if (conflict.hasConflict) {
+        toast.error(conflict.message || `Attention : Risque d'allergie pour « ${name} » !`, {
+          duration: 6000,
+        });
+      }
+    }
+
     setForm({
       ...form,
       medications: [
@@ -86,14 +110,26 @@ const AddPrescriptionDialog = ({ onAdd, onEdit, editData, trigger, patients, doc
       toast.error("Ajoutez au moins un médicament");
       return;
     }
+
+    // Safety check for all medications
+    if (hasKnownAllergies) {
+      const conflicts = form.medications
+        .map((m) => checkAllergyConflict(patientAllergies, m.name))
+        .filter((c) => c.hasConflict);
+
+      if (conflicts.length > 0) {
+        const confirmPrescribe = window.confirm(
+          `ALERTE PHARMACOLOGIQUE :\n${conflicts.map((c) => c.message).join("\n")}\n\nSouhaitez-vous tout de même confirmer cette prescription sous votre responsabilité médicale ?`,
+        );
+        if (!confirmPrescribe) return;
+      }
+    }
+
     if (isEdit) onEdit?.(form);
     else onAdd?.(form);
     setForm(emptyForm);
     setOpen(false);
   };
-
-  const patientList = patients || [];
-  const doctorList = doctors || [];
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -142,6 +178,18 @@ const AddPrescriptionDialog = ({ onAdd, onEdit, editData, trigger, patients, doc
             </div>
           </div>
 
+          {hasKnownAllergies && (
+            <div className="flex items-start gap-2.5 p-3 rounded-lg border border-destructive/30 bg-destructive/10 text-destructive text-xs">
+              <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold">Allergies déclarées du patient : {patientAllergies}</p>
+                <p className="text-muted-foreground mt-0.5">
+                  Vérifiez scrupuleusement les principes actifs et interactions croisées avant toute prescription.
+                </p>
+              </div>
+            </div>
+          )}
+
           <div>
             <Label>Médicaments *</Label>
             <div className="grid grid-cols-2 sm:grid-cols-12 gap-2 mt-1">
@@ -165,28 +213,40 @@ const AddPrescriptionDialog = ({ onAdd, onEdit, editData, trigger, patients, doc
                     </tr>
                   </thead>
                   <tbody>
-                    {form.medications.map((m, i) => (
-                      <tr key={`${m.name}-${i}`} className="border-t border-border">
-                        <td className="p-2">
-                          <Input value={m.name} onChange={(e) => updateLine(i, { name: e.target.value })} className="h-8" />
-                        </td>
-                        <td className="p-2 hidden sm:table-cell">
-                          <Input value={m.dosage} onChange={(e) => updateLine(i, { dosage: e.target.value })} className="h-8" />
-                        </td>
-                        <td className="p-2 w-16">
-                          <Input type="number" min={1} value={m.quantity} onChange={(e) => updateLine(i, { quantity: Number(e.target.value) })} className="h-8 text-right" />
-                        </td>
-                        <td className="p-2 w-24">
-                          <Input type="number" min={0} value={m.unitPrice} onChange={(e) => updateLine(i, { unitPrice: Number(e.target.value) })} className="h-8 text-right" />
-                        </td>
-                        <td className="p-2 text-right tabular-nums whitespace-nowrap">{formatFcfaDot(medicationLineTotal(m))} F</td>
-                        <td className="p-1">
-                          <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeMed(i)}>
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
+                    {form.medications.map((m, i) => {
+                      const conflict = hasKnownAllergies
+                        ? checkAllergyConflict(patientAllergies, m.name)
+                        : { hasConflict: false };
+
+                      return (
+                        <tr key={`${m.name}-${i}`} className={conflict.hasConflict ? "border-t border-destructive/30 bg-destructive/5" : "border-t border-border"}>
+                          <td className="p-2">
+                            <Input value={m.name} onChange={(e) => updateLine(i, { name: e.target.value })} className="h-8" />
+                            {conflict.hasConflict && (
+                              <div className="flex items-center gap-1 text-[11px] text-destructive font-medium mt-1">
+                                <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
+                                <span>Alerte allergie : {conflict.matchedAllergy}</span>
+                              </div>
+                            )}
+                          </td>
+                          <td className="p-2 hidden sm:table-cell">
+                            <Input value={m.dosage} onChange={(e) => updateLine(i, { dosage: e.target.value })} className="h-8" />
+                          </td>
+                          <td className="p-2 w-16">
+                            <Input type="number" min={1} value={m.quantity} onChange={(e) => updateLine(i, { quantity: Number(e.target.value) })} className="h-8 text-right" />
+                          </td>
+                          <td className="p-2 w-24">
+                            <Input type="number" min={0} value={m.unitPrice} onChange={(e) => updateLine(i, { unitPrice: Number(e.target.value) })} className="h-8 text-right" />
+                          </td>
+                          <td className="p-2 text-right tabular-nums whitespace-nowrap">{formatFcfaDot(medicationLineTotal(m))} F</td>
+                          <td className="p-1">
+                            <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeMed(i)}>
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
                 <div className="flex justify-end px-3 py-2 bg-muted/30 border-t border-border text-sm font-semibold">

@@ -11,13 +11,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ArrowLeft, Phone, Mail, Calendar, Droplets,
   AlertTriangle, User, FileText, CreditCard, Pill,
-  Clock, Loader2, Download, Printer,
+  Clock, Loader2, Download, Printer, Activity,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { belongsToPatient } from "@/lib/patient-link";
 import { generatePrescriptionPDF } from "@/utils/exportUtils";
 import { formatFcfaDot, prescriptionTotal } from "@/lib/prescription-meds";
 import { useClinic } from "@/contexts/ClinicContext";
+import { extractVitalsFromNotes, calculateBMI } from "@/lib/vitals";
 
 const PatientDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -111,17 +112,51 @@ const PatientDetail = () => {
         <TabsContent value="timeline">
           <div className="space-y-3">
             {patientRecords.length === 0 && <p className="text-center text-muted-foreground py-12">Aucun dossier médical</p>}
-            {patientRecords.map((rec) => (
-              <div key={rec.id} className="bg-card rounded-xl p-5 border border-border">
-                <div className="flex items-center justify-between mb-2">
-                  <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">Dossier</Badge>
-                  <span className="text-xs text-muted-foreground">{rec.date}</span>
+            {patientRecords.map((rec) => {
+              const { vitals, cleanNotes } = extractVitalsFromNotes(rec.notes);
+              const bmiEval = vitals ? calculateBMI(vitals.weight, vitals.height) : null;
+
+              return (
+                <div key={rec.id} className="bg-card rounded-xl p-5 border border-border">
+                  <div className="flex items-center justify-between mb-2">
+                    <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">Dossier</Badge>
+                    <span className="text-xs text-muted-foreground">{rec.date}</span>
+                  </div>
+                  <p className="text-sm text-foreground"><strong>Diagnostic :</strong> {rec.diagnosis}</p>
+                  {rec.treatment && <p className="text-sm text-muted-foreground mt-1"><strong>Traitement :</strong> {rec.treatment}</p>}
+
+                  {vitals && (
+                    <div className="flex flex-wrap gap-2 my-2.5 p-2 rounded-lg bg-secondary/30 border border-border text-xs">
+                      {vitals.bp_systolic && vitals.bp_diastolic && (
+                        <span className="inline-flex items-center gap-1 font-medium text-foreground">
+                          TA: <strong>{vitals.bp_systolic}/{vitals.bp_diastolic} mmHg</strong>
+                        </span>
+                      )}
+                      {vitals.heart_rate && (
+                        <span className="inline-flex items-center gap-1 font-medium text-foreground">
+                          · FC: <strong>{vitals.heart_rate} bpm</strong>
+                        </span>
+                      )}
+                      {vitals.temperature && (
+                        <span className="inline-flex items-center gap-1 font-medium text-foreground">
+                          · T°: <strong>{vitals.temperature} °C</strong>
+                        </span>
+                      )}
+                      {bmiEval && (
+                        <span className="inline-flex items-center gap-1">
+                          · IMC: <strong className="text-foreground">{bmiEval.bmi} kg/m²</strong>
+                          <Badge variant="outline" className={`text-[9px] py-0 px-1.5 ${bmiEval.color}`}>
+                            {bmiEval.category}
+                          </Badge>
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {cleanNotes && <p className="text-xs text-muted-foreground mt-2 italic">{cleanNotes}</p>}
                 </div>
-                <p className="text-sm text-foreground"><strong>Diagnostic:</strong> {rec.diagnosis}</p>
-                {rec.treatment && <p className="text-sm text-muted-foreground"><strong>Traitement:</strong> {rec.treatment}</p>}
-                {rec.notes && <p className="text-xs text-muted-foreground mt-2 italic">{rec.notes}</p>}
-              </div>
-            ))}
+              );
+            })}
           </div>
         </TabsContent>
 

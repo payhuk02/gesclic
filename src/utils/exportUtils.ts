@@ -2,6 +2,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import ExcelJS from "exceljs";
 import { formatFcfaDot } from "@/lib/prescription-meds";
+import { extractInsuranceFromDescription } from "@/lib/insurance";
 
 interface ExportColumn {
   header: string;
@@ -101,34 +102,57 @@ export const generateInvoicePDF = (payment: {
   description: string;
 }) => {
   const doc = new jsPDF();
+  const { insurance, cleanDescription } = extractInsuranceFromDescription(payment.description);
 
   doc.setFontSize(22);
-  doc.text("FACTURE", 14, 25);
+  doc.text("FACTURE MÉDICALE", 14, 25);
 
   doc.setFontSize(10);
-  doc.text("Gesclic - Gestion Médicale", 14, 35);
-  doc.text(`Date: ${payment.date}`, 14, 42);
-  doc.text(`N° Facture: FAC-${Date.now().toString().slice(-6)}`, 14, 49);
+  doc.text("Gesclic - Plateforme de Gestion Médicale", 14, 35);
+  doc.text(`Date : ${payment.date}`, 14, 42);
+  doc.text(`N° Facture : FAC-${Date.now().toString().slice(-6)}`, 14, 49);
 
   doc.setDrawColor(59, 130, 246);
   doc.line(14, 55, 196, 55);
 
   doc.setFontSize(12);
-  doc.text("Patient:", 14, 65);
+  doc.text("Patient :", 14, 65);
   doc.setFontSize(11);
-  doc.text(payment.patientName, 50, 65);
+  doc.text(payment.patientName, 45, 65);
+
+  if (insurance) {
+    doc.setFontSize(10);
+    doc.text(
+      `Couverture : ${insurance.insuranceName} (${insurance.coveragePercentage}%)${insurance.policyNumber ? ` - Police : ${insurance.policyNumber}` : ""}`,
+      14,
+      72,
+    );
+  }
+
+  const tableStartY = insurance ? 78 : 75;
 
   autoTable(doc, {
-    startY: 75,
-    head: [["Description", "Méthode", "Montant"]],
-    body: [[payment.description, payment.method, `${payment.amount.toLocaleString()} ${payment.currency}`]],
+    startY: tableStartY,
+    head: [["Description des prestations", "Mode d'encaissement", "Montant total"]],
+    body: [[cleanDescription || payment.description, payment.method, `${payment.amount.toLocaleString()} ${payment.currency}`]],
     headStyles: { fillColor: [59, 130, 246] },
   });
 
   const finalY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable?.finalY ?? 100;
 
-  doc.setFontSize(14);
-  doc.text(`Total: ${payment.amount.toLocaleString()} ${payment.currency}`, 14, finalY + 15);
+  if (insurance) {
+    doc.setFontSize(11);
+    doc.text(`Montant Total : ${payment.amount.toLocaleString()} ${payment.currency}`, 14, finalY + 12);
+    doc.setTextColor(37, 99, 235);
+    doc.text(`Part Assurance (${insurance.coveragePercentage}%) : ${insurance.insuranceShare.toLocaleString()} ${payment.currency}`, 14, finalY + 19);
+    doc.setTextColor(16, 185, 129);
+    doc.setFontSize(12);
+    doc.text(`Part Patient (Ticket modérateur réglé) : ${insurance.patientShare.toLocaleString()} ${payment.currency}`, 14, finalY + 27);
+    doc.setTextColor(0, 0, 0);
+  } else {
+    doc.setFontSize(13);
+    doc.text(`Total réglé : ${payment.amount.toLocaleString()} ${payment.currency}`, 14, finalY + 15);
+  }
 
   doc.save(`facture-${payment.patientName.replace(/\s+/g, "-")}.pdf`);
 };

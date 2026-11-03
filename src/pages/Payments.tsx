@@ -3,13 +3,14 @@ import { usePayments } from "@/hooks/usePayments";
 import { usePatients } from "@/hooks/usePatients";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CreditCard, TrendingUp, Clock, CheckCircle, Pencil, FileText, Loader2, Wallet } from "lucide-react";
+import { CreditCard, TrendingUp, Clock, CheckCircle, Pencil, FileText, Loader2, Wallet, ShieldCheck } from "lucide-react";
 import ExportButtons from "@/components/ExportButtons";
 import { generateInvoicePDF } from "@/utils/exportUtils";
 import AddPaymentDialog from "@/components/dialogs/AddPaymentDialog";
 import DeleteConfirmDialog from "@/components/dialogs/DeleteConfirmDialog";
 import type { PaymentForm } from "@/components/dialogs/AddPaymentDialog";
 import EmptyState from "@/components/EmptyState";
+import { extractInsuranceFromDescription } from "@/lib/insurance";
 
 const Payments = () => {
   const { payments, loading, addPayment, updatePayment, deletePayment } = usePayments();
@@ -103,11 +104,34 @@ const Payments = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {payments.map((p) => (
-                    <tr key={p.id} className="border-b border-border last:border-0 hover:bg-secondary/20">
-                      <td className="px-4 py-3 text-sm font-medium text-foreground">{p.patient_name}</td>
-                      <td className="px-4 py-3 text-sm text-muted-foreground">{p.description}</td>
-                      <td className="px-4 py-3 text-sm font-semibold text-foreground">{p.amount.toLocaleString()} {p.currency}</td>
+                  {payments.map((p) => {
+                    const { insurance, cleanDescription } = extractInsuranceFromDescription(p.description);
+                    return (
+                      <tr key={p.id} className="border-b border-border last:border-0 hover:bg-secondary/20">
+                        <td className="px-4 py-3 text-sm font-medium text-foreground">{p.patient_name}</td>
+                        <td className="px-4 py-3 text-sm text-muted-foreground">
+                          <div>{cleanDescription || "-"}</div>
+                          {insurance && (
+                            <div className="mt-1 flex items-center gap-1.5">
+                              <Badge variant="outline" className="text-xs bg-primary/5 text-primary border-primary/20 flex items-center gap-1">
+                                <ShieldCheck className="w-3 h-3 text-primary" />
+                                {insurance.insuranceName} ({insurance.coveragePercentage}%)
+                              </Badge>
+                              {insurance.policyNumber && (
+                                <span className="text-[11px] text-muted-foreground">N° {insurance.policyNumber}</span>
+                              )}
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-foreground">
+                          <div className="font-semibold">{p.amount.toLocaleString()} {p.currency}</div>
+                          {insurance && (
+                            <div className="text-[11px] text-muted-foreground mt-0.5 space-y-0.5">
+                              <div>Patient : <span className="font-medium text-foreground">{insurance.patientShare.toLocaleString()} {p.currency}</span></div>
+                              <div>Assurance : <span className="font-medium text-primary">{insurance.insuranceShare.toLocaleString()} {p.currency}</span></div>
+                            </div>
+                          )}
+                        </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <CreditCard className="w-4 h-4" />
@@ -139,7 +163,8 @@ const Payments = () => {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  );
+                })}
                 </tbody>
               </table>
             </div>

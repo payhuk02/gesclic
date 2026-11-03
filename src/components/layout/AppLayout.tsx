@@ -3,24 +3,39 @@ import { Link } from "react-router-dom";
 import AppSidebar from "./AppSidebar";
 import MobileBottomNav from "./MobileBottomNav";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Search } from "lucide-react";
+import { Search, Bot } from "lucide-react";
 import GlobalSearch from "@/components/GlobalSearch";
 import NotificationBell from "@/components/NotificationBell";
 import ClinicSwitcher from "@/components/layout/ClinicSwitcher";
 import { useClinic } from "@/contexts/ClinicContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { getTrialDaysRemaining } from "@/lib/clinic-plans";
+import MedicalAIAssistant from "@/components/MedicalAIAssistant";
 
 const AppLayout = ({ children, title }: { children: ReactNode; title: string }) => {
   const isMobile = useIsMobile();
   const [searchOpen, setSearchOpen] = useState(false);
-  const { trialActive, activeClinic } = useClinic();
+  const [aiOpen, setAiOpen] = useState(false);
+  const { trialActive, activeClinic, hasClinicRole } = useClinic();
+  const { hasRole, roles } = useAuth();
   const trialDaysLeft = getTrialDaysRemaining(activeClinic?.trial_ends_at);
+
+  const canUseAI =
+    hasRole("super_admin") ||
+    roles.includes("super_admin") ||
+    hasRole("admin") ||
+    hasRole("medecin") ||
+    hasClinicRole("admin") ||
+    hasClinicRole("medecin");
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         setSearchOpen((prev) => !prev);
+      } else if ((e.key === "j" || e.key === "J") && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setAiOpen((prev) => !prev);
       }
     };
     document.addEventListener("keydown", down);
@@ -50,6 +65,20 @@ const AppLayout = ({ children, title }: { children: ReactNode; title: string }) 
                 ⌘K
               </kbd>
             </button>
+            {canUseAI && (
+              <button
+                onClick={() => setAiOpen(true)}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-primary/30 bg-primary/10 hover:bg-primary/20 text-primary transition-colors text-xs font-medium"
+                title="Assistant IA Médical (⌘J / Ctrl+J)"
+                aria-label="Assistant IA Médical"
+              >
+                <Bot className="w-4 h-4" />
+                <span className="hidden md:inline">IA Médicale</span>
+                <kbd className="hidden lg:inline-flex h-4 items-center rounded bg-primary/20 px-1 text-[9px] font-mono">
+                  ⌘J
+                </kbd>
+              </button>
+            )}
             <NotificationBell />
           </div>
         </header>
@@ -66,6 +95,7 @@ const AppLayout = ({ children, title }: { children: ReactNode; title: string }) 
         <main className="p-4 sm:p-6">{children}</main>
       </div>
       <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
+      {aiOpen && <MedicalAIAssistant onClose={() => setAiOpen(false)} />}
     </div>
   );
 };
